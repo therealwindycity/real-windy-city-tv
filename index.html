@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Real Windy City — Cheyenne Civic TV & Multi-Lens Archive Engine</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- TOP BROADCAST NETWORK HEADER -->
+  <header class="network-header">
+    <div class="network-bar">
+      <div class="brand-lockup">
+        <span class="on-air-pill"><span class="on-air-dot"></span>CHEYENNE CIVIC TV</span>
+        <div>
+          <div class="brand-title">THE REAL WINDY CITY</div>
+          <div class="brand-sub">804 Archive.org Episodes (Seasons 1–15) · Ordinance Mini-Series · 10-Lens Civic Engine</div>
+        </div>
+      </div>
+
+      <div class="broadcast-controls">
+        <button id="btnPlayMontage" class="btn btn-gold" title="Launch Animated TV Intro Montage, Cold Open & Cast Credits">
+          🎬 Play Episode Intro Montage
+        </button>
+        <button id="btnThemeSong" class="btn" title="Play/Stop Broadcast Intro Theme Song">
+          🎵 Theme Song: OFF
+        </button>
+        <select id="themeStyleSelect" class="select-ctrl" title="Broadcast Theme Score">
+          <option value="drama">Score: Prime-Time Civic Drama</option>
+          <option value="synth">Score: Capitol Ave Synthwave</option>
+          <option value="noir">Score: Investigative Legal Noir</option>
+        </select>
+        <canvas id="audioViz" class="audio-viz" width="78" height="26"></canvas>
+        <a href="https://github.com/therealwindycity" target="_blank" rel="noopener" class="btn">
+          🐙 github.com/therealwindycity ↗
+        </a>
+      </div>
+    </div>
+
+    <!-- FILTER & DISCOVERY STRIP -->
+    <div class="discovery-strip">
+      <div class="mode-tabs" role="tablist">
+        <button class="mode-tab active" data-mode="featured" id="tabFeatured">📺 Featured Broadcasts (Full Multi-Lens)</button>
+        <button class="mode-tab" data-mode="ordinances" id="tabOrdinances">📜 Ordinance Mini-Series (6 Arcs)</button>
+        <button class="mode-tab" data-mode="vault" id="tabVault">🗄️ All 804 Episodes (2012–2026)</button>
+      </div>
+
+      <input id="searchInput" type="search" class="search-ctrl" placeholder="Search date, ordinance #, UDC section, speaker, street..." style="min-width:240px;flex:1;" />
+
+      <select id="seasonFilter" class="select-ctrl">
+        <option value="ALL">All Seasons (2012–2026)</option>
+      </select>
+
+      <select id="typeFilter" class="select-ctrl">
+        <option value="ALL">All Meeting / Series Types</option>
+        <option value="City Council">City Council</option>
+        <option value="Public Services Committee">Public Services Committee</option>
+        <option value="Finance Committee">Finance Committee</option>
+        <option value="Planning Commission">Planning Commission</option>
+        <option value="Urban Renewal Authority">Urban Renewal Authority</option>
+        <option value="Board of Adjustment">Board of Adjustment</option>
+        <option value="Historic Preservation">Historic Preservation</option>
+        <option value="Work Session">Work Session</option>
+        <option value="Ordinance Story Arc">Ordinance Story Arc</option>
+      </select>
+
+      <select id="speakerFilter" class="select-ctrl">
+        <option value="ALL">All Cast / Speakers</option>
+      </select>
+    </div>
+  </header>
+
+  <!-- MAIN WORKSPACE -->
+  <main class="workspace-shell">
+    <!-- LEFT EPISODE / ORDINANCE SELECTOR -->
+    <aside class="guide-panel">
+      <div class="guide-header">
+        <strong id="guideCountLabel" style="font-size:12.5px;">Episodes</strong>
+        <span style="font-size:11px;color:var(--text-2);">Newest → Oldest</span>
+      </div>
+      <div id="guideList" class="guide-list"></div>
+    </aside>
+
+    <!-- RIGHT EPISODE STAGE & MULTI-LENS VIEWPORT -->
+    <section class="episode-stage">
+      <!-- EPISODE HERO -->
+      <div id="heroCard" class="hero-card"></div>
+
+      <!-- INLINE SPEAKER / TIMESTAMP VIDEO PLAYER DOCK -->
+      <div id="inlinePlayerDock" class="inline-player-dock">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:10px;flex-wrap:wrap;">
+          <div id="inlinePlayerLabel" style="font-size:13px;font-weight:800;color:#fde68a;">▶ Broadcast Clip Player</div>
+          <div style="display:flex;gap:8px;">
+            <a id="inlineArchiveLink" href="#" target="_blank" rel="noopener" class="btn">Open on Archive.org ↗</a>
+            <button id="btnCloseInlinePlayer" class="btn">✕ Close Player</button>
+          </div>
+        </div>
+        <video id="inlineVideoEl" controls style="width:100%;max-height:400px;background:#000;border-radius:8px;"></video>
+      </div>
+
+      <!-- LENS SELECTOR + HOVER PREVIEW + VIEW MODE SWITCHER -->
+      <div class="lens-control-bar">
+        <div class="lens-bar-header">
+          <div>
+            <span style="font-size:11.5px;font-weight:800;color:var(--gold);letter-spacing:0.08em;">CHOOSE YOUR INFORMATION DIET / LENS</span>
+            <span style="font-size:11.5px;color:var(--text-2);margin-left:8px;">(Swipe left/right · Hover any button to peek · Compare side-by-side · Open all 10 in floating iframes)</span>
+          </div>
+          <div class="view-mode-group">
+            <button class="btn btn-active" data-viewmode="swipe" id="vmSwipe">👈👉 Single Swipe Lens</button>
+            <button class="btn" data-viewmode="split2" id="vmSplit2">⚖️ 2-Lens Side-by-Side</button>
+            <button class="btn" data-viewmode="split3" id="vmSplit3">🏛️ 3-Lens Side-by-Side</button>
+            <button class="btn" data-viewmode="iframes" id="vmIframes">🪟 Floating Iframes Matrix (All 10)</button>
+          </div>
+        </div>
+
+        <div id="lensPills" class="lens-pills"></div>
+        <div id="lensHoverPreview" class="lens-hover-preview"></div>
+      </div>
+
+      <!-- ACTIVE LENS CONTAINER -->
+      <div id="lensViewport"></div>
+    </section>
+  </main>
+
+  <!-- INTRO MONTAGE BROADCAST MODAL -->
+  <div id="montageModal" class="montage-modal">
+    <div class="montage-stage">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 18px;background:#070a12;border-bottom:1px solid var(--border);">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="on-air-pill"><span class="on-air-dot"></span>INTRO MONTAGE</span>
+          <span id="montageHeaderLabel" style="font-size:13px;font-weight:700;color:#cbd5e1;"></span>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button id="btnMontageNextBeat" class="btn">⏭ Skip Beat</button>
+          <button id="btnCloseMontage" class="btn btn-gold">✕ Exit Montage</button>
+        </div>
+      </div>
+
+      <div id="montageVisualBody" style="padding:28px 30px;min-height:370px;display:flex;flex-direction:column;justify-content:space-between;gap:18px;"></div>
+
+      <div id="montageChyron" class="montage-chyron">THE REAL WINDY CITY — BROADCAST OPENING SEQUENCE</div>
+    </div>
+  </div>
+
+  <script src="data/civic_tv_db.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
