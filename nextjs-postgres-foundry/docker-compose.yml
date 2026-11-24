@@ -1,0 +1,25 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: civic
+      POSTGRES_PASSWORD: civic
+      POSTGRES_DB: civic_foundry
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  web:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: postgresql://civic:civic@postgres:5432/civic_foundry
+    ports:
+      - "3000:3000"
+
+volumes:
+  pgdata:

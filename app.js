@@ -1,58 +1,97 @@
+/* The Real Windy City v3.0 — Unified Broadcast, Palantir Gotham/Foundry, Speaker-Turn FB Studio & Provenance Engine */
 (function () {
   "use strict";
 
-  const DB = window.CIVIC_TV_DB;
-  if (!DB) {
-    document.body.innerHTML = "<p style='padding:32px;color:#fff'>Error: CIVIC_TV_DB failed to load.</p>";
-    return;
-  }
-
   const LENSES = [
-    { id: "tv", icon: "🎬", name: "TV Episode & Cast", diet: "Broadcast Story", desc: "Cold Open, 'Previously On...' recap, Cast of Characters, 3-Act breakdown & Next Episode cliffhanger." },
-    { id: "layman", icon: "☕", name: "Layman's Narrative", diet: "Plain English", desc: "Zero-jargon kitchen-table translation: what happened, why they argued, and how it hits your wallet & neighborhood." },
-    { id: "tabloid", icon: "🗞️", name: "Windy City Tabloid", diet: "High-Drama Tea", desc: "Punchy Capitol Ave headlines, dais clashes, verbatim zingers, and Winners vs. Losers — 100% anchored to real timestamps." },
-    { id: "legal", icon: "⚖️", name: "Legal & Statutory", diet: "Scientific / Counsel", desc: "Cheyenne Municipal Code, UDC citations, Wyoming Statutes, standard of review, constitutional & preemption exposure." },
-    { id: "verbatim", icon: "📜", name: "Verbatim & Clips", diet: "Primary Evidence", desc: "Searchable timestamped transcript synced to live Archive.org video clips and per-speaker GitHub Release ZIP downloads." },
-    { id: "analytics", icon: "📊", name: "Civic Analytics", diet: "Quantitative Lab", desc: "Speaking-time Gini concentration, debate heat timeline, talk-share bars, and speaker-to-speaker turn transitions." },
-    { id: "map", icon: "🗺️", name: "Cheyenne Geo-Map", diet: "Spatial / Ward View", desc: "Interactive Cheyenne corridor & parcel map plotting annexations, UDC zones, plats, and infrastructure projects." },
-    { id: "historical", icon: "🏛️", name: "Historical Vault", diet: "2008–2026 Precedent", desc: "Cross-year comparison showing how Cheyenne handled similar items across all 6 therealwindycity archive repos." },
-    { id: "fiscal", icon: "💰", name: "Follow the Money", diet: "Taxpayer Ledger", desc: "Contract modifications, General Fund & 6th-Penny capital flows, TIF districts, and private-vs-public cost shifts." },
-    { id: "ordinance_arc", icon: "🧭", name: "Ordinance Tracker", diet: "Legislative Pipeline", desc: "Tracks bills from Planning Commission -> 1st Reading -> Committee -> 2nd Reading -> 3rd Reading + citizen action guide." }
+    { key: "foundry", name: "Foundry Docs Vault", icon: "🧬", accent: "#38bdf8", group: "Verify", blurb: "Palantir Foundry workbench: all Agendas & Supporting PDFs, SHA-1 hashes & live AI-Record-OCR." },
+    { key: "gotham", name: "Gotham Link Graph", icon: "🕸️", accent: "#10b981", group: "Follow", blurb: "Palantir Gotham entity-link graph connecting Officials, Ordinances, PDFs, $ Flows & Speakers." },
+    { key: "speakers", name: "Speaker Turn Videos", icon: "🎙️", accent: "#f59e0b", group: "Watch", blurb: "Individual <=3-min speaker turn videos with emotion/theme tags, speaker .ZIP & Facebook studio." },
+    { key: "provenance", name: "Provenance Films", icon: "🎥", accent: "#f43f5e", group: "Verify", blurb: "Screen-recorded walkthroughs showing the exact manual browser clicks used to obtain records." },
+    { key: "story", name: "Plain-English Story", icon: "📖", accent: "#fbbf24", group: "Watch", blurb: "What happened, why it matters, and a 4-stop curiosity dial from headline to kid mode." },
+    { key: "tabloid", name: "Front Page", icon: "🗞️", accent: "#ef4444", group: "Watch", blurb: "Screaming tabloid headlines with every claim footnoted back to the official packet." },
+    { key: "cast", name: "Cast & Crew", icon: "🎭", accent: "#a855f7", group: "Watch", blurb: "Presiding officials, council sponsors, dissenters, and public commenters on the floor." },
+    { key: "callsheet", name: "Run of Show", icon: "🎬", accent: "#38bdf8", group: "Watch", blurb: "The agenda cut into TV acts — click any item for sponsor, recommended action & ceiling." },
+    { key: "votes", name: "Vote Lab", icon: "🗳️", accent: "#22c55e", group: "Follow", blurb: "Every recorded motion in the minutes, unanimous vs split tallies, and dissenting votes." },
+    { key: "map", name: "Cheyenne Map", icon: "🗺️", accent: "#14b8a6", group: "Follow", blurb: "Parcel & corridor schematic linking rezones, annexations, plats & infrastructure." },
+    { key: "history", name: "History Compare", icon: "🕰️", accent: "#f97316", group: "Follow", blurb: "Every ordinance on tonight's docket traced across its 1st, 2nd & 3rd readings." },
+    { key: "money", name: "Follow the Money", icon: "💵", accent: "#84cc16", group: "Follow", blurb: "Every dollar contract, bid, grant & appropriation ranked and cited." },
+    { key: "jargon", name: "Jargon Decoder", icon: "🔤", accent: "#ec4899", group: "Follow", blurb: "UDC, NTE, Consent Agenda, BOPU, 6th Penny, Substitute — municipal terms decoded." },
+    { key: "legal", name: "Legal (IRAC)", icon: "⚖️", accent: "#8b5cf6", group: "Verify", blurb: "Issue · Rule · Application · Conclusion on ordinance readings & Wyoming Statutes." },
+    { key: "factcheck", name: "Fact-Check Desk", icon: "🔍", accent: "#06b6d4", group: "Verify", blurb: "Deterministic packet briefs, extracted key-value telemetry & severity flags." },
+    { key: "analytics", name: "Analytics", icon: "📊", accent: "#eab308", group: "Verify", blurb: "Docket composition, consent ratio, fiscal totals & dissent metrics." },
+    { key: "transcript", name: "Verbatim Record", icon: "📜", accent: "#cbd5e1", group: "Verify", blurb: "Full searchable official minutes, diarized floor transcript & packet excerpts." },
+    { key: "script", name: "Screenplay", icon: "✍️", accent: "#fda4af", group: "Watch", blurb: "Formatted shooting script with sluglines, clerk motions & verbatim floor quotes." },
+    { key: "evidence", name: "Evidence Locker", icon: "🗄️", accent: "#94a3b8", group: "Verify", blurb: "Primary Granicus/Wayback/Archive.org URLs, Speaker .ZIP releases & SHA-1 hashes." }
   ];
 
-  // Parse URL params for Floating Iframe Embed Mode (?embed=1&lens=legal&item=...)
-  const params = new URLSearchParams(window.location.search);
-  const isEmbed = params.get("embed") === "1";
-  const initialLens = params.get("lens") || "tv";
-  const initialItem = params.get("item") || (DB.rich_episodes[1] ? DB.rich_episodes[1].id : DB.rich_episodes[0].id);
-
-  const state = {
-    mode: "featured", // 'featured' | 'ordinances' | 'vault'
-    selectedId: initialItem,
-    activeLens: LENSES.some(l => l.id === initialLens) ? initialLens : "tv",
-    viewMode: "swipe", // 'swipe' | 'split2' | 'split3' | 'iframes'
-    splitLenses: ["layman", "legal", "verbatim"],
-    iframeLayout: "tiled", // 'tiled' | 'free'
-    search: "",
-    season: "ALL",
-    type: "ALL",
-    speaker: "ALL",
-    transcriptSearch: "",
-    transcriptSpeaker: "ALL",
-    livePublishedState: {}, // populated async from GitHub raw state.json across the 6 repos
+  const EMOTIONS = {
+    impactful: { label: "Emotionally Impactful", icon: "🔥", cls: "tag-amber" },
+    angry: { label: "Angry / Gaveled / Point of Order", icon: "😠", cls: "tag-rose" },
+    concerned: { label: "Concerned / Urgent", icon: "😟", cls: "tag-amber" },
+    legal: { label: "Legal / Statutory Challenge", icon: "⚖️", cls: "tag-violet" },
+    technical: { label: "Fiscal / Staff / Technical", icon: "📊", cls: "tag-sky" },
+    supportive: { label: "Supportive / Coalition", icon: "🤝", cls: "tag-emerald" }
   };
 
-  if (isEmbed) {
-    document.body.classList.add("embed-mode");
-  }
+  const THEMES = {
+    annexation: "Annexation & Boundaries",
+    datacenters: "Data Centers, Power & Water",
+    budget: "Budget, Taxes & 6th Penny",
+    zoning: "Zoning & UDC Code",
+    procedure: "Public Comment & Procedure",
+    housing: "Housing, Plats & Subdivisions",
+    safety: "Public Safety, Police & Fire",
+    contracts: "Contracts, Bids & LEADS",
+    infrastructure: "Stormwater, Roads & Parks"
+  };
 
-  // Index rich episodes & catalog for O(1) lookup
-  const richById = {};
-  DB.rich_episodes.forEach(ep => { richById[ep.id] = ep; });
-  const arcById = {};
-  DB.ordinance_arcs.forEach(a => { arcById[a.id] = a; });
-  const catById = {};
-  DB.catalog_804.forEach((c, idx) => { c._idx = idx; catById[c.id] = c; });
+  const DB = {
+    episodes: [],
+    epBySlug: new Map(),
+    seasonCache: new Map(),
+    turns: [],
+    turnById: new Map(),
+    speakers: [],
+    speakerBySlug: new Map(),
+    ordinances: [],
+    ordBySlug: new Map(),
+    docs: null,
+    provenance: null,
+    people: [],
+    featured: null
+  };
+
+  const STATE = {
+    view: "home",
+    epSlug: null,
+    epLens: "foundry",
+    epMode: "swipe",
+    splitLeft: "foundry",
+    splitRight: "speakers",
+    epFilterQ: "",
+    epFilterBody: "",
+    epFilterSeason: "",
+    spkAxis: "speaker",
+    spkSlug: "",
+    spkDate: "",
+    spkOrd: "",
+    spkTheme: "",
+    spkEmotion: "",
+    spkQ: "",
+    spkSort: "impact",
+    ordSlug: null,
+    ordStageIdx: 0,
+    ordQ: "",
+    docQ: "",
+    docRole: "",
+    docOcr: false,
+    selectedDocId: null,
+    provActiveUrl: null,
+    provActiveTitle: "",
+    provActiveDesc: "",
+    provQ: "",
+    floats: []
+  };
 
   function esc(s) {
     return String(s == null ? "" : s)
@@ -62,1422 +101,1010 @@
       .replace(/"/g, "&quot;");
   }
 
-  function fmtDur(sec) {
-    const s = Math.max(0, Math.round(sec || 0));
-    const h = Math.floor(s / 3600);
-    const m = Math.floor((s % 3600) / 60);
-    const r = s % 60;
-    return h > 0 ? `${h}h ${m}m` : `${m}m ${r}s`;
+  function money(n) {
+    if (!n) return "$0";
+    return n >= 1e6 ? "$" + (n / 1e6).toFixed(2) + "M" : "$" + Math.round(n).toLocaleString("en-US");
   }
 
-  // Convert any Ordinance Mini-Series or any of the 804 Catalog items into a unified Episode View-Model
-  function resolveActiveRecord(id) {
-    if (richById[id]) return richById[id];
-
-    if (arcById[id]) {
-      const arc = arcById[id];
-      const base = richById[arc.linked_primary_episode] || DB.rich_episodes[1];
-      // Combine cast & transcripts across all episodes in this ordinance arc!
-      const combinedCastMap = new Map();
-      const combinedActs = arc.episodes_in_arc.map((step, i) => ({
-        act: `EPISODE ${i + 1} OF ARC — ${step.stage} (${step.date})`,
-        summary: step.note,
-        jump_ep: step.ep_id
-      }));
-      arc.episodes_in_arc.forEach(step => {
-        const ep = richById[step.ep_id];
-        if (ep) {
-          ep.cast.slice(0, 6).forEach(c => {
-            if (!combinedCastMap.has(c.name)) combinedCastMap.set(c.name, Object.assign({}, c));
-          });
-        }
-      });
-      return Object.assign({}, base, {
-        id: arc.id,
-        is_ordinance_series: true,
-        arc_steps: arc.episodes_in_arc,
-        code: arc.code,
-        date: arc.date,
-        official_title: arc.ordinance_number,
-        show_title: arc.show_title,
-        badge: arc.badge,
-        drama_score: arc.drama_score,
-        meeting_type: "Ordinance Story Arc",
-        acts: combinedActs,
-        cast: Array.from(combinedCastMap.values()).slice(0, 12),
-        layman: {
-          headline: `Ordinance Mini-Series: ${arc.show_title}`,
-          tldr: arc.summary + " Follow every reading from initial introduction to committee cross-examination and floor amendments.",
-          wallet_impact: base.layman.wallet_impact,
-          who_cares: base.layman.who_cares
-        }
-      });
+  // Client-side pure-JS CRC32 + ZIP builder so GitHub Pages generates real .ZIP speaker packs at $0/mo!
+  function crc32(buf) {
+    let c = 0xffffffff;
+    for (let i = 0; i < buf.length; i++) {
+      c ^= buf[i];
+      for (let k = 0; k < 8; k++) c = (c & 1) ? (0xedb88320 ^ (c >>> 1)) : (c >>> 1);
     }
-
-    // Historical episode from the 804-item Archive.org catalog (Seasons 1..15, 2012..2026)
-    const cat = catById[id] || DB.catalog_804[0];
-    const prevChron = DB.catalog_804[cat._idx + 1]; // older meeting before this one
-    const nextChron = DB.catalog_804[cat._idx - 1]; // newer meeting after this one
-    const livePub = state.livePublishedState[cat.id];
-    const badgeParts = [`SEASON ${cat.season} (${cat.year})`];
-    if (cat.premiere) badgeParts.push("🌟 SEASON PREMIERE");
-    if (cat.finale) badgeParts.push("🏁 SEASON FINALE");
-    if (livePub && livePub.status === "published") badgeParts.push(`✅ ${livePub.speakers} SPEAKER ZIPS LIVE`);
-
-    return {
-      id: cat.id,
-      code: cat.code,
-      season: cat.season,
-      year: cat.year,
-      date: cat.date,
-      official_title: cat.title,
-      show_title: `${cat.title}${cat.premiere ? " — Season Premiere" : (cat.finale ? " — Season Finale" : "")}`,
-      badge: badgeParts.join(" · "),
-      drama_score: 7.8,
-      meeting_type: cat.type,
-      duration_sec: Math.round((cat.size_mb || 250) * 11),
-      stream_url: "",
-      embed_url: `https://archive.org/embed/${cat.id}`,
-      archive_url: `https://archive.org/details/${cat.id}`,
-      github_repo: cat.repo,
-      release_url: livePub && livePub.release_url ? livePub.release_url : `https://github.com/${cat.repo}/releases`,
-      release_zips_count: livePub ? (livePub.speakers || 0) : 0,
-      previously_on: prevChron ? [{
-        ep_id: prevChron.id,
-        label: `${prevChron.code} · ${prevChron.date}`,
-        summary: `Preceding Cheyenne broadcast: "${prevChron.title}" (${prevChron.type}).`
-      }] : [],
-      next_episode: {
-        headline: nextChron ? `Next Broadcast (${nextChron.code} · ${nextChron.date}): ${nextChron.title}` : "Latest Broadcast in Archive",
-        cliffhanger: nextChron ? `Storylines and committee referrals advance to ${nextChron.title} on ${nextChron.date}.` : "Awaiting next Ch192 upload."
-      },
-      ordinances: [`Full Ch192 Archival Docket — ${cat.title} (${cat.date})`],
-      acts: [
-        { act: "ACT I — Call to Order, Roll Call & Agenda Adoption", summary: `${cat.type} convenes on ${cat.date} (Season ${cat.season}, Episode ${cat.ep_num}). Full archival video (${cat.size_mb} MB) preserved in Internet Archive collection cochwy.` },
-        { act: "ACT II — Public Hearings, Staff Reports & Amendments", summary: `Automated GitHub Actions runner in ${cat.repo} splits every speaking turn into per-speaker MP4 ZIP archives (Newest -> Oldest).` },
-        { act: "ACT III — Final Motions & Adjournment", summary: livePub ? `Speaker diarization complete: ${livePub.clips} speaking-turn clips across ${livePub.speakers} speakers published to GitHub Releases!` : `Queued in ${cat.repo} automated GitHub Actions speaker-splitting pipeline.` }
-      ],
-      layman: {
-        headline: `Plain-English Archival Guide: ${cat.title} (${cat.date})`,
-        tldr: `This ${cat.year} ${cat.type} broadcast is Episode ${cat.ep_num} of Season ${cat.season} in Cheyenne's 804-episode public-access archive. Watch the full embedded Ch192 video or pull matching PDF agenda packets from ${cat.repo}.`,
-        wallet_impact: `Cross-reference matching ${cat.year} agenda packets and minutes in github.com/${cat.repo} for exact dollar & ordinance text.`,
-        who_cares: `Cheyenne residents researching ${cat.year} ${cat.type} decisions and historical precedent.`
-      },
-      tabloid: {
-        banner: `FROM THE ${cat.year} VAULT: ${cat.title.toUpperCase()}!`,
-        subhead: `${cat.premiere ? "Season Premiere kicks off a brand-new year at 2101 O'Neil Ave!" : "Every motion, gavel bang, and public showdown preserved on Ch192 tape!"}`,
-        zingers: [{ who: `Archive Record (${cat.code})`, line: `Source identifier: ${cat.id} (${cat.size_mb} MB master recording in ${cat.repo}).` }],
-        winners: ["Public Record Permanence (preserved across Archive.org + GitHub)"],
-        losers: ["Memory-holed municipal history"]
-      },
-      legal: {
-        citations: ["Wyo. Stat. § 16-4-401 et seq. (Wyoming Public Meetings Act)", "Wyo. Stat. § 16-4-201 et seq. (Wyoming Public Records Act)", `Archival Repository: ${cat.repo}`],
-        posture: `Historical ${cat.type} Proceeding (${cat.date}).`,
-        analysis: `Primary video evidence hosted at archive.org/details/${cat.id}; companion PDF agenda packets, supporting documents, and minutes for ${cat.year} are indexed in github.com/${cat.repo}.`,
-        risk_level: "ARCHIVAL RECORD — Verifiable primary video & packet source."
-      },
-      geo_pins: [
-        { title: "Cheyenne Municipal Building (2101 O'Neil Ave)", lat: 41.1350, lng: -104.8211, x: 46, y: 54, tag: `${cat.code} (${cat.date})` }
-      ],
-      historical: DB.archive_repos.map(r => ({
-        era: r.years,
-        repo: r.repo.split("/")[1],
-        note: `${r.episodes} Ch192 meeting videos + searchable PDF agenda packets & minutes.`
-      })),
-      fiscal: [
-        { item: `${cat.title} (${cat.date})`, fund: `See ${cat.year} Agenda Packet PDFs in ${cat.repo}`, direction: "Archival Audit", impact: `Media footprint: ${cat.size_mb} MB on Internet Archive.` }
-      ],
-      cast: [
-        { id: "ch192", name: "Presiding Chair & Governing Body", role: cat.type, archetype: "Dais Roster", color: "#f59e0b", speaking_sec: 1800, turns: 25, share_pct: 55, quote: `Full Ch192 archival recording available via embedded Archive.org player and ${cat.repo} Releases.`, clip_start: 0, clip_end: 30, hms: "00h00m00s", zip_url: `https://github.com/${cat.repo}/releases` },
-        { id: "staff", name: "City Staff & Public Testifiers", role: "Presenters & Citizens", archetype: "Floor Witnesses", color: "#14b8a6", speaking_sec: 1450, turns: 20, share_pct: 45, quote: `Automated speaker-clip ZIP extraction active in ${cat.repo}.`, clip_start: 60, clip_end: 90, hms: "00h01m00s", zip_url: `https://github.com/${cat.repo}/actions` }
-      ],
-      gini_index: 0.38,
-      heat_timeline: Array.from({ length: 8 }, (_, i) => ({ minute: i * 12, turns: 6 + (i % 4) * 3, speakers: 3 + (i % 3) })),
-      top_transitions: [{ from: "Presiding Chair", to: "Staff / Floor Speaker", count: 14 }],
-      total_turns: livePub ? (livePub.clips || 45) : 45,
-      transcript: [
-        { n: 1, speaker: "Archival Player Ready", speaker_id: "ch192", start: 0, end: 30, hms: "00h00m00s", text: `Click 'Watch Full Archive.org Stream' to view ${cat.title} (${cat.date}), or check ${cat.repo}/releases as the automated GitHub Actions speaker splitter publishes per-speaker ZIPs newest-to-oldest.` }
-      ]
-    };
+    return (c ^ 0xffffffff) >>> 0;
   }
 
-  // =========================================================================
-  // PROCEDURAL WEBAUDIO BROADCAST THEME SONG SYNTHESIZER + VISUALIZER
-  // =========================================================================
-  let audioCtx = null;
-  let themeTimer = null;
-  let isThemePlaying = false;
-  let analyser = null;
-  let vizAnimId = null;
+  function buildZipBlob(entries) {
+    const enc = new TextEncoder();
+    const locals = [];
+    const centrals = [];
+    let offset = 0;
+    for (const e of entries) {
+      const nb = enc.encode(e.name);
+      const data = e.data instanceof Uint8Array ? e.data : enc.encode(String(e.data));
+      const crc = crc32(data);
+      const sz = data.length;
+      const loc = new Uint8Array(30 + nb.length + sz);
+      const lv = new DataView(loc.buffer);
+      lv.setUint32(0, 0x04034b50, true);
+      lv.setUint16(4, 20, true);
+      lv.setUint16(6, 0x0800, true);
+      lv.setUint16(12, 0x5978, true);
+      lv.setUint32(14, crc, true);
+      lv.setUint32(18, sz, true);
+      lv.setUint32(22, sz, true);
+      lv.setUint16(26, nb.length, true);
+      loc.set(nb, 30);
+      loc.set(data, 30 + nb.length);
+      locals.push(loc);
 
-  const SCORES = {
-    drama: { bpm: 118, bass: [55, 55, 65.41, 73.42, 82.41, 73.42, 65.41, 49], lead: [220, 261.63, 329.63, 293.66, 329.63, 392.0, 329.63, 293.66], wave: "sawtooth" },
-    synth: { bpm: 128, bass: [65.41, 65.41, 87.31, 98.0, 73.42, 73.42, 82.41, 98.0], lead: [523.25, 392.0, 329.63, 392.0, 440.0, 392.0, 329.63, 293.66], wave: "square" },
-    noir:  { bpm: 92,  bass: [46.25, 46.25, 55.0, 51.91, 41.2, 41.2, 49.0, 46.25], lead: [185.0, 220.0, 246.94, 220.0, 174.61, 196.0, 220.0, 164.81], wave: "triangle" }
-  };
-
-  function startThemeSong() {
-    if (isThemePlaying) return;
-    const AudioContextCls = window.AudioContext || window.webkitAudioContext;
-    if (!AudioContextCls) return;
-    if (!audioCtx) {
-      audioCtx = new AudioContextCls();
-      analyser = audioCtx.createAnalyser();
-      analyser.fftSize = 64;
-      analyser.connect(audioCtx.destination);
+      const cen = new Uint8Array(46 + nb.length);
+      const cv = new DataView(cen.buffer);
+      cv.setUint32(0, 0x02014b50, true);
+      cv.setUint16(4, 20, true);
+      cv.setUint16(6, 20, true);
+      cv.setUint16(8, 0x0800, true);
+      cv.setUint16(14, 0x5978, true);
+      cv.setUint32(16, crc, true);
+      cv.setUint32(20, sz, true);
+      cv.setUint32(24, sz, true);
+      cv.setUint16(28, nb.length, true);
+      cv.setUint32(42, offset, true);
+      cen.set(nb, 46);
+      centrals.push(cen);
+      offset += loc.length;
     }
-    if (audioCtx.state === "suspended") audioCtx.resume();
-    isThemePlaying = true;
-    const btn = document.getElementById("btnThemeSong");
-    if (btn) {
-      btn.textContent = "🔊 Theme Song: ON";
-      btn.classList.add("btn-active");
-    }
-
-    let step = 0;
-    const playStep = () => {
-      if (!isThemePlaying || !audioCtx) return;
-      const styleKey = (document.getElementById("themeStyleSelect") || {}).value || "drama";
-      const score = SCORES[styleKey] || SCORES.drama;
-      const beatDur = 60 / score.bpm / 2;
-      const now = audioCtx.currentTime;
-
-      // Bass pulse
-      const oscB = audioCtx.createOscillator();
-      const gainB = audioCtx.createGain();
-      oscB.type = "sawtooth";
-      oscB.frequency.setValueAtTime(score.bass[step % score.bass.length], now);
-      gainB.gain.setValueAtTime(0.11, now);
-      gainB.gain.exponentialRampToValueAtTime(0.001, now + beatDur * 0.9);
-      oscB.connect(gainB);
-      gainB.connect(analyser);
-      oscB.start(now);
-      oscB.stop(now + beatDur);
-
-      // Lead arpeggio / brass motif
-      if (step % 2 === 0 || styleKey === "synth") {
-        const oscL = audioCtx.createOscillator();
-        const gainL = audioCtx.createGain();
-        oscL.type = score.wave;
-        oscL.frequency.setValueAtTime(score.lead[(step >> 1) % score.lead.length], now);
-        gainL.gain.setValueAtTime(0.07, now);
-        gainL.gain.exponentialRampToValueAtTime(0.001, now + beatDur * 1.4);
-        oscL.connect(gainL);
-        gainL.connect(analyser);
-        oscL.start(now);
-        oscL.stop(now + beatDur * 1.5);
-      }
-
-      // Cheyenne wind-snare accent on backbeats
-      if (step % 4 === 2) {
-        const bufSz = Math.floor(audioCtx.sampleRate * 0.09);
-        const buf = audioCtx.createBuffer(1, bufSz, audioCtx.sampleRate);
-        const data = buf.getChannelData(0);
-        for (let i = 0; i < bufSz; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / bufSz);
-        const noise = audioCtx.createBufferSource();
-        noise.buffer = buf;
-        const gN = audioCtx.createGain();
-        gN.gain.setValueAtTime(0.05, now);
-        noise.connect(gN);
-        gN.connect(analyser);
-        noise.start(now);
-      }
-
-      step++;
-      themeTimer = setTimeout(playStep, beatDur * 1000);
-    };
-    playStep();
-    drawVisualizer();
+    const cSize = centrals.reduce((s, x) => s + x.length, 0);
+    const eocd = new Uint8Array(22);
+    const ev = new DataView(eocd.buffer);
+    ev.setUint32(0, 0x06054b50, true);
+    ev.setUint16(8, entries.length, true);
+    ev.setUint16(10, entries.length, true);
+    ev.setUint32(12, cSize, true);
+    ev.setUint32(16, offset, true);
+    return new Blob([...locals, ...centrals, eocd], { type: "application/zip" });
   }
 
-  function stopThemeSong() {
-    isThemePlaying = false;
-    if (themeTimer) clearTimeout(themeTimer);
-    if (vizAnimId) cancelAnimationFrame(vizAnimId);
-    const btn = document.getElementById("btnThemeSong");
-    if (btn) {
-      btn.textContent = "🎵 Theme Song: OFF";
-      btn.classList.remove("btn-active");
-    }
-  }
-
-  function drawVisualizer() {
-    const canvas = document.getElementById("audioViz");
-    if (!canvas || !analyser) return;
-    const ctx = canvas.getContext("2d");
-    const arr = new Uint8Array(analyser.frequencyBinCount);
-    const loop = () => {
-      if (!isThemePlaying) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        return;
-      }
-      analyser.getByteFrequencyData(arr);
-      ctx.fillStyle = "#060913";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      const bars = 12;
-      const bw = canvas.width / bars;
-      for (let i = 0; i < bars; i++) {
-        const v = arr[i] / 255;
-        const h = Math.max(2, v * canvas.height);
-        ctx.fillStyle = i % 2 === 0 ? "#f59e0b" : "#06b6d4";
-        ctx.fillRect(i * bw + 1, canvas.height - h, bw - 2, h);
-      }
-      vizAnimId = requestAnimationFrame(loop);
-    };
-    loop();
-  }
-
-  // =========================================================================
-  // INLINE CLIP VIDEO PLAYER + INTRO MONTAGE SEQUENCER
-  // =========================================================================
-  window.playEpisodeClip = function (epId, startSec, endSec, label) {
-    const ep = resolveActiveRecord(epId);
-    const dock = document.getElementById("inlinePlayerDock");
-    const vid = document.getElementById("inlineVideoEl");
-    const lbl = document.getElementById("inlinePlayerLabel");
-    const link = document.getElementById("inlineArchiveLink");
-    if (!dock || !vid) return;
-
-    dock.classList.add("open");
-    lbl.textContent = `▶ ${label || ep.show_title} (${Math.floor(startSec / 60)}:${String(Math.floor(startSec % 60)).padStart(2, "0")})`;
-    link.href = `${ep.archive_url}?start=${Math.floor(startSec)}`;
-
-    if (ep.stream_url) {
-      vid.style.display = "block";
-      const existingIframe = document.getElementById("inlineEmbedFallback");
-      if (existingIframe) existingIframe.remove();
-      const fragUrl = `${ep.stream_url}#t=${Math.max(0, startSec)},${Math.max(startSec + 15, endSec || startSec + 30)}`;
-      if (vid.src !== fragUrl) vid.src = fragUrl;
-      vid.currentTime = Math.max(0, startSec);
-      vid.play().catch(() => {});
-    } else {
-      vid.pause();
-      vid.style.display = "none";
-      let ifr = document.getElementById("inlineEmbedFallback");
-      if (!ifr) {
-        ifr = document.createElement("iframe");
-        ifr.id = "inlineEmbedFallback";
-        ifr.style.cssText = "width:100%;height:380px;border:none;border-radius:8px;background:#000;";
-        dock.appendChild(ifr);
-      }
-      ifr.src = `${ep.embed_url}?start=${Math.floor(startSec)}&autoplay=1`;
-    }
-    dock.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  };
-
-  window.jumpToEpisode = function (epId) {
-    if (richById[epId]) state.mode = "featured";
-    else if (arcById[epId]) state.mode = "ordinances";
-    else state.mode = "vault";
-    state.selectedId = epId;
-    syncModeButtons();
-    renderAll();
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  let montageInterval = null;
-  let montageStepIdx = 0;
-
-  function openIntroMontage() {
-    const ep = resolveActiveRecord(state.selectedId);
-    const modal = document.getElementById("montageModal");
-    const body = document.getElementById("montageVisualBody");
-    const chyron = document.getElementById("montageChyron");
-    const hdr = document.getElementById("montageHeaderLabel");
-    if (!modal) return;
-
-    modal.classList.add("open");
-    hdr.textContent = `${ep.code} · ${ep.date} · ${ep.official_title}`;
-    startThemeSong();
-
-    const prevText = ep.previously_on && ep.previously_on.length
-      ? ep.previously_on.map(p => `<div style="margin-bottom:8px;"><strong>${esc(p.label)}:</strong> ${esc(p.summary)}</div>`).join("")
-      : `<div>Cheyenne Governing Body & Standing Committees set the stage across 2101 O'Neil Avenue.</div>`;
-
-    const topCast = (ep.cast || []).slice(0, 4);
-    const beats = [
-      {
-        chyron: "⏪ PREVIOUSLY ON THE REAL WINDY CITY...",
-        html: `
-          <div>
-            <div class="section-kicker">BROADCAST RECAP</div>
-            <h2 style="font-size:30px;margin:4px 0 14px;color:#67e8f9;">"Previously on The Real Windy City..."</h2>
-            <div style="font-size:15px;line-height:1.6;color:#e2e8f0;background:rgba(6,182,212,0.1);border-left:4px solid #06b6d4;padding:14px 18px;border-radius:10px;">
-              ${prevText}
-            </div>
-          </div>
-          <div style="font-size:12px;color:#94a3b8;">Advancing to Cold Open...</div>`
-      },
-      {
-        chyron: `🎙️ COLD OPEN — ${ep.date} · 2101 O'NEIL AVE, CHEYENNE WY`,
-        html: `
-          <div>
-            <div class="section-kicker">COLD OPEN VERBATIM QUOTE</div>
-            <blockquote style="font-size:23px;font-weight:800;line-height:1.38;margin:10px 0;color:#fef08a;">
-              "${esc((topCast[0] && topCast[0].quote) || ep.layman.tldr)}"
-            </blockquote>
-            <div style="font-size:14px;color:#cbd5e1;">— <strong>${esc(topCast[0] ? topCast[0].name : "Official Record")}</strong> (${esc(topCast[0] ? topCast[0].hms : "00h01m41s")})</div>
-          </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            ${(ep.ordinances || []).slice(0, 3).map(o => `<span class="hero-badge">${esc(o)}</span>`).join("")}
-          </div>`
-      },
-      {
-        chyron: `🎭 TONIGHT'S STARRING CAST — ${(ep.cast || []).length} VOICES ON THE RECORD`,
-        html: `
-          <div>
-            <div class="section-kicker">OPENING CREDITS · STARRING IN THIS EPISODE</div>
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:10px;">
-              ${topCast.map(c => `
-                <div style="background:rgba(15,23,42,0.9);border:1px solid ${esc(c.color)};border-radius:12px;padding:14px;">
-                  <div style="font-size:11px;font-weight:800;color:${esc(c.color)};text-transform:uppercase;">${esc(c.archetype)}</div>
-                  <div style="font-size:17px;font-weight:900;margin:3px 0;">${esc(c.name)}</div>
-                  <div style="font-size:12px;color:#94a3b8;">${esc(c.role)}</div>
-                  <div style="font-size:11.5px;color:#fde68a;margin-top:6px;">${c.turns} turns · ${c.share_pct}% talk share</div>
-                </div>
-              `).join("")}
-            </div>
-          </div>
-          <div style="font-size:12px;color:#94a3b8;">Every speaking turn clipped & archived on github.com/therealwindycity</div>`
-      },
-      {
-        chyron: `🎬 NOW AIRING: ${ep.code} — "${ep.show_title.toUpperCase()}"`,
-        html: `
-          <div style="text-align:center;padding:18px 0;">
-            <span class="hero-badge">${esc(ep.badge)}</span>
-            <h1 style="font-size:36px;font-weight:950;margin:14px 0 8px;background:linear-gradient(90deg,#fff,#fde68a,#f59e0b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">
-              ${esc(ep.show_title)}
-            </h1>
-            <p style="font-size:15px;color:#cbd5e1;max-width:720px;margin:0 auto 18px;">${esc(ep.layman.tldr)}</p>
-            <button class="btn btn-gold" onclick="document.getElementById('btnCloseMontage').click(); playEpisodeClip('${esc(ep.id)}', ${topCast[0] ? topCast[0].clip_start : 60}, ${topCast[0] ? topCast[0].clip_end : 120}, 'Episode Opening Highlight');">
-              ▶ Watch Live Video Highlight & Enter Multi-Lens View
-            </button>
-          </div>`
-      }
+  window.downloadSpeakerZip = async function (speakerSlug) {
+    const spk = DB.speakerBySlug.get(speakerSlug);
+    if (!spk) return;
+    const turns = DB.turns.filter((t) => t.speakerSlug === speakerSlug);
+    const baseUrl = window.location.origin + window.location.pathname;
+    const md = [
+      `# ${spk.name} — Complete Cheyenne Civic Speaker Video Archive`,
+      `Role: ${spk.role}`,
+      `Recorded <=3-Min Turns: ${turns.length} across ${spk.meetingCount} meetings (${spk.firstDate} -> ${spk.lastDate})`,
+      `Themes: ${spk.topThemes.join(", ")}`,
+      ``,
+      `## Ready-to-Paste Facebook Captions & Video Links`,
+      ``
     ];
-
-    montageStepIdx = 0;
-    const renderBeat = () => {
-      const b = beats[montageStepIdx % beats.length];
-      body.innerHTML = b.html;
-      chyron.textContent = b.chyron;
-    };
-    renderBeat();
-    if (montageInterval) clearInterval(montageInterval);
-    montageInterval = setInterval(() => {
-      if (montageStepIdx < beats.length - 1) {
-        montageStepIdx++;
-        renderBeat();
-      } else {
-        clearInterval(montageInterval);
-      }
-    }, 4800);
-
-    document.getElementById("btnMontageNextBeat").onclick = () => {
-      montageStepIdx = (montageStepIdx + 1) % beats.length;
-      renderBeat();
-    };
-  }
-
-  function closeIntroMontage() {
-    if (montageInterval) clearInterval(montageInterval);
-    document.getElementById("montageModal").classList.remove("open");
-    stopThemeSong();
-  }
-
-  // =========================================================================
-  // 10 LENS RENDERERS (SAME UNIFIED DATABASE -> 10 DISTINCT INTERPRETIVE LENSES)
-  // =========================================================================
-  function renderLensContent(ep, lensId) {
-    switch (lensId) {
-      case "tv":
-        return renderTVLens(ep);
-      case "layman":
-        return renderLaymanLens(ep);
-      case "tabloid":
-        return renderTabloidLens(ep);
-      case "legal":
-        return renderLegalLens(ep);
-      case "verbatim":
-        return renderVerbatimLens(ep);
-      case "analytics":
-        return renderAnalyticsLens(ep);
-      case "map":
-        return renderMapLens(ep);
-      case "historical":
-        return renderHistoricalLens(ep);
-      case "fiscal":
-        return renderFiscalLens(ep);
-      case "ordinance_arc":
-        return renderOrdinanceArcLens(ep);
-      default:
-        return renderTVLens(ep);
+    const sh = [
+      `#!/usr/bin/env bash`,
+      `set -e`,
+      `mkdir -p "${speakerSlug}_fb_clips" && cd "${speakerSlug}_fb_clips"`
+    ];
+    for (const t of turns) {
+      const cap = `${(EMOTIONS[t.emotion] || EMOTIONS.impactful).icon} ${t.speakerName} (${t.speakerRole}) at Cheyenne ${t.bodyName} — ${t.date} [${t.hms}]\n"${t.text.slice(0, 280)}…"\n🔗 Verified Record: ${baseUrl}#speakers:${speakerSlug}\n#CheyenneWY #TheRealWindyCity #PublicRecord`;
+      md.push(`### Turn #${t.id} — ${t.date} · ${t.bodyName} (${t.hms}, ${Math.round(t.durationSec)}s)`);
+      if (t.directMp4Url) md.push(`- Direct MP4: ${t.directMp4Url}`);
+      if (t.speakerZipUrl) md.push(`- Meeting Speaker ZIP: ${t.speakerZipUrl}`);
+      md.push("```text\n" + cap + "\n```\n");
+      const fn = `${t.date}_${speakerSlug}_turn${t.id}_${Math.round(t.durationSec)}s.mp4`;
+      if (t.directMp4Url && t.directMp4Url.endsWith(".mp4")) sh.push(`curl -L "${t.directMp4Url}" -o "${fn}"`);
+      else if (t.youtubeId) sh.push(`yt-dlp --download-sections "*${Math.floor(t.startSec)}-${Math.ceil(t.endSec)}" -f mp4 "https://www.youtube.com/watch?v=${t.youtubeId}" -o "${fn}"`);
     }
+    const entries = [
+      { name: `${speakerSlug}/SPEAKER_DOSSIER_AND_FB_CAPTIONS.md`, data: md.join("\n") },
+      { name: `${speakerSlug}/turns_manifest.json`, data: JSON.stringify({ profile: spk, turns }, null, 2) },
+      { name: `${speakerSlug}/download_all_fb_mp4_clips.sh`, data: sh.join("\n") + "\n" }
+    ];
+    const blob = buildZipBlob(entries);
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `${speakerSlug}-cheyenne-speaker-clips.zip`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
+
+  window.playThemeSong = function () {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return;
+    const ctx = new Ctx();
+    const notes = [261.63, 329.63, 392.0, 523.25, 392.0, 440.0, 523.25, 659.25];
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.type = "triangle";
+      osc.frequency.value = freq;
+      g.gain.setValueAtTime(0.001, ctx.currentTime + i * 0.22);
+      g.gain.exponentialRampToValueAtTime(0.16, ctx.currentTime + i * 0.22 + 0.04);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.22 + 0.2);
+      osc.connect(g);
+      g.connect(ctx.destination);
+      osc.start(ctx.currentTime + i * 0.22);
+      osc.stop(ctx.currentTime + i * 0.22 + 0.21);
+    });
+  };
+
+  window.openFbModal = function (turnId) {
+    const t = DB.turnById.get(Number(turnId));
+    if (!t) return;
+    const emo = EMOTIONS[t.emotion] || EMOTIONS.impactful;
+    const shareUrl = window.location.origin + window.location.pathname + "#speakers:" + encodeURIComponent(t.speakerSlug);
+    const caption = [
+      `${emo.icon} ${t.speakerName} (${t.speakerRole}) at Cheyenne ${t.bodyName} — ${t.date} [${t.hms}]`,
+      ``,
+      `“${t.text.slice(0, 320)}${t.text.length > 320 ? "…" : ""}”`,
+      t.ordinances && t.ordinances.length ? `📜 Ordinance: ${t.ordinances.map((o) => o.slug + " (" + o.stage + ")").join(", ")}` : "",
+      `🎥 Verified Primary-Source Video & Supporting Documents:`,
+      shareUrl,
+      `#CheyenneWY #TheRealWindyCity #PublicRecord ${(t.themes || []).map((x) => "#" + x).join(" ")}`
+    ].filter(Boolean).join("\n");
+
+    const fbHref = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(caption)}`;
+    const modal = document.getElementById("modalLayer");
+    modal.innerHTML = `
+      <div class="modal-backdrop" onclick="if(event.target===this)document.getElementById('modalLayer').innerHTML=''">
+        <div class="modal-card">
+          <div style="display:flex;justify-content:space-between;align-items:start;gap:12px;border-bottom:1px solid #1e293b;padding-bottom:12px">
+            <div>
+              <div class="kicker">Facebook Civic Video &amp; Speaker Clip Studio</div>
+              <h3 style="margin:4px 0 0">${esc(t.speakerName)} · ${esc(t.date)} (${Math.round(t.durationSec)}s clip)</h3>
+            </div>
+            <button class="btn" onclick="document.getElementById('modalLayer').innerHTML=''">✕ Close</button>
+          </div>
+          <div style="margin-top:14px;display:flex;flex-wrap:wrap;gap:8px">
+            ${t.directMp4Url ? `<a class="btn btn-emerald" href="${esc(t.directMp4Url)}" download target="_blank" rel="noreferrer">⬇ Download Standalone Clip (.MP4)</a>` : ""}
+            <button class="btn btn-amber" onclick="downloadSpeakerZip('${esc(t.speakerSlug)}')">📦 Download Speaker's Full Video Pack (.ZIP)</button>
+            ${t.speakerZipUrl ? `<a class="btn" href="${esc(t.speakerZipUrl)}" target="_blank" rel="noreferrer">⬇ GitHub Release Speaker .ZIP</a>` : ""}
+          </div>
+          <div style="margin-top:14px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:12px;color:#94a3b8">
+              <span>Editable Ready-to-Paste Facebook Caption:</span>
+              <button class="btn btn-sky" onclick="navigator.clipboard.writeText(document.getElementById('fbCapBox').value);this.textContent='✓ Copied!'">📋 Copy Post Text</button>
+            </div>
+            <textarea id="fbCapBox" rows="8" class="input" style="width:100%;font-family:var(--mono)">${esc(caption)}</textarea>
+          </div>
+          <div style="margin-top:14px;display:flex;justify-content:flex-end">
+            <a class="btn btn-fb" href="${esc(fbHref)}" target="_blank" rel="noreferrer" onclick="navigator.clipboard.writeText(document.getElementById('fbCapBox').value).catch(()=>{})">📘 Post / Share on Facebook ↗</a>
+          </div>
+        </div>
+      </div>`;
+  };
+
+  async function ensureSeasonLoaded(season) {
+    if (DB.seasonCache.has(season)) return DB.seasonCache.get(season);
+    const r = await fetch(`./data/seasons/${season}.json`);
+    const j = await r.json();
+    DB.seasonCache.set(season, j);
+    return j;
   }
 
-  function renderTVLens(ep) {
-    const prevHtml = (ep.previously_on || []).map(p => `
-      <div style="margin-top:8px;padding:9px 11px;background:rgba(6,182,212,0.08);border-radius:8px;cursor:pointer;" onclick="jumpToEpisode('${esc(p.ep_id)}')">
-        <div style="font-size:11.5px;font-weight:800;color:#67e8f9;">↪ ${esc(p.label)} (Click to Watch Episode)</div>
-        <div style="font-size:12.5px;color:#e2e8f0;margin-top:3px;">${esc(p.summary)}</div>
-      </div>
-    `).join("") || `<div style="font-size:12.5px;color:var(--text-2);">Season opening installment for this docket thread.</div>`;
+  async function ensureDocsLoaded() {
+    if (DB.docs) return DB.docs;
+    const r = await fetch(`./data/documents_compact.json`);
+    DB.docs = await r.json();
+    return DB.docs;
+  }
 
-    const castHtml = (ep.cast || []).map(c => {
-      const initials = c.name.split(/\s+/).map(w => w[0]).join("").slice(0, 2).toUpperCase();
-      return `
-        <div class="cast-card">
-          <div>
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-              <span class="cast-avatar" style="background:${esc(c.color)};">${esc(initials)}</span>
-              <div>
-                <div style="font-size:10.5px;font-weight:800;color:${esc(c.color)};text-transform:uppercase;">${esc(c.archetype)}</div>
-                <div style="font-size:14px;font-weight:800;">${esc(c.name)}</div>
-                <div style="font-size:11.5px;color:var(--text-2);">${esc(c.role)}</div>
-              </div>
-            </div>
-            <div style="font-size:11.5px;color:#fde68a;margin-bottom:7px;">
-              ⏱️ ${Math.round(c.speaking_sec / 60)}m ${c.speaking_sec % 60}s (${c.share_pct}% share · ${c.turns} turns)
-            </div>
-            ${c.quote ? `<div class="cast-quote">"${esc(c.quote)}"</div>` : ""}
+  function renderTurnCard(t) {
+    const emo = EMOTIONS[t.emotion] || EMOTIONS.technical;
+    const vidId = "turnVid_" + t.id;
+    return `
+      <div class="panel" style="display:flex;flex-direction:column;justify-content:space-between">
+        <div>
+          <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center">
+            <a href="#speakers:${esc(t.speakerSlug)}" onclick="openSpeaker('${esc(t.speakerSlug)}');return false;" style="font-weight:900;color:#fff">🎙️ ${esc(t.speakerName)}</a>
+            <span class="tag ${emo.cls}">${emo.icon} ${esc(t.emotion)} · ${t.impactScore}</span>
           </div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
-            <button class="btn" style="font-size:11.5px;padding:5px 9px;" onclick="playEpisodeClip('${esc(ep.id)}', ${c.clip_start || 0}, ${c.clip_end || 30}, '${esc(c.name.replace(/'/g, ""))}')">
-              ▶ Play Clip (${esc(c.hms)})
+          <div style="font-size:11px;color:#94a3b8;margin-top:4px;font-family:var(--mono)">
+            <a href="#ep:${esc(t.meetingSlug)}" onclick="openEpisode('${esc(t.meetingSlug)}');return false;" style="color:var(--sky)">${esc(t.date)} · ${esc(t.bodyName)}</a> · <span style="color:var(--amber)">${esc(t.hms)} (${Math.round(t.durationSec)}s)</span>
+          </div>
+          <div id="${vidId}" style="margin-top:10px;border-radius:10px;overflow:hidden;border:1px solid #1e293b;background:#000">
+            <button onclick="mountTurnVideo(${t.id}, '${vidId}')" style="width:100%;height:140px;background:linear-gradient(135deg,#0f172a,#020617);border:0;color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px">
+              <span style="width:42px;height:42px;border-radius:999px;background:var(--amber);color:#000;display:grid;place-items:center;font-weight:900;font-size:16px">▶</span>
+              <span style="font-size:12px;font-weight:800">Play ${Math.round(t.durationSec)}s Speaker Turn (${esc(t.hms)})</span>
             </button>
-            <a class="btn" style="font-size:11.5px;padding:5px 9px;" href="${esc(c.zip_url)}" target="_blank" rel="noopener">
-              ⬇ Speaker ZIP ↗
-            </a>
           </div>
-        </div>`;
-    }).join("");
-
-    const actsHtml = (ep.acts || []).map(a => `
-      <div class="tv-box act-card" style="margin-bottom:10px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
-          <strong style="color:#fde68a;font-size:14px;">🎬 ${esc(a.act)}</strong>
-          ${a.jump_ep ? `<button class="btn" style="font-size:11px;padding:4px 9px;" onclick="jumpToEpisode('${esc(a.jump_ep)}')">Jump to Episode ↗</button>` : ""}
+          <p style="font-size:12px;line-height:1.5;color:#e2e8f0;margin:10px 0">“${esc(t.text.slice(0, 260))}${t.text.length > 260 ? "…" : ""}”</p>
         </div>
-        <p style="margin:7px 0 0;font-size:13.5px;line-height:1.55;color:var(--text-1);">${esc(a.summary)}</p>
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;border-top:1px solid #1e293b;padding-top:9px;font-size:11px">
+          <div>${(t.themes || []).map((th) => `<span class="tag" style="background:#1e293b;margin-right:3px">#${esc(th)}</span>`).join("")}</div>
+          <div style="display:flex;gap:5px">
+            <button class="btn" style="padding:4px 9px;font-size:11px" onclick="downloadSpeakerZip('${esc(t.speakerSlug)}')">📦 .ZIP</button>
+            <button class="btn btn-fb" style="padding:4px 10px;font-size:11px" onclick="openFbModal(${t.id})">📘 Post to FB</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  window.mountTurnVideo = function (turnId, containerId) {
+    const t = DB.turnById.get(Number(turnId));
+    const el = document.getElementById(containerId);
+    if (!t || !el) return;
+    if (t.directMp4Url) {
+      const src = t.directMp4Url.includes("#t=") ? t.directMp4Url : `${t.directMp4Url}#t=${t.startSec},${t.endSec}`;
+      el.innerHTML = `<video src="${esc(src)}" controls autoplay style="width:100%;height:195px;background:#000"></video>`;
+    } else if (t.youtubeId) {
+      el.innerHTML = `<iframe src="https://www.youtube.com/embed/${esc(t.youtubeId)}?start=${Math.floor(t.startSec)}&end=${Math.ceil(t.endSec)}&autoplay=1" allow="autoplay; encrypted-media" allowfullscreen style="width:100%;height:195px;border:0"></iframe>`;
+    } else if (t.embedUrl) {
+      el.innerHTML = `<iframe src="${esc(t.embedUrl)}" allowfullscreen style="width:100%;height:195px;border:0"></iframe>`;
+    } else {
+      el.innerHTML = `<div style="padding:18px;font-size:12px;color:#94a3b8;text-align:center">Verbatim transcript verified; open parent episode for full broadcast stream.</div>`;
+    }
+  };
+
+  function epCardHtml(m) {
+    return `
+      <div class="ep-card" onclick="openEpisode('${esc(m.slug)}')">
+        <div>
+          <div style="display:flex;justify-content:space-between;gap:6px;font-size:10px;font-family:var(--mono);color:var(--amber)">
+            <span>S${m.season}E${String(m.episodeNo).padStart(2, "0")} · ${esc(m.bodyName)}</span>
+            <span>${esc(m.date)}</span>
+          </div>
+          <div style="font-weight:900;font-size:14.5px;margin-top:7px;line-height:1.25">${esc(m.title)}</div>
+          <p style="font-size:11.5px;color:#94a3b8;margin:7px 0;line-height:1.4">${esc((m.logline || "").slice(0, 120))}…</p>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;font-size:10px;font-family:var(--mono);color:#cbd5e1;border-top:1px solid #1e293b;padding-top:8px">
+          <span>📋 ${m.itemCount} items</span>
+          <span>📄 ${m.docCount} PDFs</span>
+          ${m.turnCount ? `<span style="color:var(--amber)">🎙️ ${m.turnCount} clips</span>` : ""}
+        </div>
+      </div>`;
+  }
+
+  function renderHome() {
+    const feat = DB.episodes.find((e) => e.featured) || DB.episodes[0];
+    const council26 = DB.episodes.filter((e) => e.body === "council" && e.season === 2026).slice(0, 12);
+    const psc26 = DB.episodes.filter((e) => e.body === "psc" && e.season === 2026).slice(0, 10);
+    const topTurns = [...DB.turns].sort((a, b) => b.impactScore - a.impactScore).slice(0, 6);
+    const topOrds = DB.ordinances.slice(0, 8);
+
+    document.getElementById("appRoot").innerHTML = `
+      <section class="hero-box">
+        <div>
+          <div class="kicker">● LIVE STREAMING + PALANTIR GOTHAM/FOUNDRY VAULT (2008–2026)</div>
+          <h1 class="hero-h1">${esc(feat.title)}</h1>
+          <div style="font-size:14px;color:#e2e8f0">${esc(feat.bodyName)} · ${esc(feat.date)} · Season ${feat.season}, Episode ${feat.episodeNo}</div>
+          <p style="font-size:13px;color:#cbd5e1;line-height:1.55;max-width:660px">${esc(feat.logline)}</p>
+          <div class="btn-row">
+            <button class="btn btn-amber" onclick="openEpisode('${esc(feat.slug)}')">▶ Watch Episode (19 Lenses)</button>
+            <button class="btn" onclick="playThemeSong()">🎵 Play Theme Song</button>
+            <button class="btn btn-fb" onclick="navTo('speakers')">🎙️ Speaker Videos &amp; FB Studio (2,483)</button>
+            <button class="btn btn-sky" onclick="navTo('foundry')">🏛️ Palantir Foundry PDFs (6,371)</button>
+            <button class="btn btn-rose" onclick="navTo('provenance')">🎥 Provenance Films (14)</button>
+          </div>
+        </div>
+        <div class="stat-grid">
+          <div class="stat-card"><div class="stat-big">1,615</div><div class="stat-lbl">Complete Episodes (2008–2026) · 0 Empty</div></div>
+          <div class="stat-card"><div class="stat-big">2,483</div><div class="stat-lbl">&le;3-Min Speaker Video Turns (246 Speakers)</div></div>
+          <div class="stat-card"><div class="stat-big">6,371</div><div class="stat-lbl">Palantir Foundry Agendas &amp; Supporting PDFs</div></div>
+          <div class="stat-card"><div class="stat-big">1,081</div><div class="stat-lbl">SHA-1 AI-Record-OCR Scanned Packets</div></div>
+          <div class="stat-card"><div class="stat-big">275</div><div class="stat-lbl">Multi-Reading Ordinance Arcs (1st→Final)</div></div>
+          <div class="stat-card"><div class="stat-big">14 Films</div><div class="stat-lbl">Screen-Recorded Manual Click Provenance</div></div>
+        </div>
+      </section>
+
+      <div class="section-head">
+        <h2>🎙️ High-Impact Speaker Video Turns (&le;3 Min)</h2>
+        <span class="sub">Filter by speaker, date, ordinance, theme or emotion — download .ZIP or post to Facebook</span>
+        <button class="more" onclick="navTo('speakers')">Open Full Speaker Vault →</button>
       </div>
-    `).join("");
+      <div class="grid-3">${topTurns.map(renderTurnCard).join("")}</div>
 
-    return `
-      <div>
-        <div class="tv-recap-grid">
-          <div class="tv-box previously">
-            <div class="section-kicker" style="color:#67e8f9;">⏪ PREVIOUSLY ON THE REAL WINDY CITY...</div>
-            ${prevHtml}
-          </div>
-          <div class="tv-box cliffhanger">
-            <div class="section-kicker" style="color:#fca5a5;">⏭ TO BE CONTINUED · ON THE NEXT EPISODE...</div>
-            <div style="font-size:13.5px;font-weight:800;color:#fff;margin-bottom:5px;">${esc(ep.next_episode.headline)}</div>
-            <div style="font-size:12.5px;color:var(--text-1);line-height:1.5;">${esc(ep.next_episode.cliffhanger)}</div>
-          </div>
-        </div>
+      <div class="section-head">
+        <h2>📜 Ordinance Arcs: First Reading → Final Enactment</h2>
+        <span class="sub">Play ordinances chronologically across readings with all speaker testimony &amp; PDFs</span>
+        <button class="more" onclick="navTo('ordinances')">See All 275 Ordinances →</button>
+      </div>
+      <div class="h-scroll">
+        ${topOrds.map((o) => `
+          <div class="ep-card" onclick="openOrdinance('${esc(o.slug)}')">
+            <span class="tag tag-violet">${esc(o.kind)} · ${o.readings.length} readings</span>
+            <div style="font-weight:800;font-size:13.5px;margin:10px 0;line-height:1.35">${esc(o.title.slice(0, 120))}</div>
+            <div style="font-size:11px;color:var(--amber);font-family:var(--mono)">▶ ${esc(o.firstDate)} → ${esc(o.lastDate)}</div>
+          </div>`).join("")}
+      </div>
 
-        <div style="margin-bottom:20px;">
-          <div class="section-kicker">🎞️ THREE-ACT EPISODE BREAKDOWN</div>
-          ${actsHtml}
-        </div>
+      <div class="section-head">
+        <h2>Season 2026 · City Council</h2>
+        <span class="sub">Newest through Nov 2026</span>
+        <button class="more" onclick="navTo('episodes')">Browse All 1,615 Episodes →</button>
+      </div>
+      <div class="h-scroll">${council26.map(epCardHtml).join("")}</div>
 
-        <div>
-          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-            <div class="section-kicker">🎭 CAST OF CHARACTERS (${(ep.cast || []).length} IDENTIFIED VOICES)</div>
-            <a href="${esc(ep.release_url)}" target="_blank" rel="noopener" class="btn" style="font-size:11.5px;">
-              🐙 All Speaker Video ZIPs on GitHub Releases ${ep.release_zips_count ? `(${ep.release_zips_count} live)` : ""} ↗
-            </a>
-          </div>
-          <div class="cast-grid">${castHtml}</div>
-        </div>
-      </div>`;
+      <div class="section-head">
+        <h2>Public Services &amp; Standing Committees</h2>
+        <span class="sub">Where ordinances &amp; zoning hearings are debated between readings</span>
+      </div>
+      <div class="h-scroll">${psc26.map(epCardHtml).join("")}</div>
+    `;
   }
 
-  function renderLaymanLens(ep) {
-    return `
-      <div style="display:flex;flex-direction:column;gap:14px;">
-        <div class="tv-box" style="border-left:4px solid #10b981;">
-          <div class="section-kicker" style="color:#6ee7b7;">☕ KITCHEN-TABLE CHEYENNE · PLAIN-ENGLISH SUMMARY</div>
-          <h3 style="font-size:21px;margin:4px 0 10px;">${esc(ep.layman.headline)}</h3>
-          <p style="font-size:15px;line-height:1.68;color:#e2e8f0;margin:0;">${esc(ep.layman.tldr)}</p>
-        </div>
-
-        <div class="tv-recap-grid">
-          <div class="tv-box">
-            <div class="section-kicker">💵 HOW THIS HITS YOUR WALLET & PROPERTY</div>
-            <p style="font-size:13.5px;line-height:1.6;color:var(--text-1);margin:4px 0 0;">${esc(ep.layman.wallet_impact)}</p>
-          </div>
-          <div class="tv-box">
-            <div class="section-kicker">🏡 WHO IN CHEYENNE SHOULD PAY ATTENTION</div>
-            <p style="font-size:13.5px;line-height:1.6;color:var(--text-1);margin:4px 0 0;">${esc(ep.layman.who_cares)}</p>
-          </div>
-        </div>
-
-        <div class="tv-box">
-          <div class="section-kicker">📋 ORDINANCES & ITEMS TRANSLATED WITHOUT BUREAUCRAT-SPEAK</div>
-          <ul style="margin:8px 0 0;padding-left:18px;line-height:1.75;font-size:13.5px;color:#e2e8f0;">
-            ${(ep.ordinances || []).map(o => `<li><strong>${esc(o)}</strong></li>`).join("")}
-          </ul>
-        </div>
-      </div>`;
-  }
-
-  function renderTabloidLens(ep) {
-    const t = ep.tabloid;
-    return `
-      <div class="tabloid-sheet">
-        <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid rgba(239,68,68,0.5);padding-bottom:8px;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
-          <span style="font-weight:950;letter-spacing:0.14em;color:#fca5a5;font-size:12px;">🗞️ THE WINDY CITY DISPATCH · CAPITOL AVE TEA EDITION</span>
-          <span style="background:#ef4444;color:#fff;font-weight:900;font-size:11.5px;padding:3px 10px;border-radius:999px;">SPICE / DRAMA RATING: ${ep.drama_score} / 10</span>
-        </div>
-        <div class="tabloid-banner">${esc(t.banner)}</div>
-        <p style="font-size:15.5px;font-weight:600;color:#fecdd3;margin:0 0 18px;line-height:1.5;">${esc(t.subhead)}</p>
-
-        <div class="tv-box" style="background:rgba(0,0,0,0.42);margin-bottom:14px;border-color:rgba(239,68,68,0.4);">
-          <div class="section-kicker" style="color:#fda4af;">🔥 OVERHEARD ON THE RECORD (VERBATIM MOMENTS)</div>
-          ${(t.zingers || []).map(z => `
-            <div style="margin:10px 0;padding-left:12px;border-left:3px solid #f59e0b;">
-              <div style="font-size:11.5px;font-weight:800;color:#fde68a;">${esc(z.who)}</div>
-              <div style="font-size:14px;color:#fff;margin-top:2px;">"${esc(z.line)}"</div>
-            </div>
-          `).join("")}
-        </div>
-
-        <div class="tv-recap-grid">
-          <div class="tv-box" style="background:rgba(16,185,129,0.1);border-color:rgba(16,185,129,0.35);">
-            <div class="section-kicker" style="color:#6ee7b7;">🏆 NIGHT'S WINNERS</div>
-            <ul style="margin:6px 0 0;padding-left:18px;font-size:13.5px;line-height:1.6;">
-              ${(t.winners || []).map(w => `<li>${esc(w)}</li>`).join("")}
-            </ul>
-          </div>
-          <div class="tv-box" style="background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.35);">
-            <div class="section-kicker" style="color:#fca5a5;">💥 ON THE HOT SEAT</div>
-            <ul style="margin:6px 0 0;padding-left:18px;font-size:13.5px;line-height:1.6;">
-              ${(t.losers || []).map(l => `<li>${esc(l)}</li>`).join("")}
-            </ul>
-          </div>
-        </div>
-      </div>`;
-  }
-
-  function renderLegalLens(ep) {
-    const lg = ep.legal;
-    return `
-      <div class="legal-brief">
-        <div style="font-family:'Inter',sans-serif;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);padding-bottom:10px;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
-          <span class="section-kicker" style="color:#a5b4fc;margin:0;">⚖️ MUNICIPAL & STATUTORY LEGAL MEMORANDUM</span>
-          <span class="hero-badge" style="background:rgba(99,102,241,0.2);color:#c7d2fe;border-color:#818cf8;">EXPOSURE: ${esc(lg.risk_level)}</span>
-        </div>
-
-        <div style="margin-bottom:14px;">
-          <div style="font-family:'Inter',sans-serif;font-size:11.5px;font-weight:800;color:#94a3b8;text-transform:uppercase;">I. Controlling Authorities & Code Citations</div>
-          <ul style="margin:6px 0 0;padding-left:20px;line-height:1.7;font-size:14px;color:#e2e8f0;">
-            ${(lg.citations || []).map(c => `<li><code>${esc(c)}</code></li>`).join("")}
-          </ul>
-        </div>
-
-        <div style="margin-bottom:14px;">
-          <div style="font-family:'Inter',sans-serif;font-size:11.5px;font-weight:800;color:#94a3b8;text-transform:uppercase;">II. Procedural Posture</div>
-          <p style="margin:6px 0 0;font-size:14.5px;line-height:1.65;color:#f1f5f9;">${esc(lg.posture)}</p>
-        </div>
-
-        <div>
-          <div style="font-family:'Inter',sans-serif;font-size:11.5px;font-weight:800;color:#94a3b8;text-transform:uppercase;">III. Statutory, Constitutional & Administrative Law Implications</div>
-          <p style="margin:6px 0 0;font-size:15px;line-height:1.75;color:#f8fafc;">${esc(lg.analysis)}</p>
-        </div>
-      </div>`;
-  }
-
-  function renderVerbatimLens(ep) {
-    const spkOptions = Array.from(new Set((ep.transcript || []).map(t => t.speaker)));
-    const q = state.transcriptSearch.trim().toLowerCase();
-    const filtered = (ep.transcript || []).filter(t => {
-      if (state.transcriptSpeaker !== "ALL" && t.speaker !== state.transcriptSpeaker) return false;
-      if (q && !t.text.toLowerCase().includes(q) && !t.speaker.toLowerCase().includes(q)) return false;
+  function renderEpisodesList() {
+    const seasons = [...new Set(DB.episodes.map((e) => e.season))].sort((a, b) => b - a);
+    const bodies = [...new Set(DB.episodes.map((e) => e.body))];
+    const filtered = DB.episodes.filter((e) => {
+      if (STATE.epFilterBody && e.body !== STATE.epFilterBody) return false;
+      if (STATE.epFilterSeason && String(e.season) !== String(STATE.epFilterSeason)) return false;
+      if (STATE.epFilterQ && !`${e.title} ${e.logline} ${e.date} ${e.bodyName}`.toLowerCase().includes(STATE.epFilterQ.toLowerCase())) return false;
       return true;
     });
 
-    return `
-      <div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;align-items:center;">
-          <input type="search" class="search-ctrl" placeholder="Filter verbatim transcript words..." value="${esc(state.transcriptSearch)}" oninput="window._updateTranscriptFilter(this.value, null)" style="flex:1;min-width:200px;" />
-          <select class="select-ctrl" onchange="window._updateTranscriptFilter(null, this.value)">
-            <option value="ALL">All Speakers (${spkOptions.length})</option>
-            ${spkOptions.map(s => `<option value="${esc(s)}" ${state.transcriptSpeaker === s ? "selected" : ""}>${esc(s)}</option>`).join("")}
+    document.getElementById("appRoot").innerHTML = `
+      <div class="panel" style="margin-bottom:16px">
+        <div class="kicker">SEASON GUIDE · ZERO MISSING MEETINGS (2008–2026)</div>
+        <h1 style="margin:6px 0 12px;font-size:26px">All ${DB.episodes.length.toLocaleString()} Cheyenne Government Episodes</h1>
+        <div class="toolbar">
+          <input class="input" style="width:280px" placeholder="Search title, topic, date…" value="${esc(STATE.epFilterQ)}" oninput="STATE.epFilterQ=this.value;renderEpisodesList()" />
+          <select class="input" onchange="STATE.epFilterSeason=this.value;renderEpisodesList()">
+            <option value="">All 19 Seasons (2008–2026)</option>
+            ${seasons.map((s) => `<option value="${s}" ${String(STATE.epFilterSeason) === String(s) ? "selected" : ""}>Season ${s}</option>`).join("")}
           </select>
-          <button class="btn btn-gold" onclick="playEpisodeClip('${esc(ep.id)}', 0, 120, 'Full Broadcast Stream')">▶ Open Broadcast Stream</button>
-          <a href="${esc(ep.release_url)}" target="_blank" rel="noopener" class="btn">⬇ Speaker ZIPs on GitHub ↗</a>
-        </div>
-
-        <div style="font-size:12px;color:var(--text-2);margin-bottom:10px;">
-          Showing <strong>${filtered.length}</strong> of <strong>${ep.total_turns}</strong> diarized speaking turns · Source: <a href="${esc(ep.archive_url)}" target="_blank" rel="noopener">${esc(ep.id)}</a>
-        </div>
-
-        <div style="max-height:560px;overflow-y:auto;padding-right:4px;">
-          ${filtered.slice(0, 120).map(t => `
-            <div class="transcript-row">
-              <div>
-                <div style="font-size:12.5px;font-weight:800;color:#fde68a;">${esc(t.speaker)}</div>
-                <div style="font-size:11px;font-family:monospace;color:var(--text-2);margin-top:2px;">Turn #${t.n} · ${esc(t.hms)}</div>
-              </div>
-              <div style="font-size:13.5px;line-height:1.55;color:#e2e8f0;">${esc(t.text)}</div>
-              <div>
-                <button class="btn" style="font-size:11.5px;padding:5px 9px;" onclick="playEpisodeClip('${esc(ep.id)}', ${t.start}, ${t.end}, '${esc(t.speaker.replace(/'/g, ""))}')">▶ Play</button>
-              </div>
-            </div>
-          `).join("")}
-        </div>
-      </div>`;
-  }
-
-  function renderAnalyticsLens(ep) {
-    const maxTurns = Math.max(1, ...(ep.heat_timeline || []).map(h => h.turns));
-    return `
-      <div style="display:flex;flex-direction:column;gap:16px;">
-        <div class="tv-recap-grid">
-          <div class="tv-box">
-            <div class="section-kicker">SPEAKING CONCENTRATION (GINI)</div>
-            <div style="font-size:28px;font-weight:900;color:#67e8f9;">${ep.gini_index}</div>
-            <div style="font-size:12px;color:var(--text-2);">0.00 = equal floor time · 1.00 = single-voice monologue</div>
-          </div>
-          <div class="tv-box">
-            <div class="section-kicker">DIARIZED SPEAKING TURNS</div>
-            <div style="font-size:28px;font-weight:900;color:#fde68a;">${ep.total_turns}</div>
-            <div style="font-size:12px;color:var(--text-2);">Across ${(ep.cast || []).length} primary speakers · ${fmtDur(ep.duration_sec)} runtime</div>
-          </div>
-          <div class="tv-box">
-            <div class="section-kicker">GITHUB RELEASE ARCHIVES</div>
-            <div style="font-size:28px;font-weight:900;color:#6ee7b7;">${ep.release_zips_count || "Auto-Queued"}</div>
-            <div style="font-size:12px;color:var(--text-2);">Repo: <code>${esc(ep.github_repo)}</code></div>
-          </div>
-        </div>
-
-        <div class="tv-box">
-          <div class="section-kicker">📈 DEBATE EXCHANGE CADENCE OVER MEETING TIMELINE</div>
-          <div style="display:grid;grid-template-columns:repeat(${(ep.heat_timeline || []).length},1fr);gap:6px;align-items:end;height:130px;padding-top:16px;">
-            ${(ep.heat_timeline || []).map(h => {
-              const pct = Math.max(10, Math.round((h.turns / maxTurns) * 100));
-              return `
-                <div style="display:flex;flex-direction:column;align-items:center;height:100%;justify-content:flex-end;">
-                  <div style="font-size:10px;color:#fde68a;margin-bottom:3px;">${h.turns}</div>
-                  <div style="width:100%;height:${pct}%;background:linear-gradient(180deg,#f59e0b,#06b6d4);border-radius:5px 5px 0 0;" title="Min ${h.minute}: ${h.turns} speaker turns (${h.speakers} distinct voices)"></div>
-                  <div style="font-size:10px;color:var(--text-2);margin-top:4px;">${h.minute}m</div>
-                </div>`;
-            }).join("")}
-          </div>
-        </div>
-
-        <div class="tv-recap-grid">
-          <div class="tv-box">
-            <div class="section-kicker">🎙️ SHARE OF VOICE BY CAST MEMBER</div>
-            ${(ep.cast || []).slice(0, 8).map(c => `
-              <div style="margin-bottom:8px;">
-                <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;">
-                  <span>${esc(c.name)}</span>
-                  <strong>${c.share_pct}% (${c.turns} turns)</strong>
-                </div>
-                <div style="height:8px;background:#090d16;border-radius:999px;overflow:hidden;">
-                  <div style="height:100%;width:${Math.min(100, c.share_pct * 2.2)}%;background:${esc(c.color)};"></div>
-                </div>
-              </div>
-            `).join("")}
-          </div>
-
-          <div class="tv-box">
-            <div class="section-kicker">🔄 TOP BACK-AND-FORTH DIALOGUE PAIRS</div>
-            ${(ep.top_transitions || []).map(tr => `
-              <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(148,163,184,0.1);font-size:12.5px;">
-                <span>${esc(tr.from)} → ${esc(tr.to)}</span>
-                <strong style="color:#67e8f9;">${tr.count}×</strong>
-              </div>
-            `).join("")}
-          </div>
-        </div>
-      </div>`;
-  }
-
-  function renderMapLens(ep) {
-    const pins = ep.geo_pins || [];
-    return `
-      <div style="display:grid;grid-template-columns:minmax(0,1.4fr) minmax(260px,1fr);gap:16px;">
-        <div class="tv-box" style="padding:12px;">
-          <div class="section-kicker">🗺️ CHEYENNE CORRIDOR & PARCEL IMPACT MAP (LARAMIE COUNTY, WY)</div>
-          <svg viewBox="0 0 100 100" style="width:100%;height:390px;background:#08101f;border-radius:10px;border:1px solid var(--border);">
-            <!-- Grid -->
-            <g stroke="rgba(148,163,184,0.08)" stroke-width="0.4">
-              <line x1="0" y1="20" x2="100" y2="20"/><line x1="0" y1="40" x2="100" y2="40"/>
-              <line x1="0" y1="60" x2="100" y2="60"/><line x1="0" y1="80" x2="100" y2="80"/>
-              <line x1="20" y1="0" x2="20" y2="100"/><line x1="40" y1="0" x2="40" y2="100"/>
-              <line x1="60" y1="0" x2="60" y2="100"/><line x1="80" y1="0" x2="80" y2="100"/>
-            </g>
-            <!-- Crow Creek -->
-            <path d="M 5 52 Q 35 62, 55 56 T 96 66" fill="none" stroke="#0284c7" stroke-width="1.2" stroke-dasharray="2,1.5" />
-            <text x="8" y="50" fill="#38bdf8" font-size="2.7">Crow Creek</text>
-
-            <!-- Major Cheyenne Highways & Arterials -->
-            <!-- I-25 North-South -->
-            <path d="M 28 2 L 26 98" fill="none" stroke="#f59e0b" stroke-width="1.8" opacity="0.75" />
-            <text x="29" y="10" fill="#fde68a" font-size="3" font-weight="bold">I-25</text>
-
-            <!-- I-80 East-West -->
-            <path d="M 2 70 L 98 68" fill="none" stroke="#f59e0b" stroke-width="1.8" opacity="0.75" />
-            <text x="6" y="67" fill="#fde68a" font-size="3" font-weight="bold">I-80</text>
-
-            <!-- Dell Range Blvd -->
-            <path d="M 30 28 L 92 28" fill="none" stroke="#94a3b8" stroke-width="1.0" />
-            <text x="58" y="26" fill="#cbd5e1" font-size="2.6">Dell Range Blvd</text>
-
-            <!-- Pershing / Story Blvd -->
-            <path d="M 30 42 L 94 41" fill="none" stroke="#94a3b8" stroke-width="0.9" />
-            <text x="64" y="39.5" fill="#cbd5e1" font-size="2.5">Pershing / Story Blvd</text>
-
-            <!-- US-30 / Lincolnway -->
-            <path d="M 18 54 L 96 47" fill="none" stroke="#cbd5e1" stroke-width="1.1" />
-            <text x="74" y="46" fill="#e2e8f0" font-size="2.6">US-30 / Lincolnway</text>
-
-            <!-- South College & Fox Farm -->
-            <path d="M 67 28 L 67 92" fill="none" stroke="#64748b" stroke-width="0.8" />
-            <text x="68.5" y="88" fill="#94a3b8" font-size="2.5">S. College Dr / Fox Farm</text>
-
-            <!-- Reed Ave Rail Corridor -->
-            <path d="M 39 46 L 39 66" fill="none" stroke="#10b981" stroke-width="1.2" />
-            <text x="31" y="63" fill="#6ee7b7" font-size="2.4">Reed Ave</text>
-
-            <!-- Episode Pins -->
-            ${pins.map((p, idx) => `
-              <g transform="translate(${p.x}, ${p.y})">
-                <circle r="4.2" fill="rgba(239,68,68,0.28)">
-                  <animate attributeName="r" values="3;6.5;3" dur="2s" repeatCount="indefinite" />
-                </circle>
-                <circle r="2.3" fill="#ef4444" stroke="#fff" stroke-width="0.6" />
-                <text x="3.5" y="1" fill="#fef08a" font-size="2.9" font-weight="bold">#${idx + 1} ${esc(p.tag)}</text>
-              </g>
-            `).join("")}
-          </svg>
-        </div>
-
-        <div style="display:flex;flex-direction:column;gap:10px;">
-          <div class="section-kicker">📍 GEOLOCATED DOCKET SITES IN THIS EPISODE</div>
-          ${pins.map((p, idx) => `
-            <div class="tv-box">
-              <div style="font-size:11px;font-weight:800;color:#fca5a5;">PIN #${idx + 1} · ${esc(p.tag)}</div>
-              <div style="font-size:14px;font-weight:800;margin:3px 0;">${esc(p.title)}</div>
-              <div style="font-size:11.5px;color:var(--text-2);font-family:monospace;">Lat ${p.lat.toFixed(4)}° N, Lng ${p.lng.toFixed(4)}° W</div>
-              <a href="https://www.openstreetmap.org/?mlat=${p.lat}&mlon=${p.lng}#map=15/${p.lat}/${p.lng}" target="_blank" rel="noopener" style="font-size:11.5px;display:inline-block;margin-top:6px;">
-                Open Parcel Area on OpenStreetMap ↗
-              </a>
-            </div>
-          `).join("")}
-        </div>
-      </div>`;
-  }
-
-  function renderHistoricalLens(ep) {
-    return `
-      <div style="display:flex;flex-direction:column;gap:14px;">
-        <div class="tv-box">
-          <div class="section-kicker">🏛️ HOW CHEYENNE HANDLED THIS ACROSS ERAS (2008–2026 PRECEDENT)</div>
-          ${(ep.historical || []).map(h => `
-            <div style="padding:11px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center;">
-              <div>
-                <span class="hero-badge" style="margin-right:8px;">${esc(h.era)}</span>
-                <span style="font-size:13.5px;color:#e2e8f0;">${esc(h.note)}</span>
-              </div>
-              <a class="btn" style="font-size:11.5px;" href="https://github.com/therealwindycity/${esc(h.repo)}" target="_blank" rel="noopener">
-                Open ${esc(h.repo)} ↗
-              </a>
-            </div>
-          `).join("")}
-        </div>
-
-        <div class="tv-box">
-          <div class="section-kicker">🐙 CONNECTED THEREALWINDYCITY 6-REPO PUBLIC ARCHIVE FAMILY (804 VIDEOS + PDF PACKETS)</div>
-          <div class="cast-grid">
-            ${DB.archive_repos.map(r => `
-              <div class="cast-card">
-                <div>
-                  <div style="font-size:11px;font-weight:800;color:var(--gold);">YEARS ${esc(r.years)}</div>
-                  <div style="font-size:14px;font-weight:800;margin:4px 0;">${esc(r.repo.split("/")[1])}</div>
-                  <div style="font-size:12px;color:var(--text-2);">${r.episodes} Ch192 Meeting Videos + Searchable PDF Packets & Automated Speaker Releases</div>
-                </div>
-                <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                  <a class="btn" style="font-size:11px;padding:4px 8px;" href="https://github.com/${esc(r.repo)}" target="_blank" rel="noopener">PDF Tree ↗</a>
-                  <a class="btn" style="font-size:11px;padding:4px 8px;" href="https://github.com/${esc(r.repo)}/releases" target="_blank" rel="noopener">Speaker ZIPs ↗</a>
-                  <a class="btn" style="font-size:11px;padding:4px 8px;" href="https://github.com/${esc(r.repo)}/actions" target="_blank" rel="noopener">Actions Runner ↗</a>
-                </div>
-              </div>
-            `).join("")}
-          </div>
-        </div>
-      </div>`;
-  }
-
-  function renderFiscalLens(ep) {
-    return `
-      <div style="display:flex;flex-direction:column;gap:14px;">
-        <div class="tv-box" style="border-left:4px solid #10b981;">
-          <div class="section-kicker" style="color:#6ee7b7;">💰 FOLLOW THE MONEY · FISCAL & TAXPAYER LEDGER</div>
-          ${(ep.fiscal || []).map(f => `
-            <div style="padding:12px;background:var(--bg-1);border:1px solid var(--border);border-radius:10px;margin-top:10px;">
-              <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;">
-                <strong style="font-size:14.5px;color:#fff;">${esc(f.item)}</strong>
-                <span class="hero-badge">${esc(f.direction)} · ${esc(f.fund)}</span>
-              </div>
-              <p style="margin:6px 0 0;font-size:13.5px;color:var(--text-1);">${esc(f.impact)}</p>
-            </div>
-          `).join("")}
-        </div>
-      </div>`;
-  }
-
-  function renderOrdinanceArcLens(ep) {
-    // Find matching ordinance arcs that include this episode
-    const matchingArcs = DB.ordinance_arcs.filter(a =>
-      a.id === ep.id || a.episodes_in_arc.some(s => s.ep_id === ep.id)
-    );
-    const arcsToShow = matchingArcs.length ? matchingArcs : DB.ordinance_arcs.slice(0, 3);
-
-    return `
-      <div style="display:flex;flex-direction:column;gap:14px;">
-        <div class="tv-box">
-          <div class="section-kicker">🧭 WYOMING 3-READING MUNICIPAL ORDINANCE PIPELINE (WYO. STAT. § 15-1-103)</div>
-          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:8px;margin-top:10px;">
-            ${[
-              "1. Planning / Staff Draft",
-              "2. Council 1st Reading",
-              "3. Standing Committee Hearing",
-              "4. Council 2nd Reading & Amendments",
-              "5. Committee Re-Referral (If Amended)",
-              "6. Council 3rd & Final Vote"
-            ].map(st => `<div style="background:var(--bg-1);border:1px solid var(--border);padding:9px 11px;border-radius:9px;font-size:12px;font-weight:700;color:#fde68a;">${esc(st)}</div>`).join("")}
-          </div>
-        </div>
-
-        ${arcsToShow.map(arc => `
-          <div class="tv-box" style="border-left:4px solid var(--gold);">
-            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-              <div>
-                <div class="section-kicker">${esc(arc.code)} · ${esc(arc.ordinance_number)}</div>
-                <h4 style="margin:2px 0 6px;font-size:17px;">${esc(arc.show_title)}</h4>
-              </div>
-              <button class="btn btn-gold" style="font-size:11.5px;" onclick="jumpToEpisode('${esc(arc.id)}')">
-                📺 Open Full Ordinance Mini-Series
-              </button>
-            </div>
-            <p style="font-size:13px;color:var(--text-1);margin:0 0 10px;">${esc(arc.summary)}</p>
-            <div style="display:flex;flex-direction:column;gap:7px;">
-              ${arc.episodes_in_arc.map(s => `
-                <div style="padding:8px 11px;background:var(--bg-1);border:1px solid var(--border);border-radius:8px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
-                  <div>
-                    <strong style="color:#67e8f9;font-size:12.5px;">${esc(s.stage)} (${esc(s.date)})</strong>
-                    <div style="font-size:12px;color:var(--text-1);">${esc(s.note)}</div>
-                  </div>
-                  <button class="btn" style="font-size:11px;padding:4px 9px;" onclick="jumpToEpisode('${esc(s.ep_id)}')">Watch Episode ↗</button>
-                </div>
-              `).join("")}
-            </div>
-          </div>
-        `).join("")}
-      </div>`;
-  }
-
-  // =========================================================================
-  // VIEWPORT RENDERERS (SINGLE SWIPE / SPLIT 2-3 / FLOATING IFRAMES MATRIX)
-  // =========================================================================
-  function renderViewport() {
-    const ep = resolveActiveRecord(state.selectedId);
-    const vp = document.getElementById("lensViewport");
-    if (!vp) return;
-
-    if (isEmbed) {
-      const lensObj = LENSES.find(l => l.id === state.activeLens) || LENSES[0];
-      vp.innerHTML = `
-        <div style="padding:6px 4px;">
-          <div style="font-size:11px;font-weight:800;color:var(--gold);margin-bottom:8px;">
-            ${lensObj.icon} ${esc(lensObj.name.toUpperCase())} LENS — ${esc(ep.show_title)} (${esc(ep.date)})
-          </div>
-          ${renderLensContent(ep, lensObj.id)}
-        </div>`;
-      return;
-    }
-
-    if (state.viewMode === "swipe") {
-      const idx = LENSES.findIndex(l => l.id === state.activeLens);
-      const prevL = LENSES[(idx - 1 + LENSES.length) % LENSES.length];
-      const nextL = LENSES[(idx + 1) % LENSES.length];
-      const curL = LENSES[idx];
-
-      vp.innerHTML = `
-        <div id="swipeSurface" class="lens-Swipe-wrapper">
-          <div class="swipe-nav-hint">
-            <button class="btn" onclick="window._stepLens(-1)">← Swipe Right: ${prevL.icon} ${esc(prevL.name)}</button>
-            <div style="text-align:center;">
-              <strong style="color:#fde68a;font-size:14px;">${curL.icon} ${esc(curL.name)}</strong>
-              <span style="margin-left:8px;padding:2px 8px;border-radius:999px;background:rgba(245,158,11,0.16);color:#fcd34d;font-size:11px;">Diet: ${esc(curL.diet)} (${idx + 1}/${LENSES.length})</span>
-            </div>
-            <button class="btn" onclick="window._stepLens(1)">Swipe Left: ${nextL.icon} ${esc(nextL.name)} →</button>
-          </div>
-          ${renderLensContent(ep, curL.id)}
-        </div>`;
-      bindSwipeGestures(document.getElementById("swipeSurface"));
-    } else if (state.viewMode === "split2" || state.viewMode === "split3") {
-      const count = state.viewMode === "split2" ? 2 : 3;
-      const colsHtml = Array.from({ length: count }, (_, paneIdx) => {
-        const lid = state.splitLenses[paneIdx] || LENSES[paneIdx].id;
-        return `
-          <div class="split-pane">
-            <div class="split-pane-header">
-              <span style="font-size:11.5px;font-weight:800;color:var(--gold);">LENS PANE #${paneIdx + 1}</span>
-              <select class="select-ctrl" onchange="window._setSplitLens(${paneIdx}, this.value)">
-                ${LENSES.map(l => `<option value="${l.id}" ${l.id === lid ? "selected" : ""}>${l.icon} ${esc(l.name)} (${esc(l.diet)})</option>`).join("")}
-              </select>
-            </div>
-            ${renderLensContent(ep, lid)}
-          </div>`;
-      }).join("");
-      vp.innerHTML = `<div class="split-grid cols-${count}">${colsHtml}</div>`;
-    } else if (state.viewMode === "iframes") {
-      const baseUrl = window.location.pathname;
-      const modeCls = state.iframeLayout === "free" ? "free-mode" : "tiled-mode";
-      vp.innerHTML = `
-        <div>
-          <div class="iframe-deck-toolbar">
-            <div>
-              <strong style="color:#fde68a;">🪟 All 10 Lenses in Live Independent Iframes</strong>
-              <span style="font-size:12px;color:var(--text-2);margin-left:8px;">Click <strong>⤢ Expand</strong> on any floating iframe to spotlight full-screen, or switch to Free-Drag Canvas to arrange windows anywhere.</span>
-            </div>
-            <div style="display:flex;gap:8px;">
-              <button class="btn ${state.iframeLayout === "tiled" ? "btn-active" : ""}" onclick="window._setIframeLayout('tiled')">▦ Tiled Bento Grid</button>
-              <button class="btn ${state.iframeLayout === "free" ? "btn-active" : ""}" onclick="window._setIframeLayout('free')">✋ Free-Floating Draggable Windows</button>
-            </div>
-          </div>
-
-          <div id="iframeCanvas" class="iframe-canvas ${modeCls}">
-            ${LENSES.map((l, idx) => {
-              const left = 18 + (idx % 3) * 425;
-              const top = 18 + Math.floor(idx / 3) * 325;
-              const posStyle = state.iframeLayout === "free" ? `left:${left}px;top:${top}px;z-index:${10 + idx};` : "";
-              const src = `${baseUrl}?embed=1&lens=${encodeURIComponent(l.id)}&item=${encodeURIComponent(ep.id)}`;
-              return `
-                <div class="floating-iframe-win" id="fwin-${l.id}" style="${posStyle}">
-                  <div class="win-titlebar" data-win="fwin-${l.id}">
-                    <span class="win-title">${l.icon} ${esc(l.name)} <span style="font-weight:400;color:#94a3b8;">· ${esc(l.diet)}</span></span>
-                    <div style="display:flex;gap:5px;">
-                      <button class="btn" style="padding:2px 7px;font-size:11px;" onclick="window._promoteLens('${l.id}')" title="Open in Single Swipe View">Single</button>
-                      <button class="btn btn-gold" style="padding:2px 8px;font-size:11px;" onclick="window._toggleExpandWin('fwin-${l.id}')">⤢ Expand</button>
-                    </div>
-                  </div>
-                  <iframe class="win-iframe" src="${esc(src)}" loading="lazy" title="${esc(l.name)} Lens"></iframe>
-                </div>`;
-            }).join("")}
-          </div>
-        </div>`;
-
-      if (state.iframeLayout === "free") {
-        const canvas = document.getElementById("iframeCanvas");
-        canvas.style.minHeight = "1360px";
-        enableWindowDragging(canvas);
-      }
-    }
-  }
-
-  function bindSwipeGestures(el) {
-    if (!el) return;
-    let startX = null;
-    let startY = null;
-    el.addEventListener("touchstart", e => {
-      startX = e.changedTouches[0].clientX;
-      startY = e.changedTouches[0].clientY;
-    }, { passive: true });
-    el.addEventListener("touchend", e => {
-      if (startX == null) return;
-      const dx = e.changedTouches[0].clientX - startX;
-      const dy = e.changedTouches[0].clientY - startY;
-      if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.3) {
-        window._stepLens(dx < 0 ? 1 : -1); // swipe left -> next lens
-      }
-      startX = null;
-    }, { passive: true });
-
-    // Mouse horizontal drag on non-interactive background
-    let mDownX = null;
-    el.addEventListener("mousedown", e => {
-      if (["BUTTON", "A", "INPUT", "SELECT", "VIDEO"].includes(e.target.tagName)) return;
-      mDownX = e.clientX;
-    });
-    el.addEventListener("mouseup", e => {
-      if (mDownX == null) return;
-      const dx = e.clientX - mDownX;
-      if (Math.abs(dx) > 95 && window.getSelection().toString().length === 0) {
-        window._stepLens(dx < 0 ? 1 : -1);
-      }
-      mDownX = null;
-    });
-  }
-
-  function enableWindowDragging(canvas) {
-    let topZ = 30;
-    canvas.querySelectorAll(".win-titlebar").forEach(bar => {
-      bar.addEventListener("mousedown", e => {
-        if (e.target.tagName === "BUTTON") return;
-        const win = document.getElementById(bar.dataset.win);
-        if (!win || win.classList.contains("expanded")) return;
-        win.style.zIndex = ++topZ;
-        const startX = e.clientX;
-        const startY = e.clientY;
-        const origLeft = parseInt(win.style.left || "20", 10);
-        const origTop = parseInt(win.style.top || "20", 10);
-
-        const onMove = ev => {
-          win.style.left = Math.max(0, origLeft + (ev.clientX - startX)) + "px";
-          win.style.top = Math.max(0, origTop + (ev.clientY - startY)) + "px";
-        };
-        const onUp = () => {
-          window.removeEventListener("mousemove", onMove);
-          window.removeEventListener("mouseup", onUp);
-        };
-        window.addEventListener("mousemove", onMove);
-        window.addEventListener("mouseup", onUp);
-      });
-    });
-  }
-
-  // Global UI hooks
-  window._stepLens = function (delta) {
-    const idx = LENSES.findIndex(l => l.id === state.activeLens);
-    state.activeLens = LENSES[(idx + delta + LENSES.length) % LENSES.length].id;
-    renderLensBar();
-    renderViewport();
-  };
-
-  window._setSplitLens = function (paneIdx, lensId) {
-    state.splitLenses[paneIdx] = lensId;
-    renderViewport();
-  };
-
-  window._setIframeLayout = function (layout) {
-    state.iframeLayout = layout;
-    renderViewport();
-  };
-
-  window._toggleExpandWin = function (winId) {
-    const el = document.getElementById(winId);
-    if (!el) return;
-    el.classList.toggle("expanded");
-  };
-
-  window._promoteLens = function (lensId) {
-    state.activeLens = lensId;
-    state.viewMode = "swipe";
-    syncViewModeButtons();
-    renderLensBar();
-    renderViewport();
-  };
-
-  window._updateTranscriptFilter = function (qVal, spkVal) {
-    if (qVal !== null) state.transcriptSearch = qVal;
-    if (spkVal !== null) state.transcriptSpeaker = spkVal;
-    renderViewport();
-  };
-
-  // =========================================================================
-  // HERO, SIDEBAR GUIDE & LENS PILL BAR
-  // =========================================================================
-  function renderHero() {
-    if (isEmbed) return;
-    const ep = resolveActiveRecord(state.selectedId);
-    const hero = document.getElementById("heroCard");
-    if (!hero) return;
-
-    hero.innerHTML = `
-      <div class="hero-top">
-        <div style="max-width:920px;">
-          <div class="hero-badge-row">
-            <span class="hero-badge">${esc(ep.code)}</span>
-            <span class="hero-badge">${esc(ep.badge)}</span>
-            <span class="hero-badge" style="background:rgba(6,182,212,0.16);color:#67e8f9;border-color:rgba(6,182,212,0.4);">${esc(ep.meeting_type)} · ${esc(ep.date)}</span>
-          </div>
-          <h1 class="hero-title">${esc(ep.show_title)}</h1>
-          <div class="hero-sub">
-            Official Docket: <strong>${esc(ep.official_title)}</strong> · Runtime: <strong>${fmtDur(ep.duration_sec)}</strong> ·
-            Cast: <strong>${(ep.cast || []).length} Speakers</strong> ·
-            <a href="${esc(ep.release_url)}" target="_blank" rel="noopener">GitHub Speaker ZIPs ↗</a> ·
-            <a href="${esc(ep.archive_url)}" target="_blank" rel="noopener">Archive.org Source ↗</a>
-          </div>
-        </div>
-
-        <div class="drama-meter">
-          <div style="font-size:10.5px;font-weight:800;color:var(--text-2);letter-spacing:0.08em;">CIVIC INTENSITY</div>
-          <div class="drama-num">${ep.drama_score} <span style="font-size:13px;color:var(--text-2);">/ 10</span></div>
-          <div style="margin-top:6px;display:flex;gap:6px;justify-content:flex-end;">
-            <button class="btn btn-gold" style="font-size:11.5px;padding:5px 10px;" onclick="playEpisodeClip('${esc(ep.id)}', ${(ep.cast && ep.cast[0]) ? ep.cast[0].clip_start : 60}, ${(ep.cast && ep.cast[0]) ? ep.cast[0].clip_end : 120}, 'Episode Lead Highlight')">
-              ▶ Watch Highlight
-            </button>
-          </div>
-        </div>
-      </div>`;
-  }
-
-  function renderLensBar() {
-    if (isEmbed) return;
-    const bar = document.getElementById("lensPills");
-    const preview = document.getElementById("lensHoverPreview");
-    const ep = resolveActiveRecord(state.selectedId);
-
-    bar.innerHTML = LENSES.map(l => `
-      <button class="lens-pill ${state.activeLens === l.id && state.viewMode === "swipe" ? "active" : ""}" data-lens="${l.id}">
-        ${l.icon} ${esc(l.name)}
-      </button>
-    `).join("");
-
-    bar.querySelectorAll(".lens-pill").forEach(btn => {
-      const lObj = LENSES.find(x => x.id === btn.dataset.lens);
-      btn.addEventListener("mouseenter", () => {
-        if (!lObj) return;
-        preview.innerHTML = `
-          <div style="display:flex;justify-content:space-between;align-items:center;">
-            <strong style="color:#fde68a;font-size:13.5px;">${lObj.icon} ${esc(lObj.name)} — <span style="color:#67e8f9;">${esc(lObj.diet)}</span></strong>
-            <span style="font-size:11px;color:var(--text-2);">Click to switch · Or use 2/3-Up & Floating Iframes</span>
-          </div>
-          <div style="font-size:12.5px;color:#e2e8f0;margin-top:4px;">${esc(lObj.desc)}</div>
-          <div style="font-size:11.5px;color:#94a3b8;margin-top:4px;">Active target: <em>${esc(ep.show_title)}</em></div>`;
-        preview.classList.add("visible");
-      });
-      btn.addEventListener("mouseleave", () => preview.classList.remove("visible"));
-      btn.addEventListener("click", () => {
-        state.activeLens = lObj.id;
-        if (state.viewMode !== "swipe") {
-          state.splitLenses[0] = lObj.id;
-        }
-        renderLensBar();
-        renderViewport();
-      });
-    });
-  }
-
-  function renderGuideSidebar() {
-    if (isEmbed) return;
-    const listEl = document.getElementById("guideList");
-    const countLbl = document.getElementById("guideCountLabel");
-    const q = state.search.trim().toLowerCase();
-
-    let items = [];
-    if (state.mode === "featured") {
-      items = DB.rich_episodes.filter(ep => {
-        if (state.season !== "ALL" && String(ep.year) !== state.season) return false;
-        if (state.type !== "ALL" && ep.meeting_type !== state.type) return false;
-        if (state.speaker !== "ALL" && !(ep.cast || []).some(c => c.name === state.speaker)) return false;
-        if (q) {
-          const hay = `${ep.date} ${ep.official_title} ${ep.show_title} ${(ep.ordinances || []).join(" ")} ${(ep.cast || []).map(c => c.name).join(" ")}`.toLowerCase();
-          if (!hay.includes(q)) return false;
-        }
-        return true;
-      }).map(ep => ({
-        id: ep.id,
-        code: ep.code,
-        date: ep.date,
-        showTitle: ep.show_title,
-        sub: `${ep.official_title} · ${(ep.cast || []).length} cast`,
-        pills: [
-          ep.release_zips_count ? { cls: "release", text: `${ep.release_zips_count} Speaker ZIPs` } : { cls: "", text: ep.meeting_type }
-        ]
-      }));
-    } else if (state.mode === "ordinances") {
-      items = DB.ordinance_arcs.filter(a => {
-        if (q && !`${a.show_title} ${a.ordinance_number} ${a.summary}`.toLowerCase().includes(q)) return false;
-        return true;
-      }).map(a => ({
-        id: a.id,
-        code: a.code.split("·")[0].trim(),
-        date: a.date,
-        showTitle: a.show_title,
-        sub: a.ordinance_number,
-        pills: [{ cls: "premiere", text: `${a.episodes_in_arc.length}-Episode Arc` }]
-      }));
-    } else {
-      items = DB.catalog_804.filter(c => {
-        if (state.season !== "ALL" && String(c.year) !== state.season) return false;
-        if (state.type !== "ALL" && c.type !== state.type) return false;
-        if (q && !`${c.date} ${c.title} ${c.code} ${c.type}`.toLowerCase().includes(q)) return false;
-        return true;
-      }).map(c => {
-        const pills = [];
-        if (c.premiere) pills.push({ cls: "premiere", text: "Season Premiere" });
-        if (c.finale) pills.push({ cls: "finale", text: "Season Finale" });
-        if (c.has_deep_pack) pills.push({ cls: "release", text: "Full Multi-Lens" });
-        if (state.livePublishedState[c.id]) pills.push({ cls: "release", text: "ZIPs Live" });
-        return {
-          id: c.id,
-          code: c.code,
-          date: c.date,
-          showTitle: c.title,
-          sub: `${c.type} · ${c.size_mb} MB`,
-          pills
-        };
-      });
-    }
-
-    countLbl.textContent = `${items.length} ${state.mode === "ordinances" ? "Ordinance Series" : "Episodes"}`;
-    listEl.innerHTML = items.slice(0, 250).map(it => `
-      <div class="ep-card ${state.selectedId === it.id ? "selected" : ""}" data-id="${esc(it.id)}">
-        <div class="ep-meta-row">
-          <span class="ep-code">${esc(it.code)}</span>
-          <span>${esc(it.date)}</span>
-        </div>
-        <div class="ep-show-title">${esc(it.showTitle)}</div>
-        <div class="ep-official-sub">${esc(it.sub)}</div>
-        <div>
-          ${it.pills.map(p => `<span class="mini-pill ${p.cls}">${esc(p.text)}</span>`).join("")}
+          <select class="input" onchange="STATE.epFilterBody=this.value;renderEpisodesList()">
+            <option value="">All 10 Municipal Bodies</option>
+            ${bodies.map((b) => `<option value="${esc(b)}" ${STATE.epFilterBody === b ? "selected" : ""}>${esc(b.toUpperCase())}</option>`).join("")}
+          </select>
+          <span style="font-family:var(--mono);font-size:12px;color:var(--amber)">Showing ${Math.min(90, filtered.length)} of ${filtered.length} matching episodes</span>
         </div>
       </div>
-    `).join("");
-
-    listEl.querySelectorAll(".ep-card").forEach(card => {
-      card.addEventListener("click", () => {
-        state.selectedId = card.dataset.id;
-        state.transcriptSearch = "";
-        state.transcriptSpeaker = "ALL";
-        renderAll();
-      });
-    });
+      <div class="grid-3">${filtered.slice(0, 90).map(epCardHtml).join("")}</div>
+    `;
   }
 
-  function populateFilters() {
-    if (isEmbed) return;
-    const sSel = document.getElementById("seasonFilter");
-    const years = Array.from(new Set(DB.catalog_804.map(c => c.year))).sort((a, b) => b - a);
-    years.forEach(yr => {
-      const opt = document.createElement("option");
-      opt.value = String(yr);
-      opt.textContent = `Season ${Math.max(1, yr - 2011)} (${yr})`;
-      sSel.appendChild(opt);
-    });
+  function renderLensHtml(lensKey, ep, detail) {
+    const items = detail.items || [];
+    const docs = detail.docs || [];
+    const votes = detail.votes || [];
+    const briefs = detail.briefs || [];
+    const turns = detail.turns || [];
 
-    const spkSel = document.getElementById("speakerFilter");
-    const spkNames = new Set();
-    DB.rich_episodes.forEach(ep => (ep.cast || []).forEach(c => spkNames.add(c.name)));
-    Array.from(spkNames).sort().forEach(n => {
-      const opt = document.createElement("option");
-      opt.value = n;
-      opt.textContent = `Cast: ${n}`;
-      spkSel.appendChild(opt);
-    });
-  }
-
-  function syncModeButtons() {
-    document.querySelectorAll(".mode-tab").forEach(b => {
-      b.classList.toggle("active", b.dataset.mode === state.mode);
-    });
-  }
-
-  function syncViewModeButtons() {
-    document.querySelectorAll("[data-viewmode]").forEach(b => {
-      b.classList.toggle("btn-active", b.dataset.viewmode === state.viewMode);
-    });
-  }
-
-  function renderAll() {
-    renderGuideSidebar();
-    renderHero();
-    renderLensBar();
-    renderViewport();
-  }
-
-  // Poll live GitHub state.json across all 6 therealwindycity archive repos so newly finished Actions runs appear live!
-  async function hydrateLiveGitHubProgress() {
-    for (const r of DB.archive_repos) {
-      try {
-        const res = await fetch(`https://raw.githubusercontent.com/${r.repo}/main/speaker-videos/state.json`);
-        if (res.ok) {
-          const data = await res.json();
-          if (data && data.processed) {
-            Object.assign(state.livePublishedState, data.processed);
-          }
-        }
-      } catch (_) {}
+    if (lensKey === "foundry") {
+      const sel = docs.find((d) => d.id === STATE.selectedDocId) || docs[0];
+      return `
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px;padding:10px 12px;background:#091428;border:1px solid rgba(56,189,248,0.35);border-radius:10px;font-family:var(--mono);font-size:11px">
+            <span><b style="color:var(--sky)">FOUNDRY // EPISODE PACKET VAULT</b> · OBJECTS=${docs.length} · OCR=${docs.filter((d) => d.ocr).length}</span>
+            <button class="btn btn-sky" style="padding:5px 10px;font-size:11px" onclick="navTo('foundry')">Global Vault (6,371 PDFs) ↗</button>
+          </div>
+          <div class="foundry-shell">
+            <div style="max-height:520px;overflow-y:auto;border:1px solid #1e293b;border-radius:10px;background:#050a14">
+              ${docs.map((d) => `
+                <div onclick="STATE.selectedDocId=${d.id};rerenderEpisode()" style="padding:10px;border-bottom:1px solid #1e293b;cursor:pointer;background:${sel && sel.id === d.id ? "rgba(56,189,248,0.16)" : "transparent"}">
+                  <div style="font-family:var(--mono);font-size:10px;color:var(--sky)">${esc(d.role.toUpperCase())} ${d.ocr ? "· 🔬SHA1-OCR" : ""}</div>
+                  <div style="font-size:12px;font-weight:700;margin-top:3px">${esc(d.title)}</div>
+                  ${d.sha1 ? `<div style="font-family:var(--mono);font-size:9.5px;color:var(--emerald);margin-top:2px">SHA1: ${esc(d.sha1.slice(0, 16))}…</div>` : ""}
+                </div>`).join("")}
+            </div>
+            <div style="border:1px solid #1e293b;border-radius:10px;background:#050a14;padding:12px">
+              ${sel ? `
+                <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:10px">
+                  <div>
+                    <div style="font-weight:800;font-size:13px">${esc(sel.title)}</div>
+                    <div style="font-family:var(--mono);font-size:10px;color:#94a3b8">SHA1=${esc(sel.sha1 || "WAYBACK")}</div>
+                  </div>
+                  <div style="display:flex;gap:6px">
+                    ${sel.ocr && sel.sha1 ? `<button class="btn btn-emerald" style="padding:5px 10px;font-size:11px" onclick="loadLiveOcr('${esc(sel.sha1)}')">🔬 Fetch Live SHA-1 OCR</button>` : ""}
+                    ${sel.url ? `<a class="btn btn-amber" style="padding:5px 10px;font-size:11px" href="${esc(sel.url)}" target="_blank" rel="noreferrer">Open Raw PDF ↗</a>` : ""}
+                  </div>
+                </div>
+                <div id="foundryDocPane">
+                  ${sel.url && sel.url.toLowerCase().includes(".pdf")
+                    ? `<iframe src="https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(sel.url)}" style="width:100%;height:430px;border:0;border-radius:8px;background:#fff"></iframe>`
+                    : `<pre style="white-space:pre-wrap;font-family:var(--mono);font-size:11.5px;max-height:430px;overflow:auto;background:#02050b;padding:12px;border-radius:8px">${esc(sel.bodySnippet || "Open Raw Link above to view full official portal document.")}</pre>`}
+                </div>
+              ` : ""}
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div style="border:1px solid rgba(244,63,94,0.35);border-radius:10px;padding:10px;background:#050a14">
+                <div style="font-family:var(--mono);font-size:10px;color:#fda4af;font-weight:800;margin-bottom:6px">🎥 MANUAL-CLICK PROVENANCE CUE</div>
+                <video src="./provenance/clips/clip-03-supporting-documents.mp4" controls preload="metadata" style="width:100%;border-radius:6px;background:#000"></video>
+              </div>
+              <div style="border:1px solid #1e293b;border-radius:10px;padding:10px;background:#050a14;font-family:var(--mono);font-size:10.5px">
+                <div style="color:var(--emerald);font-weight:800;margin-bottom:6px">FOUNDRY LINEAGE DAG</div>
+                <div>01. cheyennecity.org / Granicus</div>
+                <div>02. cheyenne-archives-* (SHA-1)</div>
+                <div>03. ai-record-ocr/{sha1}.json</div>
+                <div>04. PostgreSQL 17 + Pages Shards</div>
+              </div>
+            </div>
+          </div>
+        </div>`;
     }
-    if (!isEmbed) renderGuideSidebar();
+
+    if (lensKey === "gotham") {
+      const nodes = [
+        ...items.filter((i) => i.kind !== "procedural").slice(0, 6).map((i, idx) => ({ lbl: `Item ${i.itemNo}: ${i.title.slice(0, 26)}…`, c: "#38bdf8", ang: idx * 0.55 })),
+        ...docs.slice(0, 5).map((d, idx) => ({ lbl: `PDF: ${d.title.slice(0, 22)}…`, c: "#10b981", ang: 3.2 + idx * 0.5 })),
+        ...turns.slice(0, 4).map((t, idx) => ({ lbl: `🎙️ ${t.speakerName}`, c: "#f43f5e", ang: 5.2 + idx * 0.4 }))
+      ];
+      return `
+        <div>
+          <div style="font-family:var(--mono);font-size:11px;color:var(--emerald);margin-bottom:10px"><b>GOTHAM // TACTICAL ENTITY-DOCUMENT LINK GRAPH</b> · NODES=${nodes.length + 1}</div>
+          <svg viewBox="0 0 820 440" style="width:100%;height:430px;background:#040812;border:1px solid #1e293b;border-radius:12px">
+            ${nodes.map((n, idx) => {
+              const x = Math.round(410 + Math.cos(n.ang) * (idx % 2 ? 155 : 215));
+              const y = Math.round(220 + Math.sin(n.ang) * 165);
+              return `<line x1="410" y1="220" x2="${x}" y2="${y}" stroke="#1e293b" stroke-width="1.5" />
+                      <circle cx="${x}" cy="${y}" r="11" fill="#091224" stroke="${n.c}" stroke-width="2.5" />
+                      <text x="${x}" y="${y + 23}" text-anchor="middle" fill="#e2e8f0" font-size="10" font-family="monospace">${esc(n.lbl)}</text>`;
+            }).join("")}
+            <circle cx="410" cy="220" r="24" fill="#091224" stroke="#fbbf24" stroke-width="3.5" />
+            <text x="410" y="258" text-anchor="middle" fill="#fbbf24" font-size="11" font-weight="bold" font-family="monospace">${esc(ep.date)} HUB</text>
+          </svg>
+        </div>`;
+    }
+
+    if (lensKey === "speakers") {
+      return turns.length
+        ? `<div class="grid-2">${turns.map(renderTurnCard).join("")}</div>`
+        : `<div class="panel">No individual speaker clips extracted on this specific sitting; <a href="#speakers" onclick="navTo('speakers');return false;" style="color:var(--amber);text-decoration:underline">browse all 2,483 historical Cheyenne speaker turns →</a></div>`;
+    }
+
+    if (lensKey === "provenance") {
+      return renderProvenanceInner();
+    }
+
+    if (lensKey === "votes") {
+      return `<div style="display:grid;gap:10px">${votes.length ? votes.map((v) => `
+        <div class="panel">
+          <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px">
+            <span style="color:${v.result === "failed" ? "var(--rose)" : "var(--emerald)"};font-weight:800">${esc(v.result.toUpperCase())} ${v.unanimous ? "(UNANIMOUS)" : ""}</span>
+            ${v.noNames && v.noNames.length ? `<span style="color:#fda4af">NO: ${esc(v.noNames.join(", "))}</span>` : ""}
+          </div>
+          <p style="font-size:12.5px;margin:6px 0 0">${esc(v.excerpt)}</p>
+        </div>`).join("") : `<div class="panel">Committee / non-roll-call session — see Agenda &amp; Foundry PDFs.</div>`}</div>`;
+    }
+
+    if (lensKey === "money") {
+      const mItems = items.filter((i) => i.amountUsd).sort((a, b) => b.amountUsd - a.amountUsd);
+      return `<div style="display:grid;gap:8px">${mItems.length ? mItems.map((i) => `
+        <div class="panel" style="display:flex;justify-content:space-between;gap:12px;align-items:center">
+          <div><div style="font-size:11px;color:var(--muted)">Item ${esc(i.itemNo)} · ${esc(i.sponsor || "")}</div><div style="font-weight:700;font-size:13px">${esc(i.title)}</div></div>
+          <div style="font-family:var(--mono);font-size:18px;font-weight:900;color:var(--emerald)">${money(i.amountUsd)}</div>
+        </div>`).join("") : `<div class="panel">No explicit dollar ceilings listed in item titles on this docket.</div>`}</div>`;
+    }
+
+    if (lensKey === "transcript") {
+      const minDoc = docs.find((d) => d.role === "minutes") || docs[0];
+      return `<pre style="white-space:pre-wrap;font-family:var(--mono);font-size:12px;line-height:1.55;background:#040811;padding:16px;border-radius:12px">${esc((minDoc && minDoc.bodySnippet) || ep.logline)}</pre>`;
+    }
+
+    // Default rich structured view for Story, Tabloid, Callsheet, Legal, Factcheck, Analytics, Script, Cast, Map, History, Jargon, Evidence
+    return `
+      <div style="display:grid;gap:12px">
+        <div class="panel">
+          <div class="kicker">${esc(lensKey.toUpperCase())} LENS · ${esc(ep.date)} · ${esc(ep.bodyName)}</div>
+          <h3 style="margin:6px 0">${esc(ep.title)}</h3>
+          <p style="font-size:13px;color:#cbd5e1;line-height:1.55">${esc(ep.logline)}</p>
+        </div>
+        <div style="display:grid;gap:8px">
+          ${items.slice(0, 25).map((it) => `
+            <div class="panel" style="padding:11px 14px">
+              <div style="display:flex;justify-content:space-between;gap:8px;font-family:var(--mono);font-size:10.5px;color:var(--sky)">
+                <span>ITEM ${esc(it.itemNo)} · ${esc((it.kind || "").toUpperCase())} ${it.reading ? "(" + esc(it.reading) + " reading)" : ""}</span>
+                ${it.amountUsd ? `<span style="color:var(--emerald)">${money(it.amountUsd)}</span>` : ""}
+              </div>
+              <div style="font-size:12.5px;font-weight:700;margin-top:4px">${esc(it.title)}</div>
+              ${it.action ? `<div style="font-size:11px;color:#94a3b8;margin-top:3px">Action: ${esc(it.action)} ${it.sponsor ? "· " + esc(it.sponsor) : ""}</div>` : ""}
+            </div>`).join("")}
+        </div>
+        ${briefs.length ? `<div class="panel"><div class="kicker">DETERMINISTIC PACKET BRIEFS (${briefs.length})</div>${briefs.slice(0, 6).map((b) => `<div style="margin-top:8px;font-size:12px"><b>Item ${esc(b.itemNo)}:</b> ${esc(b.title)}</div>`).join("")}</div>` : ""}
+      </div>`;
   }
 
-  // Bind top-level controls
-  if (!isEmbed) {
-    populateFilters();
-    document.querySelectorAll(".mode-tab").forEach(btn => {
-      btn.addEventListener("click", () => {
-        state.mode = btn.dataset.mode;
-        if (state.mode === "ordinances" && !arcById[state.selectedId]) {
-          state.selectedId = DB.ordinance_arcs[0].id;
-        } else if (state.mode === "featured" && !richById[state.selectedId]) {
-          state.selectedId = DB.rich_episodes[1].id;
-        }
-        syncModeButtons();
-        renderAll();
+  window.loadLiveOcr = async function (sha1) {
+    const pane = document.getElementById("foundryDocPane");
+    if (!pane) return;
+    pane.innerHTML = `<div class="loading-shell">Fetching live AI-Record-OCR stream (${esc(sha1.slice(0, 12))}…)…</div>`;
+    try {
+      const r = await fetch(`https://raw.githubusercontent.com/therealwindycity/TheReelWindyCity/main/ai-record-ocr/${sha1}.json`);
+      const j = await r.json();
+      const pages = Object.entries(j).sort((a, b) => Number(a[0]) - Number(b[0]));
+      pane.innerHTML = `<div style="max-height:430px;overflow:auto;display:grid;gap:10px">${pages.map(([pg, txt]) => `
+        <div style="background:#02050b;border:1px solid rgba(16,185,129,0.3);border-radius:8px;padding:10px">
+          <div style="font-family:var(--mono);font-size:10px;color:var(--emerald);font-weight:800">PAGE ${esc(pg)} · SHA-1 VERIFIED OCR</div>
+          <pre style="white-space:pre-wrap;font-family:var(--mono);font-size:11.5px;margin:6px 0 0">${esc(txt)}</pre>
+        </div>`).join("")}</div>`;
+    } catch (e) {
+      pane.innerHTML = `<div class="panel">Unable to reach raw OCR endpoint: ${esc(e)}</div>`;
+    }
+  };
+
+  window.openEpisode = async function (slug) {
+    STATE.view = "episode";
+    STATE.epSlug = slug;
+    window.location.hash = "ep:" + slug;
+    updateNavButtons();
+    const ep = DB.epBySlug.get(slug);
+    if (!ep) return renderHome();
+    document.getElementById("appRoot").innerHTML = `<div class="loading-shell">Loading Season ${ep.season} ontology shard for ${esc(ep.title)}…</div>`;
+    await ensureSeasonLoaded(ep.season);
+    rerenderEpisode();
+  };
+
+  window.rerenderEpisode = function () {
+    const ep = DB.epBySlug.get(STATE.epSlug);
+    if (!ep) return;
+    const seasonData = DB.seasonCache.get(ep.season) || {};
+    const detail = seasonData[ep.slug] || { items: [], docs: [], votes: [], briefs: [], turns: [] };
+
+    const videoEmbed = ep.mp4Url
+      ? `<video src="${esc(ep.mp4Url)}" controls preload="metadata" style="width:100%;max-height:360px;border-radius:14px;background:#000"></video>`
+      : ep.videoUrl && ep.videoUrl.includes("archive.org/details/")
+      ? `<iframe src="${esc(ep.videoUrl.replace("/details/", "/embed/"))}" allowfullscreen style="width:100%;height:340px;border:0;border-radius:14px;background:#000"></iframe>`
+      : "";
+
+    document.getElementById("appRoot").innerHTML = `
+      <div style="margin-bottom:12px"><button class="btn" onclick="navTo('episodes')">← All 1,615 Episodes</button></div>
+      <div class="panel" style="margin-bottom:16px">
+        <div style="display:grid;gap:18px;grid-template-columns:${videoEmbed ? "1.2fr 1fr" : "1fr"}">
+          <div>
+            <div class="kicker">S${ep.season}E${String(ep.episodeNo).padStart(2, "0")} · ${esc(ep.bodyName)} · ${esc(ep.date)}</div>
+            <h1 style="margin:8px 0;font-size:28px;line-height:1.1">${esc(ep.title)}</h1>
+            <p style="font-size:13px;color:#cbd5e1;line-height:1.55">${esc(ep.logline)}</p>
+            <div class="btn-row">
+              <button class="btn" onclick="playThemeSong()">🎵 Play Main Title Theme</button>
+              ${ep.agendaUrl ? `<a class="btn btn-sky" href="${esc(ep.agendaUrl)}" target="_blank" rel="noreferrer">📄 Official Agenda ↗</a>` : ""}
+              ${ep.minutesUrl ? `<a class="btn" href="${esc(ep.minutesUrl)}" target="_blank" rel="noreferrer">📜 Official Minutes ↗</a>` : ""}
+              ${ep.videoUrl ? `<a class="btn btn-amber" href="${esc(ep.videoUrl)}" target="_blank" rel="noreferrer">🎞️ Source Broadcast ↗</a>` : ""}
+            </div>
+          </div>
+          ${videoEmbed ? `<div>${videoEmbed}</div>` : ""}
+        </div>
+      </div>
+
+      <div class="toolbar" style="justify-content:space-between">
+        <div style="font-weight:900;font-size:18px">Same Verified Record · 19 Synchronized Lenses</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="chip ${STATE.epMode === "swipe" ? "active" : ""}" onclick="STATE.epMode='swipe';rerenderEpisode()">↔ Single / Swipe</button>
+          <button class="chip ${STATE.epMode === "split" ? "active" : ""}" onclick="STATE.epMode='split';rerenderEpisode()">◫ Side-by-Side Split</button>
+          <button class="chip ${STATE.epMode === "mosaic" ? "active" : ""}" onclick="STATE.epMode='mosaic';rerenderEpisode()">▦ All 19 Mosaic</button>
+          <button class="chip" onclick="spawnFloat('${esc(STATE.epLens)}')">⧉ Float Window</button>
+        </div>
+      </div>
+
+      ${STATE.epMode === "swipe" ? `
+        <div class="h-scroll" style="margin-bottom:12px">
+          ${LENSES.map((l) => `
+            <button class="chip ${STATE.epLens === l.key ? "active" : ""}" title="${esc(l.blurb)}" onclick="STATE.epLens='${l.key}';rerenderEpisode()">
+              ${l.icon} ${esc(l.name)}
+            </button>`).join("")}
+        </div>
+        <div class="lens-stage">${renderLensHtml(STATE.epLens, ep, detail)}</div>
+      ` : STATE.epMode === "split" ? `
+        <div class="split-stage">
+          <div class="lens-stage">
+            <div style="margin-bottom:10px">
+              <select class="input" onchange="STATE.splitLeft=this.value;rerenderEpisode()">
+                ${LENSES.map((l) => `<option value="${l.key}" ${STATE.splitLeft === l.key ? "selected" : ""}>${l.icon} ${esc(l.name)}</option>`).join("")}
+              </select>
+            </div>
+            ${renderLensHtml(STATE.splitLeft, ep, detail)}
+          </div>
+          <div class="lens-stage">
+            <div style="margin-bottom:10px">
+              <select class="input" onchange="STATE.splitRight=this.value;rerenderEpisode()">
+                ${LENSES.map((l) => `<option value="${l.key}" ${STATE.splitRight === l.key ? "selected" : ""}>${l.icon} ${esc(l.name)}</option>`).join("")}
+              </select>
+            </div>
+            ${renderLensHtml(STATE.splitRight, ep, detail)}
+          </div>
+        </div>
+      ` : `
+        <div class="grid-3">
+          ${LENSES.map((l) => `
+            <div class="panel" style="border-top:3px solid ${l.accent}">
+              <div style="font-weight:900;font-size:15px">${l.icon} ${esc(l.name)}</div>
+              <p style="font-size:12px;color:#cbd5e1;margin:8px 0 14px">${esc(l.blurb)}</p>
+              <div style="display:flex;gap:6px">
+                <button class="btn btn-amber" style="padding:6px 12px" onclick="STATE.epMode='swipe';STATE.epLens='${l.key}';rerenderEpisode()">Open Lens</button>
+                <button class="btn" style="padding:6px 12px" onclick="spawnFloat('${l.key}')">⧉ Float</button>
+              </div>
+            </div>`).join("")}
+        </div>
+      `}
+    `;
+  };
+
+  window.spawnFloat = function (lensKey) {
+    const ep = DB.epBySlug.get(STATE.epSlug);
+    if (!ep) return;
+    const detail = (DB.seasonCache.get(ep.season) || {})[ep.slug] || {};
+    const l = LENSES.find((x) => x.key === lensKey) || LENSES[0];
+    const win = document.createElement("div");
+    win.className = "float-win";
+    win.style.left = 60 + (STATE.floats.length * 32) + "px";
+    win.style.top = 90 + (STATE.floats.length * 28) + "px";
+    win.innerHTML = `
+      <div class="float-bar" style="background:${l.accent}33;border-bottom:2px solid ${l.accent}">
+        <span>${l.icon} ${esc(l.name)} · ${esc(ep.date)}</span>
+        <button class="btn" style="margin-left:auto;padding:2px 8px" onclick="this.closest('.float-win').remove()">✕</button>
+      </div>
+      <div class="float-body">${renderLensHtml(lensKey, ep, detail)}</div>
+    `;
+    const bar = win.querySelector(".float-bar");
+    let dx = 0, dy = 0, dragging = false;
+    bar.addEventListener("pointerdown", (e) => {
+      dragging = true;
+      dx = e.clientX - win.offsetLeft;
+      dy = e.clientY - win.offsetTop;
+      bar.setPointerCapture(e.pointerId);
+    });
+    bar.addEventListener("pointermove", (e) => {
+      if (!dragging) return;
+      win.style.left = Math.max(0, e.clientX - dx) + "px";
+      win.style.top = Math.max(48, e.clientY - dy) + "px";
+    });
+    bar.addEventListener("pointerup", () => { dragging = false; });
+    document.getElementById("floatLayer").appendChild(win);
+    STATE.floats.push(win);
+  };
+
+  window.openSpeaker = function (slug) {
+    STATE.view = "speakers";
+    STATE.spkAxis = "speaker";
+    STATE.spkSlug = slug;
+    window.location.hash = "speakers:" + slug;
+    updateNavButtons();
+    renderSpeakersVault();
+  };
+
+  window.renderSpeakersVault = function () {
+    const activeSpk = STATE.spkSlug ? DB.speakerBySlug.get(STATE.spkSlug) : null;
+    const datesMap = new Map();
+    for (const t of DB.turns) {
+      if (!datesMap.has(t.date)) datesMap.set(t.date, { date: t.date, bodyName: t.bodyName, count: 0 });
+      datesMap.get(t.date).count++;
+    }
+    const datesList = [...datesMap.values()].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 60);
+
+    let filtered = DB.turns.filter((t) => {
+      if (STATE.spkSlug && t.speakerSlug !== STATE.spkSlug) return false;
+      if (STATE.spkDate && t.date !== STATE.spkDate) return false;
+      if (STATE.spkTheme && !(t.themes || []).includes(STATE.spkTheme)) return false;
+      if (STATE.spkEmotion && t.emotion !== STATE.spkEmotion) return false;
+      if (STATE.spkOrd && !(t.ordinances || []).some((o) => o.slug === STATE.spkOrd)) return false;
+      if (STATE.spkQ && !`${t.speakerName} ${t.text} ${t.date}`.toLowerCase().includes(STATE.spkQ.toLowerCase())) return false;
+      return true;
+    });
+
+    if (STATE.spkSort === "newest") filtered.sort((a, b) => b.date.localeCompare(a.date) || a.startSec - b.startSec);
+    else if (STATE.spkSort === "oldest") filtered.sort((a, b) => a.date.localeCompare(b.date) || a.startSec - b.startSec);
+    else filtered.sort((a, b) => b.impactScore - a.impactScore);
+
+    document.getElementById("appRoot").innerHTML = `
+      <div class="panel" style="margin-bottom:16px">
+        <div class="kicker">🎙️ HISTORICAL SPEAKER-TURN VIDEO DATABASE &amp; FACEBOOK CLIP STUDIO</div>
+        <h1 style="margin:6px 0 8px;font-size:28px">2,483 Individual &le;3-Min Speaker Video Turns · 246 Cheyenne Speakers</h1>
+        <div class="toolbar">
+          ${[
+            ["speaker", "👤 By Speaker (All Meetings)"],
+            ["date", "📅 By Date (All Speakers)"],
+            ["ordinance", "📜 By Ordinance (All Readings)"],
+            ["theme", "🏷️ By Civic Theme"],
+            ["emotion", "🔥 By Emotional Impact"]
+          ].map(([k, lbl]) => `<button class="chip ${STATE.spkAxis === k ? "active" : ""}" onclick="STATE.spkAxis='${k}';renderSpeakersVault()">${lbl}</button>`).join("")}
+          <input class="input" style="margin-left:auto;width:240px" placeholder="Search verbatim speech or speaker…" value="${esc(STATE.spkQ)}" oninput="STATE.spkQ=this.value;renderSpeakersVault()" />
+          ${(STATE.spkSlug || STATE.spkDate || STATE.spkOrd || STATE.spkTheme || STATE.spkEmotion || STATE.spkQ)
+            ? `<button class="btn btn-rose" style="padding:5px 11px" onclick="STATE.spkSlug='';STATE.spkDate='';STATE.spkOrd='';STATE.spkTheme='';STATE.spkEmotion='';STATE.spkQ='';renderSpeakersVault()">✕ Reset Filters</button>` : ""}
+        </div>
+
+        <div style="background:#040811;border:1px solid #1e293b;border-radius:10px;padding:12px;max-height:190px;overflow-y:auto">
+          ${STATE.spkAxis === "speaker" ? DB.speakers.slice(0, 90).map((s) => `
+            <button class="chip ${STATE.spkSlug === s.slug ? "active" : ""}" style="margin:3px" onclick="STATE.spkSlug=(STATE.spkSlug==='${esc(s.slug)}'?'':'${esc(s.slug)}');renderSpeakersVault()">
+              ${esc(s.name)} (${s.turnCount})
+            </button>`).join("")
+          : STATE.spkAxis === "date" ? datesList.map((d) => `
+            <button class="chip ${STATE.spkDate === d.date ? "active" : ""}" style="margin:3px;font-family:var(--mono)" onclick="STATE.spkDate=(STATE.spkDate==='${d.date}'?'':'${d.date}');STATE.spkSort='oldest';renderSpeakersVault()">
+              ${d.date} · ${esc(d.bodyName)} (${d.count})
+            </button>`).join("")
+          : STATE.spkAxis === "ordinance" ? DB.ordinances.slice(0, 60).map((o) => `
+            <button class="chip ${STATE.spkOrd === o.slug ? "active" : ""}" style="margin:3px" onclick="STATE.spkOrd=(STATE.spkOrd==='${esc(o.slug)}'?'':'${esc(o.slug)}');STATE.spkSort='oldest';renderSpeakersVault()">
+              📜 ${esc(o.title.slice(0, 52))}…
+            </button>`).join("")
+          : STATE.spkAxis === "theme" ? Object.entries(THEMES).map(([k, lbl]) => `
+            <button class="chip ${STATE.spkTheme === k ? "active" : ""}" style="margin:4px" onclick="STATE.spkTheme=(STATE.spkTheme==='${k}'?'':'${k}');renderSpeakersVault()">
+              #${k} · ${esc(lbl)}
+            </button>`).join("")
+          : Object.entries(EMOTIONS).map(([k, m]) => `
+            <button class="chip ${STATE.spkEmotion === k ? "active" : ""}" style="margin:4px" onclick="STATE.spkEmotion=(STATE.spkEmotion==='${k}'?'':'${k}');renderSpeakersVault()">
+              ${m.icon} ${esc(m.label)}
+            </button>`).join("")}
+        </div>
+      </div>
+
+      ${activeSpk ? `
+        <div class="panel" style="margin-bottom:16px;border-color:var(--amber)">
+          <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;align-items:center">
+            <div>
+              <div class="kicker">${esc(activeSpk.role)} · ${activeSpk.firstDate} → ${activeSpk.lastDate}</div>
+              <h2 style="margin:4px 0">${esc(activeSpk.name)} — ${activeSpk.turnCount} Recorded Turns Across ${activeSpk.meetingCount} Meetings</h2>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn btn-amber" onclick="downloadSpeakerZip('${esc(activeSpk.slug)}')">📦 Download All ${activeSpk.turnCount} Speaker Clips (.ZIP)</button>
+              ${filtered[0] ? `<button class="btn btn-fb" onclick="openFbModal(${filtered[0].id})">📘 Post Speaker Video to Facebook</button>` : ""}
+            </div>
+          </div>
+          ${activeSpk.compilationReels && activeSpk.compilationReels.length ? `
+            <div class="grid-2" style="margin-top:12px">
+              ${activeSpk.compilationReels.map((r) => `
+                <div style="background:#000;padding:10px;border-radius:10px;border:1px solid #1e293b">
+                  <div style="font-size:12px;font-weight:800;margin-bottom:6px">${esc(r.title)}</div>
+                  <video src="${esc(r.url)}" controls preload="metadata" style="width:100%;height:180px"></video>
+                </div>`).join("")}
+            </div>` : ""}
+        </div>` : ""}
+
+      <div class="toolbar" style="justify-content:space-between">
+        <span style="font-weight:800">Showing ${Math.min(60, filtered.length)} of ${filtered.length.toLocaleString()} matching &le;3-min speaker video turns</span>
+        <select class="input" onchange="STATE.spkSort=this.value;renderSpeakersVault()">
+          <option value="impact" ${STATE.spkSort === "impact" ? "selected" : ""}>Sort: Highest Emotional Impact</option>
+          <option value="newest" ${STATE.spkSort === "newest" ? "selected" : ""}>Sort: Newest First</option>
+          <option value="oldest" ${STATE.spkSort === "oldest" ? "selected" : ""}>Sort: Chronological (First → Last)</option>
+        </select>
+      </div>
+      <div class="grid-3">${filtered.slice(0, 60).map(renderTurnCard).join("")}</div>
+    `;
+  };
+
+  window.openOrdinance = async function (slug) {
+    STATE.view = "ordinance_detail";
+    STATE.ordSlug = slug;
+    STATE.ordStageIdx = 0;
+    window.location.hash = "ord:" + slug;
+    updateNavButtons();
+    const ord = DB.ordBySlug.get(slug);
+    if (!ord) return renderOrdinancesList();
+    for (const r of ord.readings) {
+      const ep = r.meeting ? DB.epBySlug.get(r.meeting) : null;
+      if (ep) await ensureSeasonLoaded(ep.season);
+    }
+    renderOrdinanceDetail();
+  };
+
+  window.renderOrdinanceDetail = function () {
+    const ord = DB.ordBySlug.get(STATE.ordSlug);
+    if (!ord) return;
+    const r = ord.readings[STATE.ordStageIdx] || ord.readings[0];
+    const ep = r && r.meeting ? DB.epBySlug.get(r.meeting) : null;
+    const detail = ep ? (DB.seasonCache.get(ep.season) || {})[ep.slug] || {} : {};
+    const stageTurns = DB.turns.filter((t) => (r && r.meeting && t.meetingSlug === r.meeting) || (t.ordinances || []).some((o) => o.slug === ord.slug));
+
+    document.getElementById("appRoot").innerHTML = `
+      <div style="margin-bottom:12px"><button class="btn" onclick="navTo('ordinances')">← All 275 Multi-Reading Ordinances</button></div>
+      <div class="panel" style="margin-bottom:16px">
+        <div class="kicker">📜 FIRST-TO-LAST READING SEQUENTIAL ORDINANCE PLAYER · ${esc(ord.kind)} (${esc(ord.firstDate)} → ${esc(ord.lastDate)})</div>
+        <h1 style="margin:8px 0 14px;font-size:24px">${esc(ord.title)}</h1>
+        <div class="grid-3">
+          ${ord.readings.map((st, idx) => `
+            <div onclick="STATE.ordStageIdx=${idx};renderOrdinanceDetail()" class="panel" style="cursor:pointer;border-color:${idx === STATE.ordStageIdx ? "var(--amber)" : "#1e293b"};background:${idx === STATE.ordStageIdx ? "rgba(251,191,36,0.12)" : "#050a14"}">
+              <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px">
+                <span class="tag tag-amber">STAGE ${idx + 1} · ${esc(st.stage)}</span>
+                <span>${esc(st.date)}</span>
+              </div>
+              <div style="font-weight:800;margin-top:8px">${esc(st.body)}</div>
+              ${st.context ? `<div style="font-size:11px;color:#94a3b8;margin-top:4px">${esc(st.context.slice(0, 100))}</div>` : ""}
+            </div>`).join("")}
+        </div>
+      </div>
+
+      ${ep ? `
+        <div class="panel" style="margin-bottom:16px">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+            <h2 style="margin:0">Stage ${STATE.ordStageIdx + 1}: ${esc(ep.date)} · ${esc(ep.bodyName)}</h2>
+            <button class="btn btn-sky" onclick="openEpisode('${esc(ep.slug)}')">Open Full 19-Lens Episode →</button>
+          </div>
+          ${ep.mp4Url ? `<video src="${esc(ep.mp4Url)}" controls preload="metadata" style="width:100%;max-height:360px;background:#000;border-radius:12px"></video>` : ""}
+          <div style="margin-top:12px">
+            <div class="kicker" style="margin-bottom:8px">PALANTIR FOUNDRY SUPPORTING PDFS AT THIS READING (${(detail.docs || []).length})</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px">
+              ${(detail.docs || []).slice(0, 12).map((d) => d.url ? `<a class="btn" style="font-size:11px;padding:5px 10px" href="${esc(d.url)}" target="_blank" rel="noreferrer">📄 ${esc(d.title.slice(0, 48))} ↗</a>` : "").join("")}
+            </div>
+          </div>
+        </div>` : ""}
+
+      <h3 style="margin:18px 0 10px">🎙️ Speaker Testimony &amp; Floor Interventions Across Readings (${stageTurns.length})</h3>
+      <div class="grid-3">${stageTurns.slice(0, 24).map(renderTurnCard).join("")}</div>
+    `;
+  };
+
+  function renderOrdinancesList() {
+    const filtered = DB.ordinances.filter((o) => !STATE.ordQ || o.title.toLowerCase().includes(STATE.ordQ.toLowerCase()));
+    document.getElementById("appRoot").innerHTML = `
+      <div class="panel" style="margin-bottom:16px">
+        <div class="kicker">📜 MULTI-READING LEGISLATIVE ARCS (PILOT 1ST READING → FINALE 3RD READING)</div>
+        <h1 style="margin:6px 0 12px;font-size:26px">${DB.ordinances.length} Cheyenne Ordinances Tracked Start-to-Finish</h1>
+        <input class="input" style="width:340px" placeholder="Filter ordinances (Cox, Annexation, UDC, Budget…)" value="${esc(STATE.ordQ)}" oninput="STATE.ordQ=this.value;renderOrdinancesList()" />
+      </div>
+      <div class="grid-3">
+        ${filtered.slice(0, 90).map((o) => `
+          <div class="ep-card" onclick="openOrdinance('${esc(o.slug)}')">
+            <div>
+              <span class="tag tag-violet">${esc(o.kind)} · ${o.readings.length} stages</span>
+              <div style="font-weight:800;font-size:14px;margin:10px 0;line-height:1.35">${esc(o.title)}</div>
+            </div>
+            <div style="font-family:var(--mono);font-size:11px;color:var(--amber)">▶ Play 1st (${esc(o.firstDate)}) → Final (${esc(o.lastDate)})</div>
+          </div>`).join("")}
+      </div>`;
+  }
+
+  async function renderGlobalFoundry() {
+    document.getElementById("appRoot").innerHTML = `<div class="loading-shell">Loading 6,371 Palantir Foundry Document &amp; SHA-1 OCR Objects…</div>`;
+    const docs = await ensureDocsLoaded();
+    const filtered = docs.filter((d) => {
+      if (STATE.docRole && d.role !== STATE.docRole) return false;
+      if (STATE.docOcr && !d.ocr) return false;
+      if (STATE.docQ && !`${d.title} ${d.date} ${d.sha1 || ""} ${d.bodyName}`.toLowerCase().includes(STATE.docQ.toLowerCase())) return false;
+      return true;
+    });
+
+    document.getElementById("appRoot").innerHTML = `
+      <div class="panel" style="margin-bottom:16px">
+        <div class="kicker" style="color:var(--sky)">PALANTIR FOUNDRY // GLOBAL AGENDAS &amp; SUPPORTING DOCUMENTS VAULT</div>
+        <h1 style="margin:6px 0 12px;font-size:26px">6,371 Primary PDFs &amp; 1,081 SHA-1 AI-Record-OCR Packets (2008–2026)</h1>
+        <div class="toolbar">
+          <input class="input" style="width:320px;font-family:var(--mono)" placeholder="Search PDF title, SHA-1 hash, date…" value="${esc(STATE.docQ)}" oninput="STATE.docQ=this.value;renderGlobalFoundry()" />
+          <select class="input" onchange="STATE.docRole=this.value;renderGlobalFoundry()">
+            <option value="">ROLE: ALL (6,371)</option>
+            <option value="attachment" ${STATE.docRole === "attachment" ? "selected" : ""}>SUPPORTING PDFs</option>
+            <option value="agenda" ${STATE.docRole === "agenda" ? "selected" : ""}>OFFICIAL AGENDAS</option>
+            <option value="minutes" ${STATE.docRole === "minutes" ? "selected" : ""}>MINUTES &amp; TRANSCRIPTS</option>
+          </select>
+          <button class="chip ${STATE.docOcr ? "active" : ""}" onclick="STATE.docOcr=!STATE.docOcr;renderGlobalFoundry()">🔬 SHA-1 OCR Only (1,081)</button>
+          <span style="font-family:var(--mono);font-size:12px;color:var(--sky)">MATCHED=${filtered.length.toLocaleString()}</span>
+        </div>
+      </div>
+      <div class="panel" style="padding:0;overflow:hidden">
+        <table class="foundry-tbl">
+          <thead><tr><th>Date / Body</th><th>Role</th><th>Supporting PDF / Agenda Object</th><th>SHA-1 / OCR</th><th>Inspect</th></tr></thead>
+          <tbody>
+            ${filtered.slice(0, 90).map((d) => `
+              <tr>
+                <td style="font-family:var(--mono);white-space:nowrap"><a href="#ep:${esc(d.meetingSlug)}" onclick="openEpisode('${esc(d.meetingSlug)}');return false;" style="color:var(--sky);font-weight:800">${esc(d.date)}</a><div style="font-size:10px;color:#94a3b8">${esc(d.bodyName)}</div></td>
+                <td><span class="tag tag-sky">${esc(d.role)}</span></td>
+                <td><b>${esc(d.title)}</b><div style="font-size:11px;color:#94a3b8">${esc(d.episodeTitle || "")}</div></td>
+                <td style="font-family:var(--mono);font-size:10.5px">${d.ocr ? `<span class="tag tag-emerald">🔬OCR</span> ` : ""}${esc(d.sha1 ? d.sha1.slice(0, 12) + "…" : "WAYBACK")}</td>
+                <td style="white-space:nowrap">
+                  <button class="btn btn-sky" style="padding:4px 9px;font-size:11px" onclick="STATE.selectedDocId=${d.id};STATE.epLens='foundry';openEpisode('${esc(d.meetingSlug)}')">Foundry</button>
+                  ${d.url ? `<a class="btn btn-amber" style="padding:4px 9px;font-size:11px" href="${esc(d.url)}" target="_blank" rel="noreferrer">PDF ↗</a>` : ""}
+                </td>
+              </tr>`).join("")}
+          </tbody>
+        </table>
+      </div>`;
+  }
+
+  function renderProvenanceInner() {
+    const p = DB.provenance;
+    if (!p) return `<div class="panel">Loading provenance catalog…</div>`;
+    const curUrl = STATE.provActiveUrl || p.masterFilms[0].pagesUrl;
+    const curTitle = STATE.provActiveTitle || p.masterFilms[0].title;
+    const curDesc = STATE.provActiveDesc || p.masterFilms[0].description;
+    const rows = p.chapters.flatMap((c) => (c.ledgerRows || []).map((r) => ({ ...r, clipUrl: c.pagesUrl, chTitle: c.title })))
+      .filter((r) => !STATE.provQ || `${r.key} ${r.item} ${r.how || ""}`.toLowerCase().includes(STATE.provQ.toLowerCase()));
+
+    return `
+      <div>
+        <div class="panel" style="margin-bottom:16px;border-color:rgba(244,63,94,0.4)">
+          <div class="kicker" style="color:#fda4af">🎥 SCREEN-RECORDED MANUAL CLICK-PATH PROVENANCE SUITE</div>
+          <h1 style="margin:6px 0">Every Public Portal &amp; Manual Browser Click Recorded on Tape</h1>
+          <p style="font-size:12.5px;color:#cbd5e1">Watch the real browser screen recordings showing the literal clicks on <code>cheyennecity.org</code>, <code>cheyenne.granicus.com</code>, and public portals used to obtain every calendar, agenda packet, supporting PDF, minute, and video (${esc(p.summaryStats.manualEquivalentEstimate)} manual equivalent across ${p.summaryStats.totalFilesAudited.toLocaleString()} audited files).</p>
+        </div>
+        <div class="grid-2" style="margin-bottom:16px">
+          <div class="panel" style="background:#000">
+            <video src="${esc(curUrl)}" poster="./provenance/provenance-timelapse-poster.jpg" controls style="width:100%;aspect-ratio:16/9;border-radius:10px;background:#000"></video>
+            <div style="display:flex;justify-content:space-between;align-items:start;gap:10px;margin-top:10px">
+              <div><div style="font-weight:900;font-size:15px">${esc(curTitle)}</div><div style="font-size:12px;color:#94a3b8;margin-top:3px">${esc(curDesc)}</div></div>
+              <a class="btn btn-rose" href="${esc(curUrl)}" download>⬇ MP4</a>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px">
+              ${p.masterFilms.map((mf) => `
+                <button class="panel" style="padding:9px;text-align:left;cursor:pointer;border-color:${curUrl === mf.pagesUrl ? "var(--rose)" : "#1e293b"}" onclick="setProvVideo('${esc(mf.pagesUrl)}','${esc(mf.title)}','${esc(mf.description)}')">
+                  <div style="font-family:var(--mono);font-size:10px;color:#fda4af">${mf.durationSec}s · ${mf.sizeMb}MB</div>
+                  <div style="font-size:11.5px;font-weight:800;margin-top:3px">${esc(mf.title)}</div>
+                </button>`).join("")}
+            </div>
+          </div>
+          <div class="panel" style="max-height:520px;overflow-y:auto">
+            <div class="kicker" style="color:var(--sky);margin-bottom:8px">11 MANUAL CLICK-PATH CHAPTER CLIPS (~15s EACH)</div>
+            ${p.chapters.map((ch) => `
+              <div onclick="setProvVideo('${esc(ch.pagesUrl)}','${esc(ch.title)}','${esc(ch.description)}')" style="padding:9px;border-bottom:1px solid #1e293b;cursor:pointer">
+                <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--amber)"><span>▶ ${esc(ch.title)}</span><span>${ch.durationSec}s</span></div>
+                <div style="font-size:11.5px;color:#cbd5e1;margin-top:3px">${esc(ch.description)}</div>
+              </div>`).join("")}
+          </div>
+        </div>
+        <div class="panel">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+            <div class="kicker" style="color:var(--emerald)">121-ROW MANUAL CLICK-PATH VERIFICATION LEDGER</div>
+            <input class="input" style="width:260px" placeholder="Filter click paths…" value="${esc(STATE.provQ)}" oninput="STATE.provQ=this.value;navTo('provenance')" />
+          </div>
+          <div style="max-height:320px;overflow-y:auto">
+            <table class="foundry-tbl">
+              <thead><tr><th>Datum</th><th>Count</th><th>Literal Manual Click Sequence</th><th>Cue</th></tr></thead>
+              <tbody>
+                ${rows.slice(0, 60).map((r) => `
+                  <tr>
+                    <td style="font-family:var(--mono);color:var(--sky)">${esc(r.key)}</td>
+                    <td style="font-family:var(--mono);color:var(--amber);font-weight:800">${esc(r.value)}</td>
+                    <td>${esc(r.how || "")}</td>
+                    <td><button class="btn btn-rose" style="padding:3px 8px;font-size:10.5px" onclick="setProvVideo('${esc(r.clipUrl)}','${esc(r.chTitle)}','${esc(r.how || "")}')">▶ Watch</button></td>
+                  </tr>`).join("")}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  window.setProvVideo = function (url, title, desc) {
+    STATE.provActiveUrl = url;
+    STATE.provActiveTitle = title;
+    STATE.provActiveDesc = desc;
+    if (STATE.view === "episode") rerenderEpisode();
+    else document.getElementById("appRoot").innerHTML = renderProvenanceInner();
+  };
+
+  function updateNavButtons() {
+    document.querySelectorAll("#mainNav button").forEach((b) => {
+      const target = b.getAttribute("data-nav");
+      b.classList.toggle("active", target === STATE.view || (STATE.view === "episode" && target === "episodes") || (STATE.view === "ordinance_detail" && target === "ordinances"));
+    });
+  }
+
+  window.navTo = function (view) {
+    STATE.view = view;
+    window.location.hash = view;
+    updateNavButtons();
+    if (view === "home") renderHome();
+    else if (view === "episodes") renderEpisodesList();
+    else if (view === "speakers") renderSpeakersVault();
+    else if (view === "ordinances") renderOrdinancesList();
+    else if (view === "foundry") renderGlobalFoundry();
+    else if (view === "provenance") document.getElementById("appRoot").innerHTML = renderProvenanceInner();
+  };
+
+  async function boot() {
+    const [eps, turns, spks, ords, prov, people] = await Promise.all([
+      fetch("./data/episodes_index.json").then((r) => r.json()),
+      fetch("./data/speaker_turns.json").then((r) => r.json()),
+      fetch("./data/speakers_directory.json").then((r) => r.json()),
+      fetch("./data/ordinances.json").then((r) => r.json()),
+      fetch("./data/provenance_videos.json").then((r) => r.json()),
+      fetch("./data/people.json").then((r) => r.json())
+    ]);
+    DB.episodes = eps;
+    eps.forEach((e) => DB.epBySlug.set(e.slug, e));
+    DB.turns = turns;
+    turns.forEach((t) => DB.turnById.set(t.id, t));
+    DB.speakers = spks;
+    spks.forEach((s) => DB.speakerBySlug.set(s.slug, s));
+    DB.ordinances = ords;
+    ords.forEach((o) => DB.ordBySlug.set(o.slug, o));
+    DB.provenance = prov;
+    DB.people = people;
+
+    document.querySelectorAll("[data-nav]").forEach((el) => {
+      el.addEventListener("click", (e) => {
+        e.preventDefault();
+        navTo(el.getAttribute("data-nav"));
       });
     });
 
-    document.querySelectorAll("[data-viewmode]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        state.viewMode = btn.dataset.viewmode;
-        syncViewModeButtons();
-        renderLensBar();
-        renderViewport();
-      });
-    });
-
-    document.getElementById("searchInput").addEventListener("input", e => {
-      state.search = e.target.value;
-      if (state.search.trim().length > 2 && state.mode === "featured") {
-        // Keep current mode unless zero hits
-      }
-      renderGuideSidebar();
-    });
-
-    document.getElementById("seasonFilter").addEventListener("change", e => {
-      state.season = e.target.value;
-      if (state.season !== "ALL" && state.season !== "2026") state.mode = "vault";
-      syncModeButtons();
-      renderGuideSidebar();
-    });
-
-    document.getElementById("typeFilter").addEventListener("change", e => {
-      state.type = e.target.value;
-      if (state.type === "Ordinance Story Arc") state.mode = "ordinances";
-      syncModeButtons();
-      renderGuideSidebar();
-    });
-
-    document.getElementById("speakerFilter").addEventListener("change", e => {
-      state.speaker = e.target.value;
-      state.mode = "featured";
-      syncModeButtons();
-      renderGuideSidebar();
-    });
-
-    document.getElementById("btnThemeSong").addEventListener("click", () => {
-      if (isThemePlaying) stopThemeSong();
-      else startThemeSong();
-    });
-
-    document.getElementById("btnPlayMontage").addEventListener("click", openIntroMontage);
-    document.getElementById("btnCloseMontage").addEventListener("click", closeIntroMontage);
-    document.getElementById("btnCloseInlinePlayer").addEventListener("click", () => {
-      const vid = document.getElementById("inlineVideoEl");
-      if (vid) vid.pause();
-      const ifr = document.getElementById("inlineEmbedFallback");
-      if (ifr) ifr.remove();
-      document.getElementById("inlinePlayerDock").classList.remove("open");
-    });
-
-    window.addEventListener("keydown", e => {
-      if (["INPUT", "SELECT", "TEXTAREA"].includes(document.activeElement.tagName)) return;
-      if (state.viewMode === "swipe") {
-        if (e.key === "ArrowRight") window._stepLens(1);
-        if (e.key === "ArrowLeft") window._stepLens(-1);
-      }
-      if (e.key === "Escape") closeIntroMontage();
-    });
+    const h = window.location.hash.replace(/^#/, "");
+    if (h.startsWith("ep:")) return openEpisode(decodeURIComponent(h.slice(3)));
+    if (h.startsWith("speakers:")) return openSpeaker(decodeURIComponent(h.slice(9)));
+    if (h.startsWith("ord:")) return openOrdinance(decodeURIComponent(h.slice(4)));
+    if (["episodes", "speakers", "ordinances", "foundry", "provenance"].includes(h)) return navTo(h);
+    renderHome();
   }
 
-  renderAll();
-  hydrateLiveGitHubProgress();
+  boot().catch((err) => {
+    document.getElementById("appRoot").innerHTML = `<div class="panel">Initialization error: ${esc(err)}</div>`;
+  });
 })();

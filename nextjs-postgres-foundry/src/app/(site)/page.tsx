@@ -1,0 +1,194 @@
+import Link from "next/link";
+import EpisodeCard, { dateShort } from "@/components/EpisodeCard";
+import { LENSES } from "@/lib/lens-meta";
+import { getFeatured, getFeaturedContent, listEpisodes, listOrdinances, querySpeakerTurns, seasonSummary } from "@/lib/bundle";
+
+export const dynamic = "force-dynamic";
+
+function Row({ title, sub, href, children }: { title: string; sub?: string; href?: string; children: React.ReactNode }) {
+  return (
+    <section className="mx-auto max-w-7xl px-4 pt-8">
+      <div className="mb-3 flex items-end gap-3">
+        <h2 className="text-xl font-black tracking-tight">{title}</h2>
+        {sub && <span className="text-xs text-slate-400">{sub}</span>}
+        {href && (
+          <Link href={href} className="ml-auto text-xs font-bold text-amber-300 hover:underline">
+            See all →
+          </Link>
+        )}
+      </div>
+      <div className="hide-scrollbar flex snap-x gap-3 overflow-x-auto pb-2">{children}</div>
+    </section>
+  );
+}
+
+export default async function HomePage() {
+  const [featured, fc, council, psc, finance, planning, ords, seasons, topTurns] = await Promise.all([
+    getFeatured(),
+    getFeaturedContent(),
+    listEpisodes({ body: "council", season: 2026, limit: 14 }),
+    listEpisodes({ body: "psc", season: 2026, limit: 10 }),
+    listEpisodes({ body: "finance", season: 2026, limit: 10 }),
+    listEpisodes({ body: "planning", limit: 10 }),
+    listOrdinances({ limit: 10 }),
+    seasonSummary(),
+    querySpeakerTurns({ sort: "impact", limit: 10 }),
+  ]);
+  const ticker = ((fc?.scoreboard as { result: string; tally: string; label: string }[]) ?? []).map(
+    (s) => `${s.result} · ${s.tally} · ${s.label.slice(0, 70)}`,
+  );
+  const total = seasons.reduce((n, s) => n + s.n, 0);
+
+  return (
+    <>
+      <section className="relative overflow-hidden bg-gradient-to-br from-amber-600/35 via-[#0b1325] to-[#07090f]">
+        <div className="scanlines pointer-events-none absolute inset-0 opacity-70" />
+        <div className="relative mx-auto grid max-w-7xl gap-8 px-4 py-12 lg:grid-cols-[1.45fr_1fr]">
+          <div>
+            <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.35em] text-amber-300">
+              <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-red-500" /> Unified Broadcast + Palantir Gotham/Foundry Vault
+            </div>
+            <h1 className="title-shimmer mt-3 text-4xl font-black leading-[0.98] tracking-tight sm:text-6xl">{featured.title}</h1>
+            <p className="mt-3 text-base text-slate-200">
+              {featured.bodyName} · {dateShort(featured.date)} · Season {featured.season}, Episode {featured.episodeNo}
+            </p>
+            <p className="mt-2 max-w-2xl text-sm text-slate-300">{featured.logline}</p>
+            <div className="mt-5 flex flex-wrap gap-2.5">
+              <Link href={`/episode/${featured.slug}`} className="rounded-full bg-amber-400 px-5 py-2.5 text-sm font-black text-black hover:bg-amber-300">
+                ▶ Watch Featured Episode ({LENSES.length} Lenses)
+              </Link>
+              <Link href="/speakers" className="rounded-full bg-[#1877F2] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#166fe5]">
+                🎙️ Speaker Turn Videos &amp; FB Studio (2,483)
+              </Link>
+              <Link href="/ordinances" className="rounded-full bg-violet-500/25 px-4 py-2.5 text-sm font-bold text-violet-100 ring-1 ring-violet-400/40 hover:bg-violet-500/35">
+                📜 Ordinances: 1st → Final Reading
+              </Link>
+              <Link href="/documents" className="rounded-full bg-sky-500/20 px-4 py-2.5 text-sm font-bold text-sky-200 ring-1 ring-sky-400/40 hover:bg-sky-500/30">
+                🏛️ Palantir Foundry PDFs (6,371)
+              </Link>
+              <Link href="/provenance" className="rounded-full bg-rose-500/20 px-4 py-2.5 text-sm font-bold text-rose-200 ring-1 ring-rose-400/40 hover:bg-rose-500/30">
+                🎥 Provenance Click-Path Films (14)
+              </Link>
+            </div>
+            <p className="mt-4 max-w-2xl text-xs text-slate-400">
+              Complete 19-season municipal database ({total.toLocaleString()} meetings across {new Set(seasons.map((s) => s.season)).size} seasons, 2008–2026) — zero empty placeholders, backed by PostgreSQL 17, GitHub Speaker .ZIP Releases, SHA-1 OCR packets, and manual click-path screen recordings.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2.5 self-center">
+            {[
+              ["1,615", "Full Episodes (2008–2026) · 0 Empty"],
+              ["2,483", "≤3-Min Speaker Video Turns (246 Speakers)"],
+              ["6,371", "Foundry Agendas & Supporting PDFs"],
+              ["1,081", "SHA-1 AI-Record-OCR Scanned Packets"],
+              ["275", "Multi-Reading Ordinance Arcs (1st→3rd)"],
+              ["14 Films", "Screen-Recorded Manual Click Provenance"],
+            ].map(([big, small]) => (
+              <div key={big} className="rounded-xl bg-black/50 p-3.5 ring-1 ring-white/15">
+                <div className="font-mono text-2xl font-black text-amber-300 sm:text-3xl">{big}</div>
+                <div className="mt-0.5 text-[11px] leading-tight text-slate-300">{small}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+        {ticker.length > 0 && (
+          <div className="relative overflow-hidden border-y border-white/10 bg-red-700/90 py-1.5 text-xs font-bold uppercase tracking-wider">
+            <div className="ticker-track">
+              {[0, 1].map((k) => (
+                <div key={k} className="flex shrink-0 gap-10 pr-10">
+                  {ticker.map((t, i) => (
+                    <span key={i}>■ {t}</span>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </section>
+
+      {/* High-Impact Historical Speaker Video Turns Row */}
+      <Row
+        title="🎙️ High-Impact Speaker Video Turns (≤ 3 Min)"
+        sub="filter by speaker, date, ordinance, theme, or emotion — download .ZIP or post directly to Facebook"
+        href="/speakers"
+      >
+        {topTurns.rows.map((t) => (
+          <Link
+            key={t.id}
+            href={`/speakers?speaker=${encodeURIComponent(t.speakerSlug)}`}
+            className="flex h-48 w-80 shrink-0 snap-start flex-col justify-between rounded-xl border border-amber-400/25 bg-[#091122] p-4 hover:border-amber-400"
+          >
+            <div>
+              <div className="flex items-center justify-between gap-2 text-[10px] font-bold uppercase">
+                <span className="rounded bg-rose-500/25 px-1.5 py-0.5 text-rose-200">{t.emotion} · impact {t.impactScore}</span>
+                <span className="font-mono text-amber-300">{Math.round(t.durationSec)}s clip</span>
+              </div>
+              <div className="mt-1.5 text-sm font-black text-white">{t.speakerName}</div>
+              <div className="text-[11px] text-sky-300">
+                {t.date} · {t.bodyName} [{t.hms}]
+              </div>
+              <p className="mt-2 line-clamp-3 text-xs text-slate-300">&ldquo;{t.text}&rdquo;</p>
+            </div>
+            <div className="flex items-center justify-between text-[10px] text-slate-400">
+              <span>{t.themes.map((x) => `#${x}`).join(" ")}</span>
+              <span className="font-bold text-amber-300">▶ Watch &amp; Share →</span>
+            </div>
+          </Link>
+        ))}
+      </Row>
+
+      <Row title="📜 Ordinance Arcs: First Reading → Final Enactment" sub="watch every ordinance chronologically with all speaker testimony & packet PDFs" href="/ordinances">
+        {ords.map((o) => (
+          <Link
+            key={o.slug}
+            href={`/ordinance/${o.slug}`}
+            className="flex h-44 w-72 shrink-0 snap-start flex-col justify-between rounded-xl bg-gradient-to-br from-indigo-600/50 to-slate-900 p-4 ring-1 ring-white/10 hover:ring-amber-300/70"
+          >
+            <span className="w-fit rounded bg-black/50 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+              {o.kind} · {o.readings.length} readings
+            </span>
+            <div className="line-clamp-3 text-sm font-bold leading-snug">{o.title}</div>
+            <div className="text-[11px] text-amber-300">
+              ▶ Play 1st ({o.firstDate}) → Final ({o.lastDate})
+            </div>
+          </Link>
+        ))}
+      </Row>
+
+      <Row title="Season 2026 · City Council" sub="newest through Nov 2026" href="/episodes?body=council&season=2026">
+        {council.rows.map((m) => (
+          <EpisodeCard key={m.slug} m={m} />
+        ))}
+      </Row>
+      <Row title="Public Services Committee" sub="where ordinances & zoning hearings go between readings" href="/episodes?body=psc&season=2026">
+        {psc.rows.map((m) => (
+          <EpisodeCard key={m.slug} m={m} />
+        ))}
+      </Row>
+      <Row title="Finance Committee" sub="appropriations, contracts, bids & audit review" href="/episodes?body=finance&season=2026">
+        {finance.rows.map((m) => (
+          <EpisodeCard key={m.slug} m={m} />
+        ))}
+      </Row>
+      <Row title="Planning Commission & Land Use" sub="plats, annexations, PUDs & comprehensive plan" href="/episodes?body=planning">
+        {planning.rows.map((m) => (
+          <EpisodeCard key={m.slug} m={m} />
+        ))}
+      </Row>
+
+      <section className="mx-auto max-w-7xl px-4 py-12">
+        <h2 className="text-xl font-black tracking-tight">{LENSES.length} Synchronized Lenses on One Unified Civic Ontology</h2>
+        <p className="text-sm text-slate-400">
+          Every single episode can be swiped, compared side-by-side, tiled in a 19-lens mosaic, or floated in draggable desktop windows.
+        </p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {LENSES.map((l) => (
+            <span key={l.key} title={l.blurb} className="rounded-full px-3 py-1.5 text-xs font-bold text-black" style={{ background: l.accent }}>
+              {l.icon} {l.name}
+            </span>
+          ))}
+        </div>
+      </section>
+    </>
+  );
+}
