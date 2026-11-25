@@ -172,8 +172,19 @@ export default function BroadcastPlayer({ b, onClose }: { b: EpisodeBundle; onCl
   const actItems = act ? b.items.filter((i) => act.items.includes(i.itemNo)).slice(0, 6) : [];
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col bg-black text-white" role="dialog" aria-label="Episode player">
-      <div className="relative flex-1 overflow-hidden">
+    <div className="fixed inset-0 z-[100] flex flex-col bg-[#040811] text-white" role="dialog" aria-label="Episode player">
+      {/* Top C-SPAN / The Real Windy City Broadcast Bar */}
+      <div className="z-20 flex items-center justify-between border-b-2 border-amber-400 bg-[#09152b] px-4 py-1.5 text-xs font-black uppercase tracking-wider">
+        <span className="text-amber-300">[RWC] THE REAL WINDY CITY · CHEYENNE CIVIC BROADCAST · {scene.label}</span>
+        <div className="flex items-center gap-3">
+          <span className="font-mono text-slate-200">{b.meeting.bodyName} · {b.meeting.date}</span>
+          {scene.id === "theme" || scene.id === "cold" || scene.id === "prev" ? (
+            <button onClick={() => go(scenes.findIndex((x) => x.id === "cast"))} className="rounded border border-white/40 px-2.5 py-0.5 text-[11px] font-bold hover:bg-white/10">Skip intro ⏭</button>
+          ) : null}
+          <button onClick={onClose} className="rounded bg-rose-600 px-2.5 py-0.5 text-[11px] font-black hover:bg-rose-500">✕ Close</button>
+        </div>
+      </div>
+      <div className="relative flex-1 overflow-hidden border-x-8 border-[#09152b]">
         <div className="scanlines pointer-events-none absolute inset-0 z-10" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,#1e293b_0%,#02040a_75%)]" />
         <div key={scene.id} className="anim-in relative z-0 mx-auto flex h-full max-w-5xl flex-col items-center justify-center px-6 text-center">
@@ -275,25 +286,34 @@ export default function BroadcastPlayer({ b, onClose }: { b: EpisodeBundle; onCl
           )}
           {scene.id === "credits" && (
             <div className="space-y-3 text-sm text-slate-300">
-              <div className="text-xs font-bold uppercase tracking-[0.5em] text-amber-300">Credits</div>
-              <p>Season guide: Internet Archive Wayback capture {b.provenance.waybackTs}</p>
-              <p>Official record: City of Cheyenne via Granicus</p>
-              <p>Analysis: The Real Windy City watchdog pipeline (deterministic, verbatim spans)</p>
-              <p>Theme: synthesized live with the Web Audio API</p>
-              <p className="pt-3 text-lg font-black text-white">Now swipe through the lenses ↓</p>
+              <div className="text-xs font-bold uppercase tracking-[0.5em] text-amber-300">THE REAL WINDY CITY · VERIFIED CIVIC RECORD</div>
+              <p>Broadcast Stream: Internet Archive &amp; Wayback Machine ({b.provenance.waybackTs})</p>
+              <p>Official Record: City of Cheyenne Clerk Minutes &amp; Supporting Agenda Packets</p>
+              <p>OSINT &amp; Speaker Analytics: The Real Windy City Municipal Accountability Pipeline</p>
+              <p className="pt-3 text-lg font-black text-white">Now inspect all 19 lenses ↓</p>
               <button onClick={onClose} className="rounded-full bg-amber-400 px-5 py-2 font-black text-black hover:bg-amber-300">Close player</button>
             </div>
           )}
         </div>
-        <div className="absolute left-4 top-3 z-20 text-[11px] font-bold uppercase tracking-widest text-white/60">● {scene.label}</div>
-        <div className="absolute right-4 top-3 z-20 flex gap-2">
-          {scene.id === "theme" || scene.id === "cold" || scene.id === "prev" ? (
-            <button onClick={() => go(scenes.findIndex((x) => x.id === "cast"))} className="rounded border border-white/40 px-3 py-1 text-xs font-bold hover:bg-white/10">Skip intro ⏭</button>
-          ) : null}
-          <button onClick={onClose} className="rounded bg-white/10 px-3 py-1 text-xs font-bold hover:bg-red-600">✕ Close</button>
+        {/* Synced Closed Captions Overlay */}
+        <div className="pointer-events-none absolute inset-x-6 bottom-3 z-20 flex justify-center">
+          <div className="max-w-3xl rounded bg-black/85 px-3 py-1 text-center font-mono text-xs text-white ring-1 ring-amber-400/30">
+            CC · {act ? act.beat.slice(0, 140) : s.logline.slice(0, 140)}
+          </div>
         </div>
       </div>
-      <div className="z-20 flex items-center gap-3 border-t border-white/10 bg-black/80 px-4 py-2">
+      {/* Bottom C-SPAN Marquee Info Border */}
+      <div className="z-20 overflow-hidden border-t-2 border-rose-700 bg-[#071122] py-1 text-[11px] font-bold text-amber-300">
+        <div className="ticker-track whitespace-nowrap">
+          <span className="pr-16">
+            THE REAL WINDY CITY · {b.meeting.bodyName.toUpperCase()} · {b.meeting.date} · {s.title} · {b.items.length} DOCKET ITEMS · {b.docs.length} PACKET PDFS · VERIFIED MINUTES &amp; INTERNET ARCHIVE RECORD
+          </span>
+          <span className="pr-16">
+            THE REAL WINDY CITY · {b.meeting.bodyName.toUpperCase()} · {b.meeting.date} · {s.title} · {b.items.length} DOCKET ITEMS · {b.docs.length} PACKET PDFS · VERIFIED MINUTES &amp; INTERNET ARCHIVE RECORD
+          </span>
+        </div>
+      </div>
+      <div className="z-20 flex items-center gap-3 border-t border-white/10 bg-black/90 px-4 py-2">
         <button onClick={() => go(idx - 1)} className="px-2 text-lg" aria-label="Previous scene">⏮</button>
         <button onClick={() => setPlaying((p) => !p)} className="px-2 text-lg" aria-label={playing ? "Pause" : "Play"}>{playing ? "⏸" : "▶"}</button>
         <button onClick={() => go(idx + 1)} className="px-2 text-lg" aria-label="Next scene">⏭</button>

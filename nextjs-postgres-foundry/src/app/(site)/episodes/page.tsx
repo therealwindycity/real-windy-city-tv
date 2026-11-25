@@ -1,5 +1,6 @@
 import Link from "next/link";
 import EpisodeCard from "@/components/EpisodeCard";
+import InstantFilterForm from "@/components/InstantFilterForm";
 import { BODIES, listEpisodes, seasonSummary } from "@/lib/bundle";
 
 export const dynamic = "force-dynamic";
@@ -13,6 +14,7 @@ export default async function EpisodesPage({ searchParams }: { searchParams: Pro
     listEpisodes({ body: sp.body || undefined, season, q: sp.q || undefined, withMinutes: sp.minutes === "1", limit: PAGE, offset: (page - 1) * PAGE }),
     seasonSummary(),
   ]);
+  const totalPages = Math.max(1, Math.ceil(total / PAGE));
   const seasons = [...new Set(summary.map((s) => s.season))].sort((a, b) => b - a);
   const qs = (over: Record<string, string | undefined>) => {
     const p = new URLSearchParams();
@@ -24,29 +26,68 @@ export default async function EpisodesPage({ searchParams }: { searchParams: Pro
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
       <h1 className="text-3xl font-black tracking-tight">All episodes</h1>
-      <p className="text-sm text-slate-400">{total} meetings from the Wayback-archived season guide, merged with the agenda and minutes database. Every one is an episode.</p>
-      <form className="mt-4 flex flex-wrap items-center gap-2 text-sm" method="get">
-        <input name="q" defaultValue={sp.q} placeholder="Search titles, dates (2026-09), bodies…" className="min-w-[220px] flex-1 rounded border border-white/15 bg-white/5 px-3 py-2 outline-none focus:border-amber-300" />
+      <p className="text-sm text-slate-400">
+        {total.toLocaleString()} meetings from the Internet Archive / Wayback broadcast guide, merged with Official Clerk Minutes and Foundry Packet PDFs.
+      </p>
+      <InstantFilterForm action="/episodes" className="mt-4 flex flex-wrap items-center gap-2 text-sm">
+        <input
+          name="q"
+          defaultValue={sp.q ?? ""}
+          placeholder="Search titles, dates (2026-09), bodies…"
+          className="min-w-[220px] flex-1 rounded border border-white/15 bg-white/5 px-3 py-2 outline-none focus:border-amber-300"
+        />
+        <button type="submit" className="rounded bg-amber-400 px-4 py-2 font-black text-black hover:bg-amber-300">
+          Enter ↵
+        </button>
         <select name="body" defaultValue={sp.body ?? ""} className="rounded border border-white/15 bg-[#0d1220] px-3 py-2">
           <option value="">All series</option>
-          {BODIES.map((b) => <option key={b.key} value={b.key}>{b.name}</option>)}
+          {BODIES.map((b) => (
+            <option key={b.key} value={b.key}>
+              {b.name}
+            </option>
+          ))}
         </select>
         <select name="season" defaultValue={sp.season ?? ""} className="rounded border border-white/15 bg-[#0d1220] px-3 py-2">
           <option value="">All seasons</option>
-          {seasons.map((s) => <option key={s} value={s}>Season {s}</option>)}
+          {seasons.map((s) => (
+            <option key={s} value={s}>
+              Season {s}
+            </option>
+          ))}
         </select>
-        <label className="flex items-center gap-1 text-xs text-slate-300"><input type="checkbox" name="minutes" value="1" defaultChecked={sp.minutes === "1"} /> has full minutes text</label>
-        <button className="rounded bg-amber-400 px-4 py-2 font-bold text-black">Filter</button>
-        <Link href="/episodes" className="text-xs text-slate-400 underline">reset</Link>
-      </form>
+        <label className="flex items-center gap-1.5 rounded border border-white/15 bg-[#0d1220] px-3 py-2 text-xs text-slate-200">
+          <input type="checkbox" name="minutes" value="1" defaultChecked={sp.minutes === "1"} /> Has full minutes text
+        </label>
+        <Link href="/episodes" className="rounded bg-white/10 px-3 py-2 text-xs font-bold text-slate-300 hover:bg-white/20">
+          Reset
+        </Link>
+      </InstantFilterForm>
+
       <div className="mt-6 grid justify-items-center gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {rows.map((m) => <EpisodeCard key={m.slug} m={m} />)}
+        {rows.map((m) => (
+          <EpisodeCard key={m.slug} m={m} />
+        ))}
       </div>
       {rows.length === 0 && <p className="mt-10 text-center text-slate-400">No episodes match.</p>}
-      <div className="mt-8 flex items-center justify-center gap-3 text-sm">
-        {page > 1 && <Link className="rounded bg-white/10 px-4 py-2" href={qs({ page: String(page - 1) })}>← Newer</Link>}
-        <span className="text-slate-400">Page {page} of {Math.max(1, Math.ceil(total / PAGE))}</span>
-        {page * PAGE < total && <Link className="rounded bg-white/10 px-4 py-2" href={qs({ page: String(page + 1) })}>Older →</Link>}
+
+      <div className="mt-8 flex items-center justify-between rounded-xl border border-white/10 bg-[#080f1d] px-4 py-3 text-xs sm:text-sm">
+        {page > 1 ? (
+          <Link className="rounded-lg bg-white/10 px-4 py-2 font-bold text-white hover:bg-white/20" href={qs({ page: String(page - 1) })}>
+            ← Previous Page
+          </Link>
+        ) : (
+          <span className="rounded-lg bg-white/5 px-4 py-2 text-slate-500">← Previous Page</span>
+        )}
+        <span className="font-mono text-slate-300">
+          Page {page} of {totalPages} ({total.toLocaleString()} episodes)
+        </span>
+        {page < totalPages ? (
+          <Link className="rounded-lg bg-amber-400 px-4 py-2 font-black text-black hover:bg-amber-300" href={qs({ page: String(page + 1) })}>
+            Next Page →
+          </Link>
+        ) : (
+          <span className="rounded-lg bg-white/5 px-4 py-2 text-slate-500">Next Page →</span>
+        )}
       </div>
     </div>
   );

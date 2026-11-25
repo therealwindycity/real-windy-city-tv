@@ -19,6 +19,9 @@ export type Meeting = {
   minutesUrl: string | null;
   videoUrl: string | null;
   mp4Url: string | null;
+  videoLinkVerified?: boolean | null;
+  iaMp4Url?: string | null;
+  iaPageUrl?: string | null;
   hasMinutesText: boolean;
   sources: string[];
   extraLinks: { label: string; url: string; kind: string }[];
@@ -119,6 +122,27 @@ export type OrdSeries = {
   readings: { date: string; body: string; stage: string; context: string; meeting: string | null; source: string; link: string | null }[];
 };
 
+import type { SpeakerClipAnalytics, SpeakerFullAnalytics } from "@/db/schema";
+export type { SpeakerClipAnalytics, SpeakerFullAnalytics };
+
+export type OsintEntity = {
+  id: number;
+  slug: string;
+  name: string;
+  category: string;
+  subtype: string;
+  address: string;
+  keyPeople: string[];
+  nexusSummary: string;
+  verifiedProfiles: { platform: string; label: string; url: string }[];
+  meetingCount: number;
+  trackedContractValueUsd: number;
+  contractsAndBids: { meeting: string; itemNo: string; kind: string; title: string; amountUsd: number | null; sponsor: string }[];
+  ordinancesAndResolutions: { slug: string; title: string; kind: string; lastDate: string }[];
+  linkedSpeakers: { slug: string; name: string; role: string; clipCount: number; sharedAppearances: number }[];
+  speakerSlug: string | null;
+};
+
 export type SpeakerTurn = {
   id: number;
   speakerSlug: string;
@@ -135,6 +159,15 @@ export type SpeakerTurn = {
   durationSec: number;
   hms: string;
   directMp4Url: string | null;
+  sourceMeetingMp4Url?: string | null;
+  brandedMp4Url?: string | null;
+  videoTiming?: "realigned" | "realigned_relinked" | "diarized_window" | "removed" | null;
+  videoTimingNote?: string | null;
+  alignScore?: number | null;
+  alignSource?: string | null;
+  legacyStartSec?: number | null;
+  legacyEndSec?: number | null;
+  speakerAttributionVerified?: boolean;
   footageMp4Url?: string | null;
   cardPngUrl?: string | null;
   embedUrl: string | null;
@@ -147,6 +180,13 @@ export type SpeakerTurn = {
   emotion: string;
   impactScore: number;
   verifiedClip: boolean;
+  speakingCapacity?: string;
+  representingOrg?: string;
+  hasPointOfOrder?: boolean;
+  pointOfOrderType?: string | null;
+  stance?: string;
+  stanceLabel?: string;
+  speakerAnalytics?: SpeakerClipAnalytics | null;
 };
 
 export type SpeakerProfile = {
@@ -168,6 +208,7 @@ export type SpeakerProfile = {
   speakerZipUrls: string[];
   compilationReels: { title: string; url: string }[];
   directClipCount: number;
+  analytics?: SpeakerFullAnalytics | null;
 };
 
 export type ProvenanceFilmChapter = {

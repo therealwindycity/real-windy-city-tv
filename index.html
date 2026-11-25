@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>The Real Windy City · Civic Broadcast, Palantir Foundry &amp; Speaker Video Vault (2008–2026)</title>
-  <meta name="description" content="1,615 City of Cheyenne government episodes (2008–2026), 19 analytical lenses, 6,371 Palantir Foundry Agendas & Supporting PDFs, 2,483 <=3-min historical speaker video turns with Facebook sharing, 275 first-to-last reading ordinances, and 14 manual click-path provenance films." />
-  <meta property="og:title" content="The Real Windy City · Cheyenne Civic Broadcast &amp; Foundry Vault" />
-  <meta property="og:description" content="Every City of Cheyenne meeting, ordinance reading, supporting PDF, speaker video clip, and provenance screen recording (2008–2026)." />
+  <title>The Real Windy City · Cheyenne Civic Broadcast, Speaker Analytics &amp; OSINT Graph (2008–2026)</title>
+  <meta name="description" content="1,615 City of Cheyenne government episodes (833 Internet Archive streams), 2,483 C-SPAN branded <=3-min speaker video clips across 109 canonical speakers with capacities, stances, avg turn time & Points of Order, 51 OSINT civic/contractor dossiers, 6,371 Minutes & Supporting PDFs, and 275 multi-reading ordinances." />
+  <meta property="og:title" content="The Real Windy City · Cheyenne Civic Broadcast, Speaker Analytics &amp; OSINT Vault" />
+  <meta property="og:description" content="Every City of Cheyenne meeting, C-SPAN speaker video clip, OSINT contractor/entity profile, ordinance reading, and supporting PDF (2008–2026)." />
   <meta property="og:type" content="website" />
   <link rel="stylesheet" href="./styles.css" />
 </head>
@@ -17,29 +17,31 @@
         <span class="brand-badge">RWC</span>
         <span>
           <span class="brand-title">The Real Windy City</span>
-          <span class="brand-sub">Civic Broadcast &amp; Palantir Foundry · Cheyenne, WY</span>
+          <span class="brand-sub">Cheyenne Civic Broadcast, Speaker Analytics &amp; OSINT Vault</span>
         </span>
       </a>
       <nav class="main-nav" id="mainNav">
-        <button data-nav="home" class="active">Now Streaming</button>
-        <button data-nav="episodes">Episodes (1,615)</button>
-        <button data-nav="speakers">🎙️ Speaker Videos (2,483)</button>
-        <button data-nav="ordinances">📜 Ordinances: 1st→Final (275)</button>
-        <button data-nav="foundry">🏛️ Foundry Docs (6,371)</button>
-        <button data-nav="provenance">🎥 Provenance Films (14)</button>
+        <button type="button" data-nav="home" class="active">Now Streaming</button>
+        <button type="button" data-nav="episodes">Episodes (1,615)</button>
+        <button type="button" data-nav="speakers">🎙️ Speaker Videos (2,483)</button>
+        <button type="button" data-nav="osint">🕸️ OSINT Graph (51)</button>
+        <button type="button" data-nav="ordinances">📜 Ordinances (275)</button>
+        <button type="button" data-nav="foundry">🏛️ Foundry Docs (6,371)</button>
+        <button type="button" data-nav="provenance">🎥 Provenance (14)</button>
+        <button type="button" data-nav="cast">🎭 Cast (109)</button>
       </nav>
     </div>
   </header>
 
   <main id="appRoot" class="app-root">
-    <div class="loading-shell">Initializing Zero-Gap Cheyenne Civic Ontology (2008–2026)…</div>
+    <div class="loading-shell">Initializing v3.2 Cheyenne Civic Ontology, Internet Archive Streams &amp; OSINT Graph (2008–2026)…</div>
   </main>
 
   <div id="floatLayer"></div>
   <div id="modalLayer"></div>
 
   <footer class="site-footer">
-    100% Zero-Gap Primary Public Record (2008–2026) · 1,615 Episodes · 8,983 Docket Items · 6,371 Palantir Foundry Agendas &amp; Supporting PDFs (1,081 SHA-1 OCR) · 2,483 &le;3-Min Historical Speaker Video Turns (246 Speakers) · 275 Multi-Reading Ordinances · 14 Manual Click-Path Provenance Films · Dual Option 3 Architecture ($0/mo GitHub Pages + Next.js 16 / PostgreSQL 17 in <code>/nextjs-postgres-foundry</code>). Nothing here is legal advice.
+    100% Reconciled Primary Public Record (2008–2026) · 1,615 Episodes (833 Internet Archive Ch. 192 Streams) · 8,983 Docket Items · 6,371 Clerk Minutes &amp; Supporting PDFs (1,081 SHA-1 OCR) · 2,483 Branded C-SPAN &le;3-Min Speaker Clips (109 Canonical Speakers) · 51 Cross-Referenced OSINT Entities, Contractors &amp; Boards · 275 Multi-Reading Ordinances · 14 Provenance Films. Nothing here is legal advice.
   </footer>
 
   <script src="./app.js"></script>

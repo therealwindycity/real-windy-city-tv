@@ -32,6 +32,7 @@ export const meetings = pgTable(
     minutesUrl: text("minutes_url"),
     videoUrl: text("video_url"),
     mp4Url: text("mp4_url"),
+    videoLinkVerified: boolean("video_link_verified"),
     hasMinutesText: boolean("has_minutes_text").notNull().default(false),
     sources: jsonb("sources").$type<string[]>().notNull().default([]),
     extraLinks: jsonb("extra_links").$type<{ label: string; url: string; kind: string }[]>().notNull().default([]),
@@ -153,6 +154,44 @@ export const episodeContent = pgTable("episode_content", {
   content: jsonb("content").$type<Record<string, unknown>>().notNull(),
 });
 
+export type SpeakerClipAnalytics = {
+  historicalClipCount: number;
+  historicalMeetingCount: number;
+  avgSpeakingSec: number;
+  avgSpeakingFormatted: string;
+  pointOfOrderCount: number;
+  primaryCapacity: string;
+  capacitiesSummary: string[];
+  topTopics: string[];
+  lobbiesFor: string[];
+  opposes: string[];
+  profiles: { platform: string; label: string; url: string }[];
+};
+
+export type SpeakerFullAnalytics = {
+  historicalClipCount: number;
+  historicalMeetingCount: number;
+  avgSpeakingSec: number;
+  avgSpeakingFormatted: string;
+  totalSpeakingSec: number;
+  totalSpeakingFormatted: string;
+  maxSpeakingSec: number;
+  pointOfOrderCount: number;
+  pointOfOrderTurnIds: number[];
+  primaryCapacity: string;
+  capacitiesBreakdown: { capacity: string; count: number; pct: number; orgs: string[] }[];
+  stanceCounts: Record<string, number>;
+  topicAnalytics: { topic: string; label: string; count: number; pct: number; supportCount: number; opposeCount: number }[];
+  lobbiesFor: string[];
+  opposes: string[];
+  osint: {
+    entityType: string;
+    headline: string;
+    affiliations: string[];
+    profiles: { platform: string; label: string; url: string }[];
+  };
+};
+
 export const speakerTurns = pgTable(
   "speaker_turns",
   {
@@ -171,6 +210,8 @@ export const speakerTurns = pgTable(
     durationSec: doublePrecision("duration_sec").notNull(),
     hms: text("hms").notNull(),
     directMp4Url: text("direct_mp4_url"),
+    sourceMeetingMp4Url: text("source_meeting_mp4_url"),
+    brandedMp4Url: text("branded_mp4_url"),
     footageMp4Url: text("footage_mp4_url"),
     cardPngUrl: text("card_png_url"),
     embedUrl: text("embed_url"),
@@ -183,6 +224,20 @@ export const speakerTurns = pgTable(
     emotion: text("emotion").notNull(),
     impactScore: integer("impact_score").notNull().default(50),
     verifiedClip: boolean("verified_clip").notNull().default(false),
+    speakingCapacity: text("speaking_capacity").notNull().default("Individual Citizen"),
+    representingOrg: text("representing_org").notNull().default(""),
+    hasPointOfOrder: boolean("has_point_of_order").notNull().default(false),
+    pointOfOrderType: text("point_of_order_type"),
+    stance: text("stance").notNull().default("inquiry_discussion"),
+    stanceLabel: text("stance_label").notNull().default("Floor Inquiry / Deliberation"),
+    speakerAnalytics: jsonb("speaker_analytics").$type<SpeakerClipAnalytics | null>().default(null),
+    videoTiming: text("video_timing"),
+    videoTimingNote: text("video_timing_note"),
+    alignScore: doublePrecision("align_score"),
+    alignSource: text("align_source"),
+    legacyStartSec: doublePrecision("legacy_start_sec"),
+    legacyEndSec: doublePrecision("legacy_end_sec"),
+    speakerAttributionVerified: boolean("speaker_attribution_verified").notNull().default(true),
   },
   (t) => [
     index("st_speaker_idx").on(t.speakerSlug),
@@ -211,7 +266,39 @@ export const speakersDirectory = pgTable("speakers_directory", {
   speakerZipUrls: jsonb("speaker_zip_urls").$type<string[]>().notNull().default([]),
   compilationReels: jsonb("compilation_reels").$type<{ title: string; url: string }[]>().notNull().default([]),
   directClipCount: integer("direct_clip_count").notNull().default(0),
+  analytics: jsonb("analytics").$type<SpeakerFullAnalytics | null>().default(null),
 });
+
+export const osintEntities = pgTable(
+  "osint_entities",
+  {
+    id: serial("id").primaryKey(),
+    slug: text("slug").notNull().unique(),
+    name: text("name").notNull(),
+    category: text("category").notNull(),
+    subtype: text("subtype").notNull().default(""),
+    address: text("address").notNull().default(""),
+    keyPeople: jsonb("key_people").$type<string[]>().notNull().default([]),
+    nexusSummary: text("nexus_summary").notNull().default(""),
+    verifiedProfiles: jsonb("verified_profiles").$type<{ platform: string; label: string; url: string }[]>().notNull().default([]),
+    meetingCount: integer("meeting_count").notNull().default(0),
+    trackedContractValueUsd: doublePrecision("tracked_contract_value_usd").notNull().default(0),
+    contractsAndBids: jsonb("contracts_and_bids")
+      .$type<{ meeting: string; itemNo: string; kind: string; title: string; amountUsd: number | null; sponsor: string }[]>()
+      .notNull()
+      .default([]),
+    ordinancesAndResolutions: jsonb("ordinances_and_resolutions")
+      .$type<{ slug: string; title: string; kind: string; lastDate: string }[]>()
+      .notNull()
+      .default([]),
+    linkedSpeakers: jsonb("linked_speakers")
+      .$type<{ slug: string; name: string; role: string; clipCount: number; sharedAppearances: number }[]>()
+      .notNull()
+      .default([]),
+    speakerSlug: text("speaker_slug"),
+  },
+  (t) => [index("osint_cat_idx").on(t.category)],
+);
 
 export const provenanceCatalog = pgTable("provenance_catalog", {
   id: serial("id").primaryKey(),

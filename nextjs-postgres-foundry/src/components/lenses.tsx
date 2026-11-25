@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { EpisodeBundle } from "@/lib/types";
 import type { LensKey } from "@/lib/lens-meta";
@@ -161,9 +162,13 @@ function DocReader({ id }: { id: number }) {
 
 function Transcript({ b }: B) {
   const [q, setQ] = useState("");
+  const [tPage, setTPage] = useState(1);
   const [openDoc, setOpenDoc] = useState<number | null>(null);
   const paras = useMemo(() => (b.minutesText ?? "").split(/\n\s*\n/).filter(Boolean), [b.minutesText]);
   const hits = q ? paras.filter((p) => p.toLowerCase().includes(q.toLowerCase())) : paras;
+  const pageSize = 25;
+  const totalPages = Math.max(1, Math.ceil(hits.length / pageSize));
+  const pagedHits = hits.slice((tPage - 1) * pageSize, tPage * pageSize);
   const textDocs = b.docs.filter((d) => d.hasText && d.role === "attachment");
   const hl = (p: string) => {
     if (!q) return p;
@@ -173,16 +178,44 @@ function Transcript({ b }: B) {
   return (
     <div className="min-h-full bg-zinc-950 p-4 font-mono text-zinc-200">
       <div className="mx-auto max-w-3xl space-y-4">
-        <div className="flex flex-wrap items-center gap-3">
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search the record…" className="min-w-0 flex-1 rounded border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-sm outline-none focus:border-amber-400" />
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            setTPage(1);
+          }}
+          className="flex flex-wrap items-center gap-2"
+        >
+          <input
+            value={q}
+            onChange={(e) => {
+              setQ(e.target.value);
+              setTPage(1);
+            }}
+            placeholder="Search the cleaned official minutes record…"
+            className="min-w-0 flex-1 rounded border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-sm outline-none focus:border-amber-400"
+          />
+          <button type="submit" className="rounded bg-amber-400 px-3.5 py-1.5 text-xs font-black text-black hover:bg-amber-300">
+            Enter ↵
+          </button>
           <span className="text-[11px] text-zinc-400">{b.analytics.minutesWords ? `${b.analytics.minutesWords.toLocaleString()} words · ${hits.length}/${paras.length} paragraphs` : "no minutes text"}</span>
-        </div>
+        </form>
         {b.minutesText ? (
           <div className="space-y-3 text-[13px] leading-relaxed">
-            <div className="text-[10px] font-bold uppercase tracking-widest text-amber-400">Official minutes — verbatim (Granicus, via CivicWatch extraction)</div>
-            {hits.map((p, i) => (
+            <div className="text-[10px] font-bold uppercase tracking-widest text-amber-400">Official Clerk Minutes — Reconciled &amp; Cleaned Verbatim Record</div>
+            {pagedHits.map((p, i) => (
               <p key={i} className="border-l-2 border-zinc-700 pl-3">{hl(p)}</p>
             ))}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between rounded border border-zinc-800 bg-zinc-900 px-3 py-2 text-xs">
+                <button type="button" disabled={tPage <= 1} onClick={() => setTPage((p) => Math.max(1, p - 1))} className="rounded bg-zinc-800 px-3 py-1 font-bold disabled:opacity-40">
+                  ← Previous Page
+                </button>
+                <span>Page {tPage} of {totalPages}</span>
+                <button type="button" disabled={tPage >= totalPages} onClick={() => setTPage((p) => Math.min(totalPages, p + 1))} className="rounded bg-amber-400 px-3 py-1 font-black text-black disabled:opacity-40">
+                  Next Page →
+                </button>
+              </div>
+            )}
           </div>
         ) : (
           <Note>
@@ -591,7 +624,12 @@ function Jargon({ b }: B) {
   return (
     <div className="min-h-full bg-pink-50 p-5 text-stone-900">
       <div className="mx-auto max-w-2xl space-y-3">
-        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Look up a term…" className="w-full rounded border border-pink-300 bg-white px-3 py-2 text-sm outline-none focus:border-pink-600" />
+        <form onSubmit={(e) => e.preventDefault()} className="flex gap-2">
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Look up a civic or statutory term…" className="w-full rounded border border-pink-300 bg-white px-3 py-2 text-sm outline-none focus:border-pink-600" />
+          <button type="submit" className="rounded bg-pink-700 px-4 py-2 text-xs font-black text-white hover:bg-pink-600">
+            Enter ↵
+          </button>
+        </form>
         {g.map((x) => (
           <div key={x.term} className="rounded-lg bg-white p-3 shadow-sm ring-1 ring-pink-100"><div className="font-serif text-lg font-bold text-pink-800">{x.term}</div><p className="text-sm">{x.def}</p></div>
         ))}
@@ -612,19 +650,25 @@ const SCHED: Record<string, string> = {
 };
 function Evidence({ b }: B) {
   const m = b.meeting;
+  const [evPhase, setEvPhase] = useState<"intro" | "main" | "outro">("main");
+  const cleanMp4 = m.iaMp4Url || (m.mp4Url && !m.mp4Url.includes("granicus.com") ? m.mp4Url : null);
+  const toSafeArchiveUrl = (url?: string | null) =>
+    !url ? null : url.includes("archive-video.granicus.com") ? cleanMp4 : url.includes("granicus.com") && !url.includes("web.archive.org") ? `https://web.archive.org/web/${url}` : url;
   const links = [
-    m.agendaUrl && { label: "Agenda (Granicus)", url: m.agendaUrl },
-    m.minutesUrl && { label: "Minutes (Granicus)", url: m.minutesUrl },
-    m.videoUrl && { label: "Video (Granicus)", url: m.videoUrl },
-    m.mp4Url && { label: "MP4 recording", url: m.mp4Url },
-    ...m.extraLinks.map((l) => ({ label: l.label, url: l.url })),
+    m.agendaUrl && { label: "Agenda (Wayback / Archive)", url: toSafeArchiveUrl(m.agendaUrl)! },
+    m.minutesUrl && { label: "Minutes (Wayback / Archive)", url: toSafeArchiveUrl(m.minutesUrl)! },
+    m.iaPageUrl && { label: "Internet Archive Broadcast Item", url: m.iaPageUrl },
+    cleanMp4 && { label: "Internet Archive MP4 Stream", url: cleanMp4 },
+    ...m.extraLinks.map((l) => ({ label: l.label, url: toSafeArchiveUrl(l.url) ?? l.url })),
   ].filter(Boolean) as { label: string; url: string }[];
   return (
     <div className="min-h-full bg-neutral-900 p-5 text-neutral-100">
       <div className="mx-auto max-w-3xl space-y-5 text-sm">
         <section className="rounded-lg bg-neutral-800 p-3">
-          <div className="text-[10px] font-bold uppercase tracking-widest text-amber-400">Internet Archive — Wayback Machine</div>
-          <p className="mt-1 text-xs text-neutral-300">The season guide (every meeting&rsquo;s date and Agenda / Minutes / Video links) was read from capture <b>{b.provenance.waybackTs}</b> of the city&rsquo;s Minutes and Agendas page.</p>
+          <div className="text-[10px] font-bold uppercase tracking-widest text-amber-400">Internet Archive &amp; Wayback Machine Broadcast Provenance</div>
+          <p className="mt-1 text-xs text-neutral-300">
+            Historical Cheyenne broadcast video streams are resolved directly via Internet Archive <code>cochwy-*</code> collections and Wayback Machine capture <b>{b.provenance.waybackTs}</b> (bypassing locked <code>archive-video.granicus.com</code> 403 buckets).
+          </p>
           <a className="mt-1 block break-all text-xs text-sky-300 underline" href={b.provenance.waybackUrl} target="_blank" rel="noreferrer">{b.provenance.waybackUrl}</a>
           <details className="mt-2 text-xs"><summary className="cursor-pointer text-neutral-400">All {b.provenance.captures.length} captures found for this page</summary>
             <ul className="mt-1 columns-2 text-[11px]">{b.provenance.captures.map((c) => <li key={c.ts}><a className="text-sky-300 underline" href={c.url} target="_blank" rel="noreferrer">{c.ts.replace(/(\d{4})(\d\d)(\d\d)(\d\d)(\d\d)(\d\d)/, "$1-$2-$3 $4:$5Z")}</a></li>)}</ul>
@@ -637,9 +681,46 @@ function Evidence({ b }: B) {
           </p>
         </section>
         <section className="rounded-lg bg-neutral-800 p-3 text-xs"><div className="mb-1 text-[10px] font-bold uppercase tracking-widest text-emerald-400">Official record</div><p>{b.provenance.official}</p>{b.provenance.watchdog && <><div className="mb-1 mt-3 text-[10px] font-bold uppercase tracking-widest text-rose-400">Watchdog notes (medium confidence)</div><p>{b.provenance.watchdog}</p></>}</section>
-        <section><div className="mb-1 text-[10px] font-bold uppercase tracking-widest text-neutral-400">Live links (may be blocked to crawlers; open in a browser)</div>
-          <div className="flex flex-wrap gap-2">{links.map((l) => <a key={l.url} href={l.url} target="_blank" rel="noreferrer" className="rounded bg-sky-700 px-2 py-1 text-xs font-semibold hover:bg-sky-600">{l.label} ↗</a>)}{links.length === 0 && <span className="text-xs text-neutral-400">No links in the season guide for this row.</span>}</div></section>
-        {m.mp4Url && <video className="w-full rounded" controls preload="none" src={m.mp4Url} />}
+        <section><div className="mb-1 text-[10px] font-bold uppercase tracking-widest text-neutral-400">Verified Archive &amp; Provenance Links</div>
+          <div className="flex flex-wrap gap-2">{links.map((l) => <a key={l.url + l.label} href={l.url} target="_blank" rel="noreferrer" className="rounded bg-sky-700 px-2 py-1 text-xs font-semibold hover:bg-sky-600">{l.label} ↗</a>)}{links.length === 0 && <span className="text-xs text-neutral-400">No links in the season guide for this row.</span>}</div></section>
+        {cleanMp4 && (
+          <div className="overflow-hidden rounded-xl border-2 border-amber-400/50 bg-[#050912]">
+            <div className="flex items-center justify-between border-b-2 border-amber-400 bg-[#09152b] px-3 py-1 text-[10px] font-black uppercase text-amber-300">
+              <span>[RWC] THE REAL WINDY CITY · INTERNET ARCHIVE BROADCAST</span>
+              <div className="flex gap-2">
+                <button type="button" onClick={() => setEvPhase("intro")} className="rounded bg-white/10 px-2 py-0.5 text-white hover:bg-white/20">Intro</button>
+                <button type="button" onClick={() => setEvPhase("main")} className="rounded bg-amber-400 px-2 py-0.5 text-black">Broadcast</button>
+                <button type="button" onClick={() => setEvPhase("outro")} className="rounded bg-white/10 px-2 py-0.5 text-white hover:bg-white/20">Outro</button>
+              </div>
+            </div>
+            {evPhase === "intro" ? (
+              <div className="flex h-56 flex-col items-center justify-center bg-[#061022] p-4 text-center">
+                <div className="rounded bg-amber-400 px-2 py-0.5 text-[10px] font-black text-black">THE REAL WINDY CITY · CHEYENNE ARCHIVE</div>
+                <div className="mt-2 text-lg font-black text-white">{m.bodyName} · {m.date}</div>
+                <button type="button" onClick={() => setEvPhase("main")} className="mt-3 rounded-full bg-amber-400 px-4 py-1.5 text-xs font-black text-black">▶ Watch Internet Archive Stream</button>
+              </div>
+            ) : evPhase === "outro" ? (
+              <div className="flex h-56 flex-col items-center justify-center bg-[#061022] p-4 text-center">
+                <div className="text-sm font-black uppercase tracking-widest text-amber-300">THE REAL WINDY CITY</div>
+                <div className="mt-1 text-xs text-slate-300">Verified Internet Archive Ch. 192 Record · {m.date}</div>
+                <button type="button" onClick={() => setEvPhase("main")} className="mt-3 rounded-full bg-white/15 px-4 py-1.5 text-xs font-bold text-white">↺ Replay</button>
+              </div>
+            ) : (
+              <div className="relative">
+                <video className="w-full bg-black" controls preload="metadata" src={cleanMp4} onEnded={() => setEvPhase("outro")} />
+                <div className="pointer-events-none absolute inset-x-3 bottom-11 rounded bg-black/85 px-2.5 py-1 text-center font-mono text-[11px] text-white ring-1 ring-amber-400/30">
+                  CC · {m.bodyName} ({m.date}) — Verified Internet Archive Stream &amp; Cleaned Official Minutes
+                </div>
+              </div>
+            )}
+            <div className="overflow-hidden border-t-2 border-rose-700 bg-[#0a1931] px-3 py-1 text-[10px] font-bold text-amber-300">
+              <div className="ticker-track whitespace-nowrap">
+                <span className="pr-12">THE REAL WINDY CITY · {m.bodyName.toUpperCase()} · {m.date} · INTERNET ARCHIVE STREAM · {b.speakerTurns.length} SPEAKER CLIPS AVAILABLE IN SPEAKER LENS</span>
+                <span className="pr-12">THE REAL WINDY CITY · {m.bodyName.toUpperCase()} · {m.date} · INTERNET ARCHIVE STREAM · {b.speakerTurns.length} SPEAKER CLIPS AVAILABLE IN SPEAKER LENS</span>
+              </div>
+            </div>
+          </div>
+        )}
         <section><div className="mb-1 text-[10px] font-bold uppercase tracking-widest text-neutral-400">Attachments ({b.docs.length})</div>
           <div className="max-h-64 overflow-auto rounded bg-neutral-800 p-2 text-[11px]">
             {b.docs.map((d) => <div key={d.id} className="flex gap-2 border-b border-neutral-700 py-1"><span className="w-10 shrink-0 text-neutral-500">#{d.id}</span><span className="flex-1">{d.title}</span><span className="shrink-0 font-mono text-neutral-500">{d.sha1 ? d.sha1.slice(0, 8) : d.role}</span>{d.ocr && <Tag tone="amber">OCR</Tag>}</div>)}
@@ -663,9 +744,15 @@ function Cast({ b }: B) {
             <h3 className="mb-2 text-xs font-bold uppercase tracking-widest text-violet-300">{g}</h3>
             <div className="grid gap-2 sm:grid-cols-2">
               {list.map((c) => (
-                <div key={c.name} className="flex gap-3 rounded-lg bg-violet-900/50 p-3 ring-1 ring-violet-800">
-                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-violet-600 font-black">{c.name.replace(/^(Dr\.|Mr\.)\s*/, "").slice(0, 1)}</div>
-                  <div className="min-w-0"><div className="truncate font-bold">{c.name}</div><div className="text-[11px] uppercase tracking-wider text-violet-300">{c.role}</div>{c.note && <p className="mt-1 text-xs text-violet-100/80">{c.note}</p>}<div className="mt-1 text-[10px] text-violet-400">source: {c.src}</div></div>
+                <div key={c.name} className="flex flex-col justify-between gap-2 rounded-lg bg-violet-900/50 p-3 ring-1 ring-violet-800">
+                  <div className="flex gap-3">
+                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-violet-600 font-black">{c.name.replace(/^(Dr\.|Mr\.)\s*/, "").slice(0, 1)}</div>
+                    <div className="min-w-0"><div className="truncate font-bold">{c.name}</div><div className="text-[11px] uppercase tracking-wider text-violet-300">{c.role}</div>{c.note && <p className="mt-1 text-xs text-violet-100/80">{c.note}</p>}<div className="mt-1 text-[10px] text-violet-400">source: {c.src}</div></div>
+                  </div>
+                  <div className="flex gap-2 text-[10px] font-bold">
+                    <Link href={`/speakers?q=${encodeURIComponent(c.name)}`} className="rounded bg-amber-400 px-2 py-0.5 text-black hover:bg-amber-300">🎙️ Speaker Clips →</Link>
+                    <Link href={`/osint?q=${encodeURIComponent(c.name)}`} className="rounded bg-emerald-500/30 px-2 py-0.5 text-emerald-100 hover:bg-emerald-500/50">🕸️ OSINT →</Link>
+                  </div>
                 </div>
               ))}
             </div>

@@ -1,23 +1,11 @@
-# The Real Windy City — Unified Civic Broadcast, Palantir Gotham/Foundry & Speaker Video Vault (2008–2026)
+# The Real Windy City — Cheyenne Civic Broadcast, Speaker Analytics & OSINT Vault (v3.2)
 
-**Live `$0/mo` Deployment:** <https://therealwindycity.github.io/real-windy-city-tv/>  
-**Full-Stack Next.js 16 + Drizzle + PostgreSQL 17 Server:** [`./nextjs-postgres-foundry/`](./nextjs-postgres-foundry/)
+Live `$0/mo` Serverless GitHub Pages Deployment: **https://therealwindycity.github.io/real-windy-city-tv/**
 
-## Zero-Gap Primary Public Record Totals
-- **1,615 Complete Government Episodes (`2008-05-27` – `2026-11-23`)** across all 10 City of Cheyenne municipal bodies (`0` empty episodes).
-- **19 Synchronized Analytical Lenses** (`Foundry Docs Vault`, `Gotham Link Graph`, `Speaker Turn Videos`, `Provenance Films`, `Plain-English Story`, `Front Page Tabloid`, `Cast & Crew`, `Run of Show`, `Vote Lab`, `Cheyenne Map`, `History Compare`, `Follow the Money`, `Jargon Decoder`, `Legal IRAC`, `Fact-Check Desk`, `Analytics`, `Verbatim Record`, `Screenplay`, `Evidence Locker`) with **Swipe**, **Side-by-Side Split**, **19-Lens Mosaic**, and **Draggable Floating Windows**.
-- **6,371 Palantir Foundry Agendas & Supporting Document PDFs** (`4,929` `cheyenne-archives-*` PDFs + `1,081` SHA-1 `ai-record-ocr` scanned page streams).
-- **2,483 Individual `<= 3-Min` Historical Speaker Video Turns** across **246 Speakers** — organizable by **Speaker**, **Sitting Date**, **Ordinance (1st → Final Reading)**, **Civic Theme**, and **Emotional Impact**, with **1-click Speaker `.ZIP` Archive Downloads** and **Facebook Post Studio**.
-- **275 Multi-Reading Ordinance Arcs** — playable chronologically from First Reading (`Pilot`) through Committee, Amendments, and Final Enactment Vote (`Finale`).
-- **14 Manual Click-Path Provenance Screen-Recording Films** (`provenance-showcase.mp4`, `provenance-manual-run.mp4`, `provenance-timelapse.mp4`, `clip-01..11.mp4`) + **121-Row Verification Ledger**.
-
-## Running the Full-Stack Next.js 16 + PostgreSQL 17 Server Locally
-```bash
-cd nextjs-postgres-foundry
-docker compose up --build
-# Or with an existing PostgreSQL 17 instance:
-cp .env.example .env
-npm install
-npx drizzle-kit push
-npm run build && npm run start
-```
+## v3.2 Highlights
+- **Internet Archive (`cochwy-*`) Video Routing (`0` Granicus links)**: Routes `837` meetings and `1,923` / `2,483` speaker turns through Internet Archive MP4 streams (`archive.org/download/cochwy-...`) and pre-rendered GitHub Release clips (`branded-clips-v1`).
+- **Transcript-Verified Clip Timing**: `1,687` clips were located word-for-word in the recording's own captions or a local Whisper transcript (`122` of them moved to the correct recording), `253` diarized clips carry text transcribed at their exact times (speaker label flagged unverified), and `510` turns that could not be located (e.g. Clerk Minutes summaries) are shown as transcript-only instead of playing the wrong moment.
+- **Official Minutes & Supporting-Packet Lexical Reconciliation**: `41,396` document fixes, `3,928` speaker-turn fixes, and `892` Clerk Minutes roster reconciliations across `109` canonical Cheyenne speakers (including **Councilman Mark Moody [Ward III]** — `262` clips across `83` meetings, `0` `Cathy Moody` misattributions).
+- **51-Entity Civic OSINT & Contractor Graph (`#osint` / `/osint`)**: Cross-links elected officials, city staff, Greater Cheyenne Chamber of Commerce, Cheyenne LEADS, Downtown Development Authority (DDA), engineering consultants (`AVI PC`), contractors (`Simon Contractors`, `JTL Group / Knife River`, `Reiman Corp.`, `Benchmark Engineers`), ordinances, bids, and speaker testimony, matched with verified Facebook, LinkedIn, Chamber, and official profiles.
+- **Per-Clip Historical & Behavioral Analytics**: Every speaker clip displays historical clip count + direct vault link, speaking capacities (individual citizen vs. organization/lobbyist/staff/official), topic & lobby/oppose breakdowns, average speaking time, and Point-of-Order tracking.
+- **Branded C-SPAN Video Packaging & Strict `<= 3 Min` Speaker-Segment Export**: Every video includes **The Real Windy City** branded intro/outro, synced cleaned captions (`CC`), and a **C-SPAN style "The Real Windy City" marquee info border**; exports and downloads strictly isolate only the speaker's `<= 3 min` segment — never the full meeting video.

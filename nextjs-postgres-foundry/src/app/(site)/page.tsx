@@ -58,7 +58,10 @@ export default async function HomePage() {
                 ▶ Watch Featured Episode ({LENSES.length} Lenses)
               </Link>
               <Link href="/speakers" className="rounded-full bg-[#1877F2] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#166fe5]">
-                🎙️ Speaker Turn Videos &amp; FB Studio (2,483)
+                🎙️ Speaker Videos &amp; Analytics (2,483)
+              </Link>
+              <Link href="/osint" className="rounded-full bg-emerald-500/25 px-4 py-2.5 text-sm font-bold text-emerald-100 ring-1 ring-emerald-400/40 hover:bg-emerald-500/35">
+                🕸️ OSINT Entity &amp; Contractor Graph (51)
               </Link>
               <Link href="/ordinances" className="rounded-full bg-violet-500/25 px-4 py-2.5 text-sm font-bold text-violet-100 ring-1 ring-violet-400/40 hover:bg-violet-500/35">
                 📜 Ordinances: 1st → Final Reading
@@ -71,16 +74,16 @@ export default async function HomePage() {
               </Link>
             </div>
             <p className="mt-4 max-w-2xl text-xs text-slate-400">
-              Complete 19-season municipal database ({total.toLocaleString()} meetings across {new Set(seasons.map((s) => s.season)).size} seasons, 2008–2026) — zero empty placeholders, backed by PostgreSQL 17, GitHub Speaker .ZIP Releases, SHA-1 OCR packets, and manual click-path screen recordings.
+              Complete 19-season municipal database ({total.toLocaleString()} meetings across {new Set(seasons.map((s) => s.season)).size} seasons, 2008–2026) — zero empty placeholders, backed by PostgreSQL 17, Internet Archive Ch. 192 streams, C-SPAN branded speaker segments, OSINT entity dossiers, and SHA-1 OCR packets.
             </p>
           </div>
 
           <div className="grid grid-cols-2 gap-2.5 self-center">
             {[
-              ["1,615", "Full Episodes (2008–2026) · 0 Empty"],
-              ["2,483", "≤3-Min Speaker Video Turns (246 Speakers)"],
-              ["6,371", "Foundry Agendas & Supporting PDFs"],
-              ["1,081", "SHA-1 AI-Record-OCR Scanned Packets"],
+              ["1,615", "Full Episodes (833 Internet Archive MP4s)"],
+              ["2,483", "C-SPAN Speaker Clips (109 Canonical Speakers)"],
+              ["51 OSINT", "Cross-Referenced Entities, Vendors & Boards"],
+              ["6,371", "Minutes & Supporting Packet PDFs (1,081 OCR)"],
               ["275", "Multi-Reading Ordinance Arcs (1st→3rd)"],
               ["14 Films", "Screen-Recorded Manual Click Provenance"],
             ].map(([big, small]) => (
@@ -108,37 +111,44 @@ export default async function HomePage() {
 
       {/* High-Impact Historical Speaker Video Turns Row */}
       <Row
-        title="🎙️ High-Impact Speaker Video Turns (≤ 3 Min)"
-        sub="filter by speaker, date, ordinance, theme, or emotion — download .ZIP or post directly to Facebook"
+        title="🎙️ High-Impact C-SPAN Speaker Video Clips (≤ 3 Min)"
+        sub="includes historical clip count, capacity, stance, avg turn time, Point-of-Order record & OSINT profile"
         href="/speakers"
       >
         {topTurns.rows.map((t) => (
           <Link
             key={t.id}
             href={`/speakers?speaker=${encodeURIComponent(t.speakerSlug)}`}
-            className="flex h-48 w-80 shrink-0 snap-start flex-col justify-between rounded-xl border border-amber-400/25 bg-[#091122] p-4 hover:border-amber-400"
+            className="flex h-52 w-80 shrink-0 snap-start flex-col justify-between rounded-xl border border-amber-400/25 bg-[#091122] p-4 hover:border-amber-400"
           >
             <div>
               <div className="flex items-center justify-between gap-2 text-[10px] font-bold uppercase">
-                <span className="rounded bg-rose-500/25 px-1.5 py-0.5 text-rose-200">{t.emotion} · impact {t.impactScore}</span>
-                <span className="font-mono text-amber-300">{Math.round(t.durationSec)}s clip</span>
+                <span className="rounded bg-amber-400/20 px-1.5 py-0.5 text-amber-200">
+                  📼 {t.speakerAnalytics?.historicalClipCount ?? 1} Historical Clips
+                </span>
+                <span className="font-mono text-emerald-300">
+                  {Math.round(t.durationSec)}s · Avg {t.speakerAnalytics?.avgSpeakingFormatted ?? "1m 30s"}
+                </span>
               </div>
               <div className="mt-1.5 text-sm font-black text-white">{t.speakerName}</div>
+              <div className="text-[10px] font-semibold text-indigo-300">
+                {t.speakingCapacity ?? t.speakerRole} · {t.stanceLabel ?? "Floor Record"}
+              </div>
               <div className="text-[11px] text-sky-300">
                 {t.date} · {t.bodyName} [{t.hms}]
               </div>
-              <p className="mt-2 line-clamp-3 text-xs text-slate-300">&ldquo;{t.text}&rdquo;</p>
+              <p className="mt-1.5 line-clamp-2 text-xs text-slate-300">&ldquo;{t.text}&rdquo;</p>
             </div>
             <div className="flex items-center justify-between text-[10px] text-slate-400">
-              <span>{t.themes.map((x) => `#${x}`).join(" ")}</span>
-              <span className="font-bold text-amber-300">▶ Watch &amp; Share →</span>
+              <span>POE: {t.speakerAnalytics?.pointOfOrderCount ?? 0}</span>
+              <span className="font-bold text-amber-300">▶ Watch C-SPAN Clip &amp; OSINT →</span>
             </div>
           </Link>
         ))}
       </Row>
 
       <Row title="📜 Ordinance Arcs: First Reading → Final Enactment" sub="watch every ordinance chronologically with all speaker testimony & packet PDFs" href="/ordinances">
-        {ords.map((o) => (
+        {ords.rows.map((o) => (
           <Link
             key={o.slug}
             href={`/ordinance/${o.slug}`}

@@ -1,21 +1,34 @@
 import Link from "next/link";
+import InstantFilterForm from "@/components/InstantFilterForm";
 import { listFoundryDocuments } from "@/lib/bundle";
 
 export const dynamic = "force-dynamic";
+const PAGE_SIZE = 50;
 
 export default async function DocumentsVaultPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; role?: string; ocr?: string; season?: string }>;
+  searchParams: Promise<{ q?: string; role?: string; ocr?: string; season?: string; page?: string }>;
 }) {
   const sp = await searchParams;
+  const page = Math.max(1, Number(sp.page ?? 1) || 1);
   const { rows, total } = await listFoundryDocuments({
     q: sp.q,
     role: sp.role,
     ocrOnly: sp.ocr === "1",
     season: sp.season ? Number(sp.season) : undefined,
-    limit: 80,
+    limit: PAGE_SIZE,
+    offset: (page - 1) * PAGE_SIZE,
   });
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+  const qs = (over: Record<string, string | undefined>) => {
+    const p = new URLSearchParams();
+    const merged = { q: sp.q, role: sp.role, ocr: sp.ocr, season: sp.season, ...over };
+    for (const [k, v] of Object.entries(merged)) if (v) p.set(k, v);
+    const s = p.toString();
+    return `/documents${s ? `?${s}` : ""}`;
+  };
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 px-4 py-8">
@@ -29,7 +42,7 @@ export default async function DocumentsVaultPage({
               6,371 Primary Municipal Documents &amp; SHA-1 OCR Packets (2008–2026)
             </h1>
             <p className="mt-1 max-w-3xl text-xs text-slate-300">
-              Every City of Cheyenne Agenda, Supporting Document PDF (<code>cheyenne-archives-*</code>), Staff Report, Ordinance Substitute, Bid Tabulation, and Clerk Minute — cross-linked to its parent episode and manual click-path provenance video.
+              Every City of Cheyenne Agenda, Supporting Document PDF (<code>cheyenne-archives-*</code>), Staff Report, Ordinance Substitute, Bid Tabulation, and Clerk Minute — lexically reconciled and cross-linked to its parent episode and provenance video.
             </p>
           </div>
           <Link href="/provenance" className="rounded-xl bg-rose-500/20 px-4 py-2.5 text-xs font-bold text-rose-200 ring-1 ring-rose-400/40 hover:bg-rose-500/30">
@@ -37,13 +50,16 @@ export default async function DocumentsVaultPage({
           </Link>
         </div>
 
-        <form method="get" action="/documents" className="mt-4 flex flex-wrap gap-2 text-xs">
+        <InstantFilterForm action="/documents" className="mt-4 flex flex-wrap gap-2 text-xs">
           <input
             name="q"
             defaultValue={sp.q ?? ""}
             placeholder="Search PDF titles, ordinances, SHA-1 hashes, dates…"
             className="w-80 rounded-lg border border-slate-700 bg-[#040811] px-3 py-2 font-mono text-white outline-none focus:border-sky-400"
           />
+          <button type="submit" className="rounded-lg bg-sky-400 px-4 py-2 font-mono font-black text-black hover:bg-sky-300">
+            Enter ↵
+          </button>
           <select name="role" defaultValue={sp.role ?? ""} className="rounded-lg border border-slate-700 bg-[#040811] px-3 py-2 font-mono text-white">
             <option value="">ROLE: ALL (6,371)</option>
             <option value="attachment">SUPPORTING PDFs</option>
@@ -55,19 +71,16 @@ export default async function DocumentsVaultPage({
             <input type="checkbox" name="ocr" value="1" defaultChecked={sp.ocr === "1"} />
             SHA-1 AI-Record-OCR Only (1,081)
           </label>
-          <button type="submit" className="rounded-lg bg-sky-400 px-4 py-2 font-mono font-black text-black hover:bg-sky-300">
-            QUERY ONTOLOGY
-          </button>
           {(sp.q || sp.role || sp.ocr) && (
             <Link href="/documents" className="rounded-lg bg-white/10 px-3 py-2 font-mono text-slate-300 hover:bg-white/20">
               RESET
             </Link>
           )}
-        </form>
+        </InstantFilterForm>
       </div>
 
       <div className="font-mono text-xs text-slate-400">
-        MATCHED_OBJECTS={total.toLocaleString()} · SHOWING_TOP={rows.length}
+        MATCHED_OBJECTS={total.toLocaleString()} · PAGE {page} OF {totalPages}
       </div>
 
       <div className="overflow-hidden rounded-xl border border-slate-800 bg-[#060b16]">
@@ -125,6 +138,26 @@ export default async function DocumentsVaultPage({
             ))}
           </tbody>
         </table>
+      </div>
+
+      <div className="flex items-center justify-between rounded-xl border border-white/10 bg-[#080f1d] px-4 py-3 text-xs">
+        {page > 1 ? (
+          <Link href={qs({ page: String(page - 1) })} className="rounded-lg bg-white/10 px-4 py-2 font-bold text-white hover:bg-white/20">
+            ← Previous Page
+          </Link>
+        ) : (
+          <span className="rounded-lg bg-white/5 px-4 py-2 text-slate-500">← Previous Page</span>
+        )}
+        <span className="font-mono text-slate-300">
+          Page {page} of {totalPages} ({total.toLocaleString()} documents)
+        </span>
+        {page < totalPages ? (
+          <Link href={qs({ page: String(page + 1) })} className="rounded-lg bg-sky-400 px-4 py-2 font-black text-black hover:bg-sky-300">
+            Next Page →
+          </Link>
+        ) : (
+          <span className="rounded-lg bg-white/5 px-4 py-2 text-slate-500">Next Page →</span>
+        )}
       </div>
     </div>
   );

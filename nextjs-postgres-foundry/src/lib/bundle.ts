@@ -1,7 +1,7 @@
 import { and, asc, desc, eq, ilike, inArray, lt, gt, or, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { ensureSeeded, prettyDate } from "@/db/seed";
-import { agendaItems, briefs, documents, episodeContent, meetings, ordinances, people, provenanceCatalog, speakersDirectory, speakerTurns, voteEvents } from "@/db/schema";
+import { agendaItems, briefs, documents, episodeContent, meetings, ordinances, osintEntities, people, provenanceCatalog, speakersDirectory, speakerTurns, voteEvents } from "@/db/schema";
 import type {
   Act,
   Analytics,
@@ -12,6 +12,7 @@ import type {
   Meeting,
   Montage,
   OrdSeries,
+  OsintEntity,
   ProvenanceCatalogData,
   Recap,
   Show,
@@ -169,18 +170,23 @@ export async function getDocument(id: number) {
   return r[0] ?? null;
 }
 
-export async function listOrdinances(opts: { q?: string; kind?: string; limit?: number }) {
+export async function listOrdinances(opts: { q?: string; kind?: string; limit?: number; offset?: number }) {
   await ensureSeeded();
   const conds = [];
   if (opts.kind) conds.push(eq(ordinances.kind, opts.kind));
   if (opts.q) conds.push(ilike(ordinances.title, `%${opts.q}%`));
-  const rows = await db
-    .select()
-    .from(ordinances)
-    .where(conds.length ? and(...conds) : undefined)
-    .orderBy(desc(ordinances.lastDate))
-    .limit(opts.limit ?? 60);
-  return rows;
+  const where = conds.length ? and(...conds) : undefined;
+  const [rows, totalRow] = await Promise.all([
+    db
+      .select()
+      .from(ordinances)
+      .where(where)
+      .orderBy(desc(ordinances.lastDate))
+      .limit(opts.limit ?? 30)
+      .offset(opts.offset ?? 0),
+    db.select({ n: sql<number>`count(*)::int` }).from(ordinances).where(where),
+  ]);
+  return { rows, total: totalRow[0]?.n ?? 0 };
 }
 
 export async function getOrdinance(slug: string) {
@@ -261,6 +267,9 @@ export async function querySpeakerTurns(opts: {
   ordinanceSlug?: string;
   theme?: string;
   emotion?: string;
+  capacity?: string;
+  stance?: string;
+  poeOnly?: boolean;
   q?: string;
   sort?: "impact" | "newest" | "oldest";
   limit?: number;
@@ -271,6 +280,9 @@ export async function querySpeakerTurns(opts: {
   if (opts.speakerSlug) conds.push(eq(speakerTurns.speakerSlug, opts.speakerSlug));
   if (opts.date) conds.push(eq(speakerTurns.date, opts.date));
   if (opts.emotion) conds.push(eq(speakerTurns.emotion, opts.emotion));
+  if (opts.capacity) conds.push(eq(speakerTurns.speakingCapacity, opts.capacity));
+  if (opts.stance) conds.push(eq(speakerTurns.stance, opts.stance));
+  if (opts.poeOnly) conds.push(eq(speakerTurns.hasPointOfOrder, true));
   if (opts.theme) conds.push(sql`${speakerTurns.themes} @> ${JSON.stringify([opts.theme])}::jsonb`);
   if (opts.ordinanceSlug) conds.push(sql`${speakerTurns.ordinances} @> ${JSON.stringify([{ slug: opts.ordinanceSlug }])}::jsonb`);
   if (opts.q) {
@@ -291,7 +303,7 @@ export async function querySpeakerTurns(opts: {
       .from(speakerTurns)
       .where(where)
       .orderBy(...order)
-      .limit(opts.limit ?? 48)
+      .limit(opts.limit ?? 36)
       .offset(opts.offset ?? 0),
     db.select({ n: sql<number>`count(*)::int` }).from(speakerTurns).where(where),
     db.execute(sql`select date, body_name as "bodyName", meeting_slug as "meetingSlug", count(*)::int as turns, count(distinct speaker_slug)::int as speakers from speaker_turns group by date, body_name, meeting_slug order by date desc limit 80`),
@@ -301,6 +313,36 @@ export async function querySpeakerTurns(opts: {
     total: totalRow[0]?.n ?? 0,
     recentDates: datesAgg.rows as { date: string; bodyName: string; meetingSlug: string; turns: number; speakers: number }[],
   };
+}
+
+export async function listOsintEntities(opts: { q?: string; category?: string; entitySlug?: string; limit?: number; offset?: number }) {
+  await ensureSeeded();
+  const conds = [];
+  if (opts.category) conds.push(eq(osintEntities.category, opts.category));
+  if (opts.entitySlug) conds.push(eq(osintEntities.slug, opts.entitySlug));
+  if (opts.q) {
+    const lk = `%${opts.q}%`;
+    conds.push(
+      or(
+        ilike(osintEntities.name, lk),
+        ilike(osintEntities.subtype, lk),
+        ilike(osintEntities.nexusSummary, lk),
+        ilike(osintEntities.address, lk),
+      )!,
+    );
+  }
+  const where = conds.length ? and(...conds) : undefined;
+  const [rows, totalRow] = await Promise.all([
+    db
+      .select()
+      .from(osintEntities)
+      .where(where)
+      .orderBy(desc(osintEntities.trackedContractValueUsd), desc(osintEntities.meetingCount), asc(osintEntities.name))
+      .limit(opts.limit ?? 24)
+      .offset(opts.offset ?? 0),
+    db.select({ n: sql<number>`count(*)::int` }).from(osintEntities).where(where),
+  ]);
+  return { rows: rows as OsintEntity[], total: totalRow[0]?.n ?? 0 };
 }
 
 export async function getSpeakerVault(slug: string) {

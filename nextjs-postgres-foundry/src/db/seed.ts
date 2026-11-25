@@ -13,6 +13,7 @@ import {
   episodeContent,
   speakerTurns,
   speakersDirectory,
+  osintEntities,
   provenanceCatalog,
 } from "@/db/schema";
 
@@ -132,13 +133,19 @@ function loglineFor(m: RawMeeting, items: RawItem[], phase: string): string {
   return bits.join(" ");
 }
 
-export async function seedIfEmpty(): Promise<void> {
+export async function seedIfEmpty(force = false): Promise<void> {
   const client = await pool.connect();
   try {
     await client.query("select pg_advisory_lock(7461001)");
-    const existing = await db.execute(sql`select count(*)::int as n from meetings`);
-    const n = (existing.rows[0] as { n: number }).n;
-    if (n > 0) return;
+    if (force) {
+      await db.execute(
+        sql`TRUNCATE TABLE meetings, agenda_items, ordinances, vote_events, documents, briefs, people, episode_content, speaker_turns, speakers_directory, osint_entities, provenance_catalog RESTART IDENTITY CASCADE`,
+      );
+    } else {
+      const existing = await db.execute(sql`select count(*)::int as n from meetings`);
+      const n = (existing.rows[0] as { n: number }).n;
+      if (n > 0) return;
+    }
 
     const rawMeetings = read<RawMeeting[]>("meetings.json");
     const rawItems = read<RawItem[]>("items.json");
@@ -192,6 +199,7 @@ export async function seedIfEmpty(): Promise<void> {
           minutesUrl: m.minutesUrl,
           videoUrl: m.videoUrl,
           mp4Url: m.mp4Url,
+          videoLinkVerified: (m as { videoLinkVerified?: boolean | null }).videoLinkVerified ?? null,
           hasMinutesText: m.hasMinutesText,
           sources: m.sources,
           extraLinks: m.extraLinks,
@@ -299,6 +307,11 @@ export async function seedIfEmpty(): Promise<void> {
     const sDir = read<Omit<typeof speakersDirectory.$inferInsert, "id">[]>("speakers_directory.json");
     for (let i = 0; i < sDir.length; i += 100) {
       await db.insert(speakersDirectory).values(sDir.slice(i, i + 100)).onConflictDoNothing();
+    }
+
+    const osint = read<Omit<typeof osintEntities.$inferInsert, "id">[]>("osint_entities.json");
+    for (let i = 0; i < osint.length; i += 50) {
+      await db.insert(osintEntities).values(osint.slice(i, i + 50)).onConflictDoNothing();
     }
 
     const prov = read<Record<string, unknown>>("provenance_videos.json");
