@@ -262,6 +262,38 @@ def main():
                 m["extraLinks"] = links + [{"label": "YouTube (City of Cheyenne) original", "url": f"https://www.youtube.com/watch?v={yid}", "kind": "youtube"},
                                            {"label": f"Archive.org Ch192 ({ident}) — file damaged after ~4 min", "url": f"https://archive.org/details/{ident}", "kind": "archive_page"}]
 
+    # IA items that have been withdrawn from the Internet Archive (metadata API returns {} and the details page
+    # 404s). Source of truth: the newest data/retime/ia_liveness_*.json written by the liveness check
+    # (ident -> "ok" | "GONE" | "DARK"). Drop every link into them so no page offers a dead player.
+    live_files = sorted(RT.glob("ia_liveness_*.json"))
+    removed_ia = {}
+    if live_files:
+        checked = live_files[-1].stem.split("_", 2)[-1]
+        removed_ia = {k: checked for k, v in json.loads(live_files[-1].read_text()).items() if v in ("GONE", "DARK")}
+
+    def ia_ident(u):
+        for marker in ("/download/", "/details/", "/embed/"):
+            if u and "archive.org" + marker in u:
+                return u.split(marker)[1].split("/")[0].split("?")[0]
+        return None
+
+    for t in turns:
+        ident = ia_ident(t.get("sourceMeetingMp4Url") or "")
+        if ident in removed_ia:
+            t["sourceMeetingMp4Url"], t["embedUrl"], t["videoTiming"] = None, None, "removed"
+            t["videoTimingNote"] = f"The Internet Archive recording ({ident}) was removed from archive.org (checked {removed_ia[ident]})."
+            mstat["turns_ia_removed"] += 1
+    for m in meetings:
+        idents = {ia_ident(m.get("mp4Url") or ""), ia_ident(m.get("videoUrl") or "")} & set(removed_ia)
+        if idents:
+            m["mp4Url"] = None
+            if ia_ident(m.get("videoUrl") or "") in removed_ia:
+                m["videoUrl"] = None
+            m["extraLinks"] = [l for l in (m.get("extraLinks") or []) if ia_ident(l.get("url") or "") not in removed_ia]
+            m["videoLinkVerified"] = False
+            m["iaRemovedIdent"] = sorted(idents)[0]   # lets dedupe_meetings.py still recognise upload-date ghosts
+            mstat["meetings_ia_removed"] += 1
+
     # Every remaining link must point at a file that really exists in its IA item
     fixed = 0
     for t in turns:

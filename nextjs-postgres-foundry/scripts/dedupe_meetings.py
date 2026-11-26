@@ -66,14 +66,19 @@ def main():
     log = []
     for m in meetings:
         i = ident_of(m.get("mp4Url"))
+        removed = m.get("iaRemovedIdent")   # IA item withdrawn from archive.org; only used for ghost detection
         if m.get("videoLinkVerified") is True:
             m["videoLinkBasis"] = "transcript"
             continue
-        if not i or m.get("videoLinkVerified") is False:
+        if removed and not i:
+            i = removed
+        elif not i or m.get("videoLinkVerified") is False:
             continue
         t = title(i)
         ds = title_dates(t) or title_dates(i)
         ia_only = set(m.get("sources") or []) <= {"archive.org/cochwy"}
+        if removed and (m["date"] in ds or not ds):
+            continue   # removed item: never re-verify a link, only test for an upload-date ghost below
         if m["date"] in ds:
             m["videoLinkVerified"], m["videoLinkBasis"] = True, "title_date"
             stats["title_date_verified"] += 1
@@ -91,7 +96,7 @@ def main():
             twins = [x for x in meetings if x["date"] in ds and x["slug"] != m["slug"] and ident_of(x.get("mp4Url")) == i]
         if ia_only and tcount[m["slug"]] == 0 and twins:
             real = twins[0]
-            if ident_of(real.get("mp4Url")) != i:
+            if ident_of(real.get("mp4Url")) != i and not removed:
                 links = real.setdefault("extraLinks", [])
                 if not any(i in (l.get("url") or "") for l in links):
                     links.append({"label": f"Archive.org Ch192 — {t}", "url": f"https://archive.org/details/{i}", "kind": "archive_video_part"})

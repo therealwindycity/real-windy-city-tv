@@ -965,7 +965,7 @@
     document.getElementById("appRoot").innerHTML = `
       <div style="margin-bottom:12px"><button type="button" class="btn" onclick="navTo('episodes')">← All ${DB.episodes.length.toLocaleString()} Episodes</button></div>
       <div class="panel" style="margin-bottom:16px">
-        <div style="display:grid;gap:18px;grid-template-columns:${videoEmbed ? "1.15fr 1fr" : "1fr"}">
+        <div style="display:grid;gap:18px;grid-template-columns:${videoEmbed ? "minmax(0,1.15fr) minmax(0,1fr)" : "minmax(0,1fr)"}">
           <div>
             <div class="kicker">S${ep.season}E${String(ep.episodeNo).padStart(2, "0")} · ${esc(ep.bodyName)} · ${esc(ep.date)}</div>
             <h1 style="margin:8px 0;font-size:28px;line-height:1.1">${esc(ep.title)}</h1>
