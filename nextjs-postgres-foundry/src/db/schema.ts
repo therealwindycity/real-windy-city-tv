@@ -33,6 +33,7 @@ export const meetings = pgTable(
     videoUrl: text("video_url"),
     mp4Url: text("mp4_url"),
     videoLinkVerified: boolean("video_link_verified"),
+    videoLinkBasis: text("video_link_basis"),
     hasMinutesText: boolean("has_minutes_text").notNull().default(false),
     sources: jsonb("sources").$type<string[]>().notNull().default([]),
     extraLinks: jsonb("extra_links").$type<{ label: string; url: string; kind: string }[]>().notNull().default([]),

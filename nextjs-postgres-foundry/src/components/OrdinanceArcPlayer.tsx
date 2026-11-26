@@ -337,7 +337,7 @@ export default function OrdinanceArcPlayer({
         <section className="space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-xl font-black text-white">
-              🎙️ All Speaker Testimony Across Readings ({turns.length} C-SPAN Branded Clips)
+              🎙️ All Speaker Testimony Across Readings ({turns.length} Speaker Turns)
             </h2>
             <span className="text-xs text-slate-400">
               Chronological testimony from First Reading ({ord.firstDate}) through Final Consideration ({ord.lastDate})

@@ -5,7 +5,7 @@
   const LENSES = [
     { key: "foundry", name: "Foundry Docs Vault", icon: "🧬", accent: "#38bdf8", group: "Verify", blurb: "Palantir Foundry workbench: all Agendas & Supporting PDFs, SHA-1 hashes & live AI-Record-OCR." },
     { key: "gotham", name: "Gotham Link Graph", icon: "🕸️", accent: "#10b981", group: "Follow", blurb: "Palantir Gotham entity-link graph connecting Officials, Vendors, Ordinances, PDFs & Speakers." },
-    { key: "speakers", name: "Speaker Turn Videos", icon: "🎙️", accent: "#f59e0b", group: "Watch", blurb: "C-SPAN branded <=3-min speaker clips with historical counts, capacities, stances, avg time & POE." },
+    { key: "speakers", name: "Speaker Turn Videos", icon: "🎙️", accent: "#f59e0b", group: "Watch", blurb: "Speaker turns timed to the meeting video (plus branded clips) with historical counts, capacities, stances, avg time & POE." },
     { key: "provenance", name: "Provenance Films", icon: "🎥", accent: "#f43f5e", group: "Verify", blurb: "Screen-recorded walkthroughs showing the exact manual browser clicks used to obtain records." },
     { key: "story", name: "Plain-English Story", icon: "📖", accent: "#fbbf24", group: "Watch", blurb: "What happened, why it matters, and a 4-stop curiosity dial from headline to kid mode." },
     { key: "tabloid", name: "Front Page", icon: "🗞️", accent: "#ef4444", group: "Watch", blurb: "Screaming tabloid headlines with every claim footnoted back to the official packet." },
@@ -621,18 +621,18 @@
           <p style="font-size:13px;color:#cbd5e1;line-height:1.55;max-width:660px">${esc(feat.logline)}</p>
           <div class="btn-row">
             <button type="button" class="btn btn-amber" onclick="openEpisode('${esc(feat.slug)}')">▶ Watch Featured Episode (19 Lenses)</button>
-            <button type="button" class="btn btn-fb" onclick="navTo('speakers')">🎙️ Speaker Videos &amp; Analytics (2,483)</button>
+            <button type="button" class="btn btn-fb" onclick="navTo('speakers')">🎙️ Speakers &amp; Analytics (2,483 turns)</button>
             <button type="button" class="btn btn-emerald" onclick="navTo('osint')">🕸️ OSINT Entity &amp; Vendor Graph (51)</button>
-            <button type="button" class="btn btn-sky" onclick="navTo('foundry')">🏛️ Foundry PDFs (6,371)</button>
+            <button type="button" class="btn btn-sky" onclick="navTo('foundry')">🏛️ Foundry PDFs (6,339)</button>
             <button type="button" class="btn btn-rose" onclick="navTo('provenance')">🎥 Provenance Films (14)</button>
             <button type="button" class="btn" onclick="playThemeSong()">🎵 Theme Song</button>
           </div>
         </div>
         <div class="stat-grid">
-          <div class="stat-card"><div class="stat-big">1,615</div><div class="stat-lbl">Full Episodes (833 Internet Archive MP4s)</div></div>
-          <div class="stat-card"><div class="stat-big">2,483</div><div class="stat-lbl">C-SPAN Speaker Clips (109 Canonical Speakers)</div></div>
+          <div class="stat-card"><div class="stat-big">1,583</div><div class="stat-lbl">Full Episodes (802 Internet Archive MP4s)</div></div>
+          <div class="stat-card"><div class="stat-big">2,483</div><div class="stat-lbl">Speaker Turns (1,973 Timed to Video · 29 Branded Clips)</div></div>
           <div class="stat-card"><div class="stat-big">51 OSINT</div><div class="stat-lbl">Cross-Referenced Entities, Vendors &amp; Boards</div></div>
-          <div class="stat-card"><div class="stat-big">6,371</div><div class="stat-lbl">Reconciled Minutes &amp; Supporting PDFs</div></div>
+          <div class="stat-card"><div class="stat-big">6,339</div><div class="stat-lbl">Reconciled Minutes &amp; Supporting PDFs</div></div>
           <div class="stat-card"><div class="stat-big">275</div><div class="stat-lbl">Multi-Reading Ordinance Arcs (1st→Final)</div></div>
           <div class="stat-card"><div class="stat-big">14 Films</div><div class="stat-lbl">Screen-Recorded Manual Click Provenance</div></div>
         </div>
@@ -681,7 +681,7 @@
       <div class="section-head">
         <h2>Season 2026 · City Council</h2>
         <span class="sub">Newest through Nov 2026</span>
-        <button type="button" class="more" onclick="navTo('episodes')">Browse All 1,615 Episodes →</button>
+        <button type="button" class="more" onclick="navTo('episodes')">Browse All 1,583 Episodes →</button>
       </div>
       <div class="h-scroll">${council26.map(epCardHtml).join("")}</div>
 
@@ -726,7 +726,7 @@
     const bodies = [...new Set(DB.episodes.map((e) => e.body))];
     document.getElementById("appRoot").innerHTML = `
       <div class="panel" style="margin-bottom:16px">
-        <div class="kicker">SEASON GUIDE · 1,615 MEETINGS · 833 INTERNET ARCHIVE STREAMS (2008–2026)</div>
+        <div class="kicker">SEASON GUIDE · 1,583 MEETINGS · 802 INTERNET ARCHIVE STREAMS (2008–2026)</div>
         <h1 style="margin:6px 0 12px;font-size:26px">All ${DB.episodes.length.toLocaleString()} Cheyenne Government Episodes</h1>
         <div class="toolbar">
           <form class="search-form" onsubmit="STATE.epFilterQ=document.getElementById('epSearchInput').value;STATE.epPage=1;updateEpisodesResults();return false;">
@@ -765,7 +765,7 @@
         <div>
           <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px;padding:10px 12px;background:#091428;border:1px solid rgba(56,189,248,0.35);border-radius:10px;font-family:var(--mono);font-size:11px">
             <span><b style="color:var(--sky)">FOUNDRY // EPISODE PACKET VAULT</b> · OBJECTS=${docs.length} · OCR=${docs.filter((d) => d.ocr).length}</span>
-            <button type="button" class="btn btn-sky" style="padding:5px 10px;font-size:11px" onclick="navTo('foundry')">Global Vault (6,371 PDFs) ↗</button>
+            <button type="button" class="btn btn-sky" style="padding:5px 10px;font-size:11px" onclick="navTo('foundry')">Global Vault (6,339 PDFs) ↗</button>
           </div>
           <div class="foundry-shell">
             <div style="max-height:520px;overflow-y:auto;border:1px solid #1e293b;border-radius:10px;background:#050a14">
@@ -939,6 +939,15 @@
       ? ep.videoUrl.replace("/details/", "/embed/")
       : "";
     const hasVideo = Boolean(cleanMp4 || cleanIframe);
+    const VLB = {
+      transcript: ["#10b981", "✓ Video verified — speaker transcripts were matched inside this recording"],
+      title_date: ["#10b981", "✓ Video verified — the Internet Archive recording is titled with this meeting's date"],
+      ia_item_itself: ["#38bdf8", "Internet Archive item — this episode is the recording itself"]
+    };
+    const vlb = hasVideo ? (VLB[ep.videoLinkBasis] || ["#f59e0b", "⚠ Video link not independently verified — the recording's title carries no date to check against"]) : null;
+    const partLinks = (ep.extraLinks || []).filter((l) => l && l.kind === "archive_video_part" && safeUrl(l.url));
+    const videoNote = (vlb ? `<div class="video-basis" style="margin-top:6px;font-size:11px;color:${vlb[0]}">${esc(vlb[1])}</div>` : "")
+      + (partLinks.length ? `<div style="margin-top:4px;font-size:11px">Other parts of this meeting: ${partLinks.map((l) => `<a href="${esc(safeUrl(l.url))}" target="_blank" rel="noopener">${esc(l.label.replace(/^Archive\.org Ch192 — /, ""))} ↗</a>`).join(" · ")}</div>` : "");
     const videoEmbed = hasVideo
       ? renderCspanVideoBox({
           id: "cspan_ep_" + ep.slug,
@@ -954,7 +963,7 @@
       : "";
 
     document.getElementById("appRoot").innerHTML = `
-      <div style="margin-bottom:12px"><button type="button" class="btn" onclick="navTo('episodes')">← All 1,615 Episodes</button></div>
+      <div style="margin-bottom:12px"><button type="button" class="btn" onclick="navTo('episodes')">← All ${DB.episodes.length.toLocaleString()} Episodes</button></div>
       <div class="panel" style="margin-bottom:16px">
         <div style="display:grid;gap:18px;grid-template-columns:${videoEmbed ? "1.15fr 1fr" : "1fr"}">
           <div>
@@ -968,7 +977,7 @@
               ${cleanMp4 ? `<a class="btn btn-amber" href="${esc(cleanMp4)}" target="_blank" rel="noreferrer">🎞️ Internet Archive Stream ↗</a>` : ""}
             </div>
           </div>
-          ${videoEmbed ? `<div>${videoEmbed}</div>` : ""}
+          ${videoEmbed ? `<div>${videoEmbed}${videoNote}</div>` : ""}
         </div>
       </div>
 
@@ -1135,7 +1144,7 @@
         <div style="display:flex;justify-content:space-between;align-items:start;flex-wrap:wrap;gap:12px">
           <div>
             <div class="kicker">🎙️ SPEAKER-SEGMENT VIDEO DATABASE, ADVOCACY ANALYTICS &amp; OSINT STUDIO</div>
-            <h1 style="margin:6px 0 6px;font-size:26px">2,483 Branded &le;3-Min Speaker Clips · ${DB.speakers.length} Canonical Speakers</h1>
+            <h1 style="margin:6px 0 6px;font-size:26px">2,483 Speaker Turns · 1,973 Timed to Video · 29 Branded Clips · ${DB.speakers.length} Canonical Speakers</h1>
           </div>
           <form class="search-form" onsubmit="STATE.spkQ=document.getElementById('spkSearchInput').value;STATE.spkPage=1;updateSpeakersResults();return false;">
             <input id="spkSearchInput" class="input" style="width:260px" placeholder="Search verbatim speech, speaker, date…" value="${esc(STATE.spkQ)}" oninput="STATE.spkQ=this.value;STATE.spkPage=1;updateSpeakersResults()" />
@@ -1530,19 +1539,19 @@
   };
 
   async function renderGlobalFoundry() {
-    document.getElementById("appRoot").innerHTML = `<div class="loading-shell">Loading 6,371 Reconciled Clerk Minutes, Agendas &amp; SHA-1 OCR Objects…</div>`;
+    document.getElementById("appRoot").innerHTML = `<div class="loading-shell">Loading 6,339 Reconciled Clerk Minutes, Agendas &amp; SHA-1 OCR Objects…</div>`;
     await ensureDocsLoaded();
     document.getElementById("appRoot").innerHTML = `
       <div class="panel" style="margin-bottom:16px">
         <div class="kicker" style="color:var(--sky)">PALANTIR FOUNDRY // GLOBAL AGENDAS, MINUTES &amp; SUPPORTING DOCUMENTS VAULT</div>
-        <h1 style="margin:6px 0 12px;font-size:26px">6,371 Primary PDFs &amp; 1,081 SHA-1 AI-Record-OCR Packets (2008–2026)</h1>
+        <h1 style="margin:6px 0 12px;font-size:26px">6,339 Primary PDFs &amp; 1,081 SHA-1 AI-Record-OCR Packets (2008–2026)</h1>
         <div class="toolbar">
           <form class="search-form" onsubmit="STATE.docQ=document.getElementById('docSearchInput').value;STATE.docPage=1;updateFoundryResults();return false;">
             <input id="docSearchInput" class="input" style="width:290px;font-family:var(--mono)" placeholder="Search PDF title, SHA-1 hash, date…" value="${esc(STATE.docQ)}" oninput="STATE.docQ=this.value;STATE.docPage=1;updateFoundryResults()" />
             <button type="submit" class="btn-enter">Enter ↵</button>
           </form>
           <select class="input" onchange="STATE.docRole=this.value;STATE.docPage=1;updateFoundryResults()">
-            <option value="">ROLE: ALL (6,371)</option>
+            <option value="">ROLE: ALL (6,339)</option>
             <option value="attachment" ${STATE.docRole === "attachment" ? "selected" : ""}>SUPPORTING PDFs</option>
             <option value="agenda" ${STATE.docRole === "agenda" ? "selected" : ""}>OFFICIAL AGENDAS</option>
             <option value="minutes" ${STATE.docRole === "minutes" ? "selected" : ""}>MINUTES &amp; TRANSCRIPTS</option>

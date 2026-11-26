@@ -200,6 +200,7 @@ export async function seedIfEmpty(force = false): Promise<void> {
           videoUrl: m.videoUrl,
           mp4Url: m.mp4Url,
           videoLinkVerified: (m as { videoLinkVerified?: boolean | null }).videoLinkVerified ?? null,
+          videoLinkBasis: (m as { videoLinkBasis?: string | null }).videoLinkBasis ?? null,
           hasMinutesText: m.hasMinutesText,
           sources: m.sources,
           extraLinks: m.extraLinks,

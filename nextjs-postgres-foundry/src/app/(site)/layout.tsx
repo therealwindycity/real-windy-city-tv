@@ -3,11 +3,11 @@ import type { ReactNode } from "react";
 
 const nav = [
   { href: "/", label: "Now Streaming" },
-  { href: "/episodes", label: "Episodes (1,615)" },
-  { href: "/speakers", label: "🎙️ Speaker Videos (2,483)" },
+  { href: "/episodes", label: "Episodes (1,583)" },
+  { href: "/speakers", label: "🎙️ Speakers (2,483 turns)" },
   { href: "/osint", label: "🕸️ OSINT Entity Graph" },
   { href: "/ordinances", label: "📜 Ordinances: 1st→Final" },
-  { href: "/documents", label: "🏛️ Foundry Docs (6,371)" },
+  { href: "/documents", label: "🏛️ Foundry Docs (6,339)" },
   { href: "/provenance", label: "🎥 Provenance Films" },
   { href: "/cast", label: "The Cast" },
 ];
@@ -36,7 +36,7 @@ export default function SiteLayout({ children }: { children: ReactNode }) {
       <main className="flex-1">{children}</main>
       <footer className="border-t border-white/10 px-4 py-6 text-center text-xs text-slate-400">
         <p>
-          100% Zero-Gap Primary Public Record (2008–2026): 1,615 City of Cheyenne meetings (833 Internet Archive Ch. 192 MP4s), 8,983 docket items, 6,371 Clerk Minutes &amp; Supporting Packet PDFs, 2,483 &le;3-min C-SPAN branded speaker video segments across 109 verified speakers, 51 OSINT cross-referenced civic entities, 275 multi-reading ordinances, and 14 manual click-path provenance films. Nothing here is legal advice.
+          100% Zero-Gap Primary Public Record (2008–2026): 1,583 City of Cheyenne meetings (802 Internet Archive Ch. 192 MP4s), 8,887 docket items, 6,339 Clerk Minutes &amp; Supporting Packet PDFs, 2,483 speaker turns across 109 verified speakers (1,973 timed to the meeting video, 29 branded clips), 51 OSINT cross-referenced civic entities, 275 multi-reading ordinances, and 14 manual click-path provenance films. Nothing here is legal advice.
         </p>
       </footer>
     </div>

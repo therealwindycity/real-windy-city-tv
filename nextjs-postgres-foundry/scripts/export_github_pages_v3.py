@@ -48,7 +48,8 @@ def main():
                      agenda_url AS "agendaUrl", minutes_url AS "minutesUrl",
                      video_url AS "videoUrl", mp4_url AS "mp4Url",
                      runtime_min AS "runtimeMin", extra_links AS "extraLinks",
-                     video_link_verified AS "videoLinkVerified"
+                     video_link_verified AS "videoLinkVerified",
+                     video_link_basis AS "videoLinkBasis"
               FROM meetings ORDER BY date DESC
             ) t;
             """,

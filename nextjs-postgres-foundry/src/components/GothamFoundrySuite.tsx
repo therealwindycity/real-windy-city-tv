@@ -942,7 +942,7 @@ export function FoundryLensView({ b }: { b: EpisodeBundle }) {
             href="/documents"
             className="rounded border border-sky-400/40 bg-sky-500/15 px-2.5 py-1 font-mono text-[11px] font-bold text-sky-200 hover:bg-sky-500/25"
           >
-            SEARCH ALL 6,371 ARCHIVE PDFs (2008–2026) ↗
+            SEARCH ALL 6,339 ARCHIVE PDFs (2008–2026) ↗
           </Link>
         </div>
       </div>

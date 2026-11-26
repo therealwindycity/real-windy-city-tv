@@ -39,7 +39,7 @@ export default async function DocumentsVaultPage({
               PALANTIR FOUNDRY // GLOBAL AGENDAS &amp; SUPPORTING DOCUMENTS VAULT
             </div>
             <h1 className="mt-1 text-3xl font-black text-white">
-              6,371 Primary Municipal Documents &amp; SHA-1 OCR Packets (2008–2026)
+              6,339 Primary Municipal Documents &amp; SHA-1 OCR Packets (2008–2026)
             </h1>
             <p className="mt-1 max-w-3xl text-xs text-slate-300">
               Every City of Cheyenne Agenda, Supporting Document PDF (<code>cheyenne-archives-*</code>), Staff Report, Ordinance Substitute, Bid Tabulation, and Clerk Minute — lexically reconciled and cross-linked to its parent episode and provenance video.
@@ -61,7 +61,7 @@ export default async function DocumentsVaultPage({
             Enter ↵
           </button>
           <select name="role" defaultValue={sp.role ?? ""} className="rounded-lg border border-slate-700 bg-[#040811] px-3 py-2 font-mono text-white">
-            <option value="">ROLE: ALL (6,371)</option>
+            <option value="">ROLE: ALL (6,339)</option>
             <option value="attachment">SUPPORTING PDFs</option>
             <option value="agenda">OFFICIAL AGENDAS</option>
             <option value="minutes">MINUTES &amp; TRANSCRIPTS</option>

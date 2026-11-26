@@ -226,6 +226,35 @@ async function main() {
     assert(osintP1.includes("Cheyenne LEADS") && !/\bundefined\b/.test(osintP1), "GitHub Pages OSINT page 1 renders Cheyenne LEADS with clean speaker chips");
     await page.screenshot({ path: `${SHOTS_DIR}/06_ghpages_osint_v32.png` });
 
+    // v3.2.1 re-timing: verified clips seek to the transcript-verified moment; unverifiable turns never play a wrong moment
+    const retime = await page.evaluate(() => {
+      const t = window.DB.turnById.get(1121), r = window.DB.turnById.get(34), y = window.DB.turnById.get(206);
+      const out = { t1121: [t.startSec, t.videoTiming], removedSrc: r.sourceMeetingMp4Url, removedTiming: r.videoTiming, yt: y.youtubeId, ytSrc: y.sourceMeetingMp4Url };
+      const host = document.createElement("div"); host.id = "e2eRetimeHost"; document.body.appendChild(host);
+      window.mountTurnVideo(34, "e2eRetimeHost"); out.removedHtml = host.innerHTML;
+      window.mountTurnVideo(206, "e2eRetimeHost"); out.ytHtml = host.innerHTML;
+      host.remove();
+      return out;
+    });
+    assert(retime.t1121[0] === 569.9 && retime.t1121[1] === "realigned", "GitHub Pages turn 1121 seeks to transcript-verified 569.9s (was 2216.0s)");
+    assert(retime.removedTiming === "removed" && !retime.removedSrc && !/<video/.test(retime.removedHtml) && /Transcript only/.test(retime.removedHtml), "GitHub Pages unverifiable turn shows 'Transcript only' and never plays a wrong moment");
+    assert(retime.yt === "ehK-YMrWJBo" && !retime.ytSrc && /youtube-nocookie\.com\/embed\/ehK-YMrWJBo\?start=498/.test(retime.ytHtml), "GitHub Pages 11-17-26 turn plays YouTube original at the verified timestamp (IA copy corrupt)");
+    const ghClipAudio = await page.evaluate(() => [...window.DB.turnById.values()].filter((t) => t.brandedMp4Url).length);
+    assert(ghClipAudio === 29, `GitHub Pages lists 29 branded clips (${ghClipAudio})`);
+
+    // A1 meeting-link verification: IA-upload-date ghost episodes removed, wrong-date links removed, badge shown
+    const a1 = await page.evaluate(() => ({
+      n: window.DB.episodes.length,
+      ghost: window.DB.epBySlug.has("2018-03-13-council"),
+      wrong: (window.DB.epBySlug.get("2025-08-11-council") || {}).mp4Url || null,
+      basisReal: (window.DB.epBySlug.get("2018-03-12-council") || {}).videoLinkBasis
+    }));
+    assert(a1.n === 1583 && !a1.ghost, `GitHub Pages: 32 IA-upload-date ghost episodes removed (${a1.n} episodes)`);
+    assert(a1.wrong === null, "GitHub Pages: 2025-08-11 council no longer plays the 2024-08-11 recording");
+    await page.evaluate(() => { STATE.epSlug = "2018-02-26-council"; window.rerenderEpisode(); });
+    const badge = await page.evaluate(() => [(document.querySelector(".video-basis") || {}).textContent || "", document.getElementById("appRoot").innerHTML.includes("part_2_2_26_18")]);
+    assert(/Video verified/.test(badge[0]) && badge[1], "GitHub Pages episode shows video-verification badge and links the other part of a multi-part meeting");
+
     assert(pageErrors.length === 0, `Zero uncaught browser JS errors (${pageErrors.length})`);
     console.log("\nALL E2E CHECKS PASSED ACROSS NEXT.JS (:3000) AND GITHUB PAGES (:8787)!");
   } finally {

@@ -58,7 +58,7 @@ export default async function HomePage() {
                 ▶ Watch Featured Episode ({LENSES.length} Lenses)
               </Link>
               <Link href="/speakers" className="rounded-full bg-[#1877F2] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#166fe5]">
-                🎙️ Speaker Videos &amp; Analytics (2,483)
+                🎙️ Speakers &amp; Analytics (2,483 turns)
               </Link>
               <Link href="/osint" className="rounded-full bg-emerald-500/25 px-4 py-2.5 text-sm font-bold text-emerald-100 ring-1 ring-emerald-400/40 hover:bg-emerald-500/35">
                 🕸️ OSINT Entity &amp; Contractor Graph (51)
@@ -67,7 +67,7 @@ export default async function HomePage() {
                 📜 Ordinances: 1st → Final Reading
               </Link>
               <Link href="/documents" className="rounded-full bg-sky-500/20 px-4 py-2.5 text-sm font-bold text-sky-200 ring-1 ring-sky-400/40 hover:bg-sky-500/30">
-                🏛️ Palantir Foundry PDFs (6,371)
+                🏛️ Palantir Foundry PDFs (6,339)
               </Link>
               <Link href="/provenance" className="rounded-full bg-rose-500/20 px-4 py-2.5 text-sm font-bold text-rose-200 ring-1 ring-rose-400/40 hover:bg-rose-500/30">
                 🎥 Provenance Click-Path Films (14)
@@ -80,10 +80,10 @@ export default async function HomePage() {
 
           <div className="grid grid-cols-2 gap-2.5 self-center">
             {[
-              ["1,615", "Full Episodes (833 Internet Archive MP4s)"],
-              ["2,483", "C-SPAN Speaker Clips (109 Canonical Speakers)"],
+              ["1,583", "Full Episodes (802 Internet Archive MP4s)"],
+              ["2,483", "Speaker Turns (1,973 Timed to Video · 29 Branded Clips)"],
               ["51 OSINT", "Cross-Referenced Entities, Vendors & Boards"],
-              ["6,371", "Minutes & Supporting Packet PDFs (1,081 OCR)"],
+              ["6,339", "Minutes & Supporting Packet PDFs (1,081 OCR)"],
               ["275", "Multi-Reading Ordinance Arcs (1st→3rd)"],
               ["14 Films", "Screen-Recorded Manual Click Provenance"],
             ].map(([big, small]) => (
