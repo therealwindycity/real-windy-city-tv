@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+import sys as _sys
+# LEGACY MOCK GENERATOR: invented summaries and wrong names (e.g. "Councilman Ken Moody, Ward 1"; the roster has
+# Mark Moody, Ward III). The real data comes from unified_civic_foundry/scripts/rebuild_all.sh + export_github_pages_v3.py.
+if "--i-know-this-is-mock" not in _sys.argv:
+    _sys.exit("generate_full_db.py is a legacy mock-data generator; use unified_civic_foundry/scripts/rebuild_all.sh instead.")
 """
 Builds data/civic_tv_db.js for The Real Windy City — Civic TV & Multi-Lens Engine
 from real Archive.org (`cochwy`) transcripts, speaker manifests, and GitHub Releases.

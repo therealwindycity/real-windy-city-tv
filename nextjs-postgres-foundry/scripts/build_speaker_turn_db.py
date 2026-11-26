@@ -215,7 +215,7 @@ def main():
         ("2026-09-14", "2026-09-14-council", "Bartimous Miller", "Public Commenter", 300, 390, "https://raw.githubusercontent.com/therealwindycity/therealwindycity/main/pipeline/videos/sep14_entered.mp4", "September 14 City Council — Exhibits formally entered into the municipal record.", ["procedure", "annexation"], "legal", 89),
         ("2026-06-22", "2026-06-22-council", "Dr. Michelle Aldrich", "Council Member (Ward I)", 0, 95, "https://raw.githubusercontent.com/therealwindycity/therealwindycity/main/pipeline/videos/jun22_wolfe.mp4", "June 22 City Council — Point of order on presiding officer ruling & clock administration.", ["procedure"], "angry", 93),
         ("2026-06-22", "2026-06-22-council", "Council / Chair Wolfe", "Presiding Officer / Council", 95, 185, "https://raw.githubusercontent.com/therealwindycity/therealwindycity/main/pipeline/videos/jun22_clock.mp4", "June 22 City Council — Speaking-clock dispute & podium timer enforcement.", ["procedure"], "angry", 90),
-        ("2026-05-26", "2026-05-26-council", "Cathy Moody", "Council Member", 0, 92, "https://raw.githubusercontent.com/therealwindycity/therealwindycity/main/pipeline/videos/moody_swap.mp4", "Councilmember Moody — Substitute motion / packet amendment exchange on the floor.", ["procedure", "zoning"], "legal", 87),
+        ("2026-05-26", "2026-05-26-council", "Mark Moody", "Council Member (Ward III)", 0, 92, "https://raw.githubusercontent.com/therealwindycity/therealwindycity/main/pipeline/videos/moody_swap.mp4", "Councilmember Moody — Substitute motion / packet amendment exchange on the floor.", ["procedure", "zoning"], "legal", 87),
         ("2026-05-26", "2026-05-26-council", "Amber / Vicki Nemecek", "Public Transit / Staff", 92, 180, "https://raw.githubusercontent.com/therealwindycity/therealwindycity/main/pipeline/videos/nemecek_quote.mp4", "Nemecek verbatim floor quote vs. written summary comparison.", ["contracts", "budget"], "technical", 84),
         ("2026-04-13", "2026-04-13-council", "Bartimous Miller", "Public Commenter", 0, 115, "https://raw.githubusercontent.com/therealwindycity/therealwindycity/main/pipeline/videos/apr13_cox.mp4", "April 13 City Council — Early Cox Ranch annexation boundary & notice testimony.", ["annexation", "zoning"], "concerned", 89),
     ]
@@ -546,7 +546,7 @@ def main():
         "ken-esquibel": [
             {"title": "Councilman Esquibel Floor Exchanges", "url": "https://raw.githubusercontent.com/therealwindycity/TheReelWindyCity/main/video/miller-x-esquibel.mp4"},
         ],
-        "cathy-moody": [
+        "mark-moody": [
             {"title": "Councilmember Moody Floor Exchanges", "url": "https://raw.githubusercontent.com/therealwindycity/TheReelWindyCity/main/video/miller-x-moody.mp4"},
         ],
         "tom-segrave": [
