@@ -120,6 +120,9 @@ def main():
     inv = json.loads((RT / "ia_inventory.json").read_text())
     A = {r["id"]: r for r in json.loads((RT / "alignments.json").read_text())}
     plan = {int(k): v for k, v in json.loads((RT / "relink_plan.json").read_text()).items()} if (RT / "relink_plan.json").exists() else {}
+    # A2: weakly-matched turns re-verified by an in-order (LCS) content-word match inside the candidate window
+    # (scripts/a2_lcs_probe.py; accepted >= 0.70 vs. a chance maximum of 0.517 over 5,986 wrong-recording windows).
+    lcs_ok = {int(k): v for k, v in json.loads((RT / "a2_lcs_accepted.json").read_text()).items()} if (RT / "a2_lcs_accepted.json").exists() else {}
 
     # Placeholder turns whose meeting had no link but whose diarized windows were verified to contain speech in this
     # exact recording (57/60 windows) — see session notes. Link them so their text can be filled from the transcript.
@@ -156,6 +159,16 @@ def main():
             t["videoTiming"] = "realigned"
             t["alignScore"], t["alignSource"] = a["score"], a.get("source")
             t["videoTimingNote"] = None
+        elif t["id"] in lcs_ok:
+            v = lcs_ok[t["id"]]
+            t["sourceMeetingMp4Url"] = fix_url(f"https://archive.org/download/{v['ident']}/x.mp4", inv)
+            t["embedUrl"] = f"https://archive.org/details/{v['ident']}"
+            t["startSec"], t["endSec"] = v["newStart"], v["newEnd"]
+            t["videoTiming"] = "realigned"
+            t["alignScore"], t["alignSource"] = v["lcs"], "lcs_in_order_match"
+            t["speakerAttributionVerified"] = False
+            t["videoTimingNote"] = (f"Timing verified by an in-order word match ({round(v['lcs'] * 100)}% of content words; chance "
+                                    f"maximum {round(v['nullMax'] * 100)}%). Speaker label is unverified.")
         elif t["text"].startswith(PLACEHOLDER) and "archive.org/download/" in (t.get("sourceMeetingMp4Url") or ""):
             ident = t["sourceMeetingMp4Url"].split("/download/")[1].split("/")[0]
             txt = raw_text_window(ident, inv, float(t["startSec"]), float(t["endSec"]))
