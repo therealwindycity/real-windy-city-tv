@@ -75,61 +75,165 @@ function money(n: number) {
   return `$${Math.round(n)}`;
 }
 
-function episodeTitle(m: RawMeeting, items: RawItem[]): string {
-  const ord = items.find((i) => i.kind === "ordinance");
+// Agenda items in the source data include placeholders ("CALL TO ORDER & ROLL CALL", "MUNICIPAL BOARD /
+// COMMISSION DOCKET — municipal-docs", "Context/Agenda: <transcript snippet>") and packet attachments
+// named only "Supporting Document", "Agenda", "Exhibit A" or a raw file name ("ws-09-30-22-agenda").
+// None of those tell a reader what the meeting was about, so they are never used as a title.
+const GENERIC_PART =
+  /^(agenda( only)?|(amended |original |updated )?supporting\s+documents?|additional\s+(documents?|information)|proposed\s+substitut(e|ion)|substitute( map)?|proposed\s+amendment|appendi(x|ces)(\s+[a-z0-9]+)?|exhibits?(\s+[a-z0-9]+)?|attachments?(\s+[a-z0-9]+)?|memo(randum)?|[a-z]+ department memo|staff\s+report|contract|agreement|(amended |updated )?resolution|(amended |updated )?ordinance|(revised |updated )?map|annexation\s+map|general|general - document|document|presentation|minutes|packet|plat|letter|report|\d{4} drawings|drawings|municipal-docs|agenda-packets|planning-commission|special meeting|regular meeting|(first|second) regular meeting|(proposed )?(revised |substitute )+map|exhibit [a-z] substitute|[\d-]+ approved substitutes|master plan)$/i;
+const PLACEHOLDER = /^(CALL TO ORDER|PUBLIC RECORD & ARCHIVAL|Context\/Agenda:|CALL (MEETING TO ORDER|ROLL)|ADJOURN|PLEDGE OF ALLEGIANCE|CONSENT AGENDA|VOUCHER REPORT|REVENUE REPORT|OTHER BUSINESS|ANNOUNCEMENTS)|Regular Docket & Public Proceedings/i;
+const BODY_FROM_FILE: Record<string, string> = { fc: "Finance Committee", ws: "Work Session", psc: "Public Services Committee", cow: "Committee of the Whole", cc: "City Council" };
+
+function sentenceCase(t: string): string {
+  if (t !== t.toUpperCase() || !/[A-Z]{4}/.test(t)) return t;
+  return t.toLowerCase().replace(/^./, (c) => c.toUpperCase()).replace(/\bcheyenne\b/g, "Cheyenne").replace(/\bwyoming\b/g, "Wyoming");
+}
+
+function candidate(raw: string, max = 70): string | null {
+  if (PLACEHOLDER.test(raw)) return null;
+  if (/\b(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\.? \d{1,2},? \d{4}\b.*\bMeeting\b/i.test(raw)) return null;
+  let t = raw
+    .replace(/\u00a0/g, " ")
+    .replace(/\s+/g, " ")
+    .replace(/^(?:SUPPORTING PACKET DOCKET|Attached document)\s*[—–-]\s*/i, "")
+    .replace(/^[A-Z /&]+ DOCKET\s*[—–-]\s*/, "")
+    .replace(/\(large file\)/gi, "")
+    .replace(/^Agenda Only\s*-\s*/i, "")
+    .trim();
+  if (!/\s/.test(t) || /_/.test(t) || /^[a-z]{1,5}-\d/i.test(t)) return null; // raw file names
+  let parts = t.split(/\s+-\s+/).map((x) => x.trim()).filter(Boolean);
+  const half = parts.length % 2 === 0 ? parts.length / 2 : 0;
+  if (half && parts.slice(0, half).join("|") === parts.slice(half).join("|")) parts = parts.slice(0, half);
+  // file titles are often "<title cut at 50 chars> - <full title>": keep only the full one
+  const norm = (x: string) => x.toLowerCase().replace(/\(large fi.*$/, "").replace(/[^a-z0-9]+/g, " ").trim();
+  parts = parts.filter((x, i) => {
+    const nx = norm(x);
+    return !parts.some((y, j) => {
+      if (j === i || nx.length < 12) return false;
+      const ny = norm(y);
+      return (ny.length > nx.length || (ny.length === nx.length && j > i)) && ny.startsWith(nx.slice(0, Math.max(12, nx.length - 2)));
+    });
+  });
+  parts = parts.filter((x, i) => parts.indexOf(x) === i);
+  parts = parts.filter((x) => !GENERIC_PART.test(x) && !/^(work session|city council|finance committee|public services committee|committee of the whole)$/i.test(x));
+  if (!parts.length) return null;
+  t = parts.join(" - ");
+  // nothing left once dates, body names and filler are removed -> not a description
+  const rest = t
+    .replace(/\b(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sept?|oct|nov|dec)\b\.?/gi, "")
+    .replace(/\b(cheyenne|city council|council|work session|finance committee|public services committee|committee of the whole|planning commission|board of adjustment|urban renewal authority|meeting|regular|special|agenda|postponed|to|final)\b/gi, "")
+    .replace(/[\d\s.,/:&()–—-]+/g, "");
+  if (rest.length < 3 || t.length < 6) return null;
+  return shortTitle(sentenceCase(t), max);
+}
+
+function shortTitle(raw: string, max = 72): string {
+  let t = raw
+    .replace(/\u00a0/g, " ")
+    .replace(/\s+/g, " ")
+    .replace(/^\d+[a-z]?\.\s*/i, "")
+    .replace(/^(?:ORDINANCE|RESOLUTION|PUBLIC HEARING)\s*[—–-]\s*(?:\d(?:st|nd|rd|th)\s+READING\s*[—–-]\s*)?/i, "")
+    .replace(/^(?:Consideration of|Approval of|A Resolution|An Ordinance)\s+(?:an?\s+|the\s+)?/i, "")
+    .trim();
+  t = t.charAt(0).toUpperCase() + t.slice(1);
+  if (t.length <= max) return t.replace(/[.;:,]+$/, "");
+  const cut = t.slice(0, max);
+  return cut.slice(0, cut.lastIndexOf(" ") > 30 ? cut.lastIndexOf(" ") : max).replace(/[.;:,]+$/, "") + "…";
+}
+
+const READING: Record<string, string> = { first: "1st reading", second: "2nd reading", third: "final reading" };
+
+function episodeTitle(m: RawMeeting, allItems: RawItem[]): string {
+  const items = allItems.filter((i) => !i.itemNo.startsWith("REC-"));
+  const ords = items.filter((i) => i.kind === "ordinance" && !PLACEHOLDER.test(i.title));
+  const dc = ords.find((i) => /data cent/i.test(i.title));
+  if (dc) return `Data center rules${dc.reading ? ` (${READING[dc.reading]})` : ""}`;
+  const ord = ords[0];
   if (ord) {
     const r = roadOf(ord.title);
     const t = ord.title.toLowerCase();
-    const word = t.includes("annex") && !t.includes("zoning") ? "Annexation" : t.includes("zoning") ? "Rezoning" : "Ordinance";
-    const stage = ord.reading === "first" ? "Pilot" : ord.reading === "second" ? "Act Two" : ord.reading === "third" ? "Finale" : null;
-    const prefix = stage ? `${stage}: ` : "";
-    if (r) return `${prefix}${word} at ${r}`;
-    const sec = ord.title.match(/Section\s+([\d-]+)/i);
-    if (/municipal code|city code/i.test(ord.title)) return `${prefix}Code Amendment${sec ? ` ${sec[1]}` : ""}`;
-    return `${prefix}Ordinance Night`;
+    const stage = ord.reading ? READING[ord.reading] : null;
+    const suffix = stage ? ` (${stage})` : "";
+    if (r) {
+      const word = t.includes("annex") && !t.includes("zoning") ? "Annexation" : t.includes("zoning") ? "Rezoning" : "Ordinance";
+      return `${word} near ${r}${suffix}`;
+    }
+    const sec = ord.title.match(/(?:Sections?|Chapters?|Titles?)\s+[\d.-]*\d/i);
+    if (sec) {
+      // say what the change does ("... Code to establish standards for data centers") rather than list section numbers
+      const code = /unified development code/i.test(ord.title) ? "Zoning code change" : "City code change";
+      const purpose = ord.title.match(/\bCode(?: of the City of Cheyenne(?:, Wyoming)?)?,?\s+(?:in order\s+)?to\s+(.+)/i);
+      if (purpose) {
+        const what = shortTitle(purpose[1].replace(/\s*\((?:PUBLIC SERVICES|FINANCE)[^)]*\).*$/i, "").replace(/\s+ACTION:.*$/i, ""), 58).replace(/^./, (c) => c.toLowerCase());
+        return `${code}: ${what}${suffix}`;
+      }
+      const purpose2 = ord.title.match(/Wyoming,?\s+((?:modifying|updating|revising|adding|creating|establishing|clarifying)\s.+)/i);
+      if (purpose2) return `${code}: ${shortTitle(purpose2[1].replace(/\s*\((?:PUBLIC SERVICES|FINANCE)[^)]*\).*$/i, ""), 58).replace(/^./, (c) => c.toLowerCase())}${suffix}`;
+      const fee = ord.title.match(/(?:the\s+)?(?:monthly\s+)?([A-Z][A-Za-z ]{3,40}?(?:Fee Schedule|user fee|fees?))\b/);
+      if (fee) return `${code}: ${fee[1].replace(/\buser fee\b/, "fee").trim()}${suffix}`;
+      const ttl = ord.title.match(/of Title \d+,\s+([A-Z][A-Za-z ,&-]{4,50}?),/);
+      if (ttl) return `${code}: ${ttl[1].trim()}${suffix}`;
+      const named = ord.title.match(/(?:Sections?|Chapters?)\s+[\d.]+\s*,?\s+([A-Z][A-Za-z ,&-]{4,50}?)(?:,| of )/);
+      if (named) return `${code}: ${named[1].trim()}${suffix}`;
+      return `${code}: ${sec[0].replace(/\s+/, " ")}${suffix}`;
+    }
+    const c = candidate(ord.title, 60);
+    if (c) return `${c}${suffix}`;
   }
   const named = items.find((i) => i.kind === "resolution" && /[‘'“"]([^’'”"]{4,60})[’'”"]/.test(i.title));
   if (named) {
     const q = named.title.match(/[‘'“"]([^’'”"]{4,60})[’'”"]/);
-    if (q) return `The ${q[1].replace(/[.,;:]+$/, "")} Resolution`;
+    if (q) return `Resolution: ${q[1].replace(/[.,;:]+$/, "")}`;
   }
-  const big = items.filter((i) => i.amountUsd).sort((a, b) => (b.amountUsd ?? 0) - (a.amountUsd ?? 0))[0];
-  if (big && (big.amountUsd ?? 0) >= 100000) return `The ${money(big.amountUsd ?? 0)} Question`;
-  const hearing = items.find((i) => i.kind === "hearing" && i.title.length > 20);
-  if (hearing) return "Public Hearing Night";
-  const dataCenter = items.find((i) => /data center/i.test(i.title));
-  if (dataCenter) return "The Data Center Standard";
-  const pkt = items.find((i) => i.itemNo.startsWith("PKT-"));
-  if (pkt) {
-    const clean = pkt.title.replace(/^SUPPORTING PACKET DOCKET\s*[—–-]\s*/i, "").trim();
-    if (clean.length >= 4 && clean.length <= 54) return clean;
+  const big = items.filter((i) => i.amountUsd && candidate(i.title)).sort((a, b) => (b.amountUsd ?? 0) - (a.amountUsd ?? 0))[0];
+  if (big && (big.amountUsd ?? 0) >= 100000) return `${money(big.amountUsd ?? 0)}: ${candidate(big.title, 58)}`;
+  const hearing = items.find((i) => i.kind === "hearing" && candidate(i.title));
+  if (hearing) return `Public hearing: ${candidate(hearing.title, 56)}`;
+  if (items.some((i) => /data center/i.test(i.title) && !PLACEHOLDER.test(i.title))) return "Data center rules";
+  const real = items.filter((i) => i.kind !== "procedural" && !i.itemNo.startsWith("PKT-"));
+  for (const it of [...real, ...items.filter((i) => i.itemNo.startsWith("PKT-"))]) {
+    const c = candidate(it.title);
+    if (c) return c;
   }
   const [y, mo, d] = m.date.split("-").map(Number);
-  const label = `${MONTHS[mo - 1].slice(0, 3)} ${d}`;
-  if (m.body === "special") return `Special Edition: ${label}, ${y}`;
-  if (m.body === "work") return `Work Session: ${label}`;
-  if (m.body === "cow") return `Committee of the Whole: ${label}`;
-  if (m.body === "psc") return `Committee Cut: ${label}`;
-  if (m.body === "finance") return `Appropriations: ${label}`;
-  if (m.body === "planning") return `Site Plan Review: ${label}`;
-  return `The ${label} Sitting`;
+  const when = `${MONTHS[mo - 1].slice(0, 3)} ${d}, ${y}`;
+  if (m.body === "other") {
+    // packet-only records: the file name tells us which committee the agenda belongs to
+    for (const it of items) {
+      const f = it.title.match(/—\s*([a-z]{2,3})-\d/i);
+      if (f && BODY_FROM_FILE[f[1].toLowerCase()]) return `${BODY_FROM_FILE[f[1].toLowerCase()]} agenda · ${when}`;
+      if (/Agenda_CHEY-/i.test(it.title)) return `City agenda · ${when}`;
+    }
+    return `Board or commission meeting · ${when}`;
+  }
+  return `${m.bodyName} meeting · ${when}`;
+}
+
+/** Only 2025+ council meetings have a measured start and end; everything else carried a per-body guess. */
+function realRuntime(m: RawMeeting): number | null {
+  return m.startMin != null && m.endMin != null && m.endMin > m.startMin ? m.endMin - m.startMin : null;
+}
+
+function plural(n: number, one: string, many = `${one}s`) {
+  return `${n} ${n === 1 ? one : many}`;
 }
 
 function loglineFor(m: RawMeeting, items: RawItem[], phase: string): string {
-  const real = items.filter((i) => i.kind !== "procedural");
-  const consent = items.filter((i) => i.consent).length;
+  const real = items.filter((i) => i.kind !== "procedural" && !/^(PKT|REC)-/.test(i.itemNo) && !PLACEHOLDER.test(i.title));
+  const consent = real.filter((i) => i.consent).length;
   const ords = items.filter((i) => i.kind === "ordinance").length;
   const pkts = items.filter((i) => i.itemNo.startsWith("PKT-")).length;
   const hasZip = m.extraLinks.some((l) => l.kind === "speaker_zips");
   const bits: string[] = [`${m.bodyName} · ${prettyDate(m.date)}.`];
-  if (items.length) {
-    bits.push(
-      `${real.length} substantive docket items${consent ? `, ${consent} on consent` : ""}${ords ? `, ${ords} ordinance readings` : ""}${pkts ? `, ${pkts} supporting packet PDFs` : ""}.`,
-    );
-  }
-  if (hasZip) bits.push("Diarized speaker MP4 ZIPs published.");
-  if (m.runtimeMin) bits.push(`Runtime ${Math.floor(m.runtimeMin / 60)}h ${String(m.runtimeMin % 60).padStart(2, "0")}m.`);
-  if (phase === "upcoming") bits.push("Scheduled upcoming docket.");
+  const parts: string[] = [];
+  if (real.length) parts.push(plural(real.length, "agenda item") + (consent ? ` (${consent} on the consent agenda)` : ""));
+  if (ords) parts.push(plural(ords, "ordinance vote"));
+  if (pkts) parts.push(plural(pkts, "attached document"));
+  if (parts.length) bits.push(parts.join(", ").replace(/^./, (c) => c.toUpperCase()) + ".");
+  if (hasZip) bits.push("Video clips of each speaker are available.");
+  const rt = realRuntime(m);
+  if (rt) bits.push(`Meeting length ${rt >= 60 ? `${Math.floor(rt / 60)}h ${String(rt % 60).padStart(2, "0")}m` : `${rt} min`}.`);
+  if (phase === "upcoming") bits.push("Upcoming meeting.");
   return bits.join(" ");
 }
 
@@ -168,17 +272,18 @@ export async function seedIfEmpty(force = false): Promise<void> {
         const phase = m.date > "2026-11-24" ? "upcoming" : "aired";
         const isFeatured = m.slug === featured.slug;
         const tags: string[] = [];
-        if (isFeatured) tags.push("Flagship Episode");
-        if (m.date === "2026-11-23") tags.push("Latest Airing");
-        if (i === 0) tags.push("Season Premiere");
-        if (i === arr.length - 1 && m.season < 2026) tags.push("Season Finale");
-        if (m.body === "special") tags.push("Special Event");
-        if ((m.runtimeMin ?? 0) >= 300) tags.push("Marathon");
-        if (m.runtimeMin && m.runtimeMin <= 45) tags.push("Quickie");
-        if (phase === "upcoming") tags.push("Coming Soon");
-        if (items.some((x) => x.kind === "ordinance" && (x.reading === "second" || x.reading === "third"))) tags.push("Ordinance Arc");
-        if (m.extraLinks.some((l) => l.kind === "speaker_zips")) tags.push("Speaker ZIPs");
-        if (m.sources.some((s) => s.startsWith("therealwindycity/cheyenne-archives"))) tags.push("Foundry PDFs");
+        const rt = realRuntime(m);
+        if (isFeatured) tags.push("Featured");
+        if (m.date === "2026-11-23") tags.push("Latest meeting");
+        if (i === 0) tags.push("First of the year");
+        if (i === arr.length - 1 && m.season < 2026) tags.push("Last of the year");
+        if (m.body === "special") tags.push("Special meeting");
+        if ((rt ?? 0) >= 300) tags.push("5+ hours");
+        if (rt && rt <= 45) tags.push("Short meeting");
+        if (phase === "upcoming") tags.push("Upcoming");
+        if (items.some((x) => x.kind === "ordinance" && (x.reading === "second" || x.reading === "third"))) tags.push("Ordinance vote");
+        if (m.extraLinks.some((l) => l.kind === "speaker_zips")) tags.push("Speaker clips");
+        if (m.sources.some((s) => s.startsWith("therealwindycity/cheyenne-archives"))) tags.push("Archived documents");
         rows.push({
           slug: m.slug,
           date: m.date,
@@ -206,7 +311,7 @@ export async function seedIfEmpty(force = false): Promise<void> {
           extraLinks: m.extraLinks,
           startMin: m.startMin,
           endMin: m.endMin,
-          runtimeMin: m.runtimeMin,
+          runtimeMin: realRuntime(m),
         });
       });
     }

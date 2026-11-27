@@ -483,9 +483,9 @@ export async function getEpisodeBundle(slug: string): Promise<EpisodeBundle | nu
     }
     if (roll.clerk) cast.push({ name: roll.clerk, role: "City Clerk", billing: "Keeper of the record", note: "", src: `roll call ${rollFrom}` });
     for (const c of commenters) cast.push({ name: c, role: "Public commenter", billing: "Guest star", note: "Named in the minutes as a public speaker.", src: "minutes" });
-    castNote = rollFrom === meeting.date ? "Cast taken from this episode\u2019s official roll call." : `No minutes for this episode yet \u2014 expected cast from the last published roll call (${rollFrom}).`;
+    castNote = rollFrom === meeting.date ? "Who was there comes from this meeting\u2019s official roll call." : `No minutes for this meeting yet \u2014 expected attendance from the last published roll call (${rollFrom}).`;
   } else {
-    castNote = "No roll call is available for this episode in the dataset.";
+    castNote = "No roll call is available for this meeting.";
   }
 
   // ----- analytics
@@ -528,19 +528,19 @@ export async function getEpisodeBundle(slug: string): Promise<EpisodeBundle | nu
   const real = items.filter((i) => i.kind !== "procedural");
   const ordItems = items.filter((i) => i.kind === "ordinance");
   const bodyKey = meeting.body;
-  const code = `${CODE[bodyKey] ?? "EP"} S${meeting.season}E${String(meeting.episodeNo).padStart(2, "0")}`;
+  const code = `${CODE[bodyKey] ?? "MTG"} · ${meeting.season} #${meeting.episodeNo}`;
 
   let acts: Act[];
   if (fc) {
     acts = fc.acts as Act[];
   } else {
     const groups: [string, string, (i: Item) => boolean][] = [
-      ["Cold Open", "Roll call, pledge, consent agenda and minutes.", (i) => i.kind === "procedural" || i.kind === "minutes"],
+      ["Opening", "Roll call, pledge, consent agenda and minutes.", (i) => i.kind === "procedural" || i.kind === "minutes"],
       ["Public Hearings", "Hearings that take public testimony.", (i) => i.kind === "hearing"],
-      ["The Ordinance Arc", "Ordinances moving through their three readings.", (i) => i.kind === "ordinance"],
+      ["Ordinances", "Ordinances moving through their three readings.", (i) => i.kind === "ordinance"],
       ["Resolutions", "Statements and policy decisions.", (i) => i.kind === "resolution"],
       ["Contracts, Bids & Money", "Agreements, purchases and bids with dollar figures.", (i) => i.kind === "contract" || i.kind === "bid"],
-      ["Other Business", "Everything else on the call sheet.", (i) => i.kind === "other"],
+      ["Other Business", "Everything else on the agenda.", (i) => i.kind === "other"],
     ];
     acts = groups
       .map(([name, beat, f], n) => ({ n, name, beat: `${beat} (${items.filter(f).length})`, items: items.filter(f).map((i) => i.itemNo) }))
@@ -552,13 +552,13 @@ export async function getEpisodeBundle(slug: string): Promise<EpisodeBundle | nu
     montage = fc.montage as Montage[];
   } else {
     montage = [];
-    if (items.length) montage.push({ big: String(items.length), small: "agenda items on the call sheet" });
+    if (items.length) montage.push({ big: String(items.length), small: "agenda items" });
     if (ordItems.length) montage.push({ big: String(ordItems.length), small: "ordinance readings" });
     if (amounts[0]) montage.push({ big: money(amounts[0].amount), small: `largest dollar item: ${short(amounts[0].title, 48)}` });
     if (voteRows.length) montage.push({ big: String(voteRows.length), small: "recorded votes in the minutes" });
     if (analytics.votes.failed) montage.push({ big: String(analytics.votes.failed), small: "motions failed" });
-    if (meeting.runtimeMin) montage.push({ big: hm(meeting.runtimeMin), small: "runtime, gavel to gavel" });
-    if (!montage.length) montage.push({ big: meeting.date.slice(5).replace("-", "/"), small: meeting.bodyName }, { big: `S${meeting.season}`, small: `Episode ${meeting.episodeNo} of ${meeting.seasonSize}` });
+    if (meeting.runtimeMin) montage.push({ big: hm(meeting.runtimeMin), small: "meeting length" });
+    if (!montage.length) montage.push({ big: meeting.date.slice(5).replace("-", "/"), small: meeting.bodyName }, { big: String(meeting.season), small: `meeting ${meeting.episodeNo} of ${meeting.seasonSize} that year` });
   }
 
   const themeLyrics: string[] = fc
@@ -585,7 +585,7 @@ export async function getEpisodeBundle(slug: string): Promise<EpisodeBundle | nu
     const picks = [...pv].sort((a, b) => score(b) - score(a)).slice(0, 3);
     previously = picks.map((v) => ({ date: p.date, slug: p.slug, text: short(v.excerpt, 200), src: "official minutes" }));
     if (!previously.length) previously = pit.filter((i) => i.kind !== "procedural").slice(0, 3).map((i) => ({ date: p.date, slug: p.slug, text: short(i.title, 180), src: "agenda" }));
-    if (!previously.length) previously = [{ date: p.date, slug: p.slug, text: `${p.title} \u2014 ${p.logline}`, src: "season guide" }];
+    if (!previously.length) previously = [{ date: p.date, slug: p.slug, text: `${p.title} \u2014 ${p.logline}`, src: "meeting list" }];
   }
 
   // to be continued
@@ -611,7 +611,7 @@ export async function getEpisodeBundle(slug: string): Promise<EpisodeBundle | nu
       return { ...n, slug: dates.has(s) ? s : null };
     });
   } else {
-    nextTime = nextRows.slice(0, 3).map((n) => ({ date: n.date, body: n.bodyName, text: n.title, slug: n.slug, src: "season guide" }));
+    nextTime = nextRows.slice(0, 3).map((n) => ({ date: n.date, body: n.bodyName, text: n.title, slug: n.slug, src: "meeting list" }));
   }
 
   const tagline = fc ? (fc.tagline as string) : meeting.logline.split(". ").slice(0, 1).join(". ");
@@ -620,8 +620,8 @@ export async function getEpisodeBundle(slug: string): Promise<EpisodeBundle | nu
     title: meeting.title,
     tagline,
     logline: meeting.logline,
-    rating: fc ? (fc.rating as string) : meeting.runtimeMin && meeting.runtimeMin > 240 ? "TV-14" : "TV-G",
-    ratingNote: fc ? (fc.ratingNote as string) : meeting.runtimeMin && meeting.runtimeMin > 240 ? "Long-form: runtime over four hours." : "Routine municipal business.",
+    rating: "",
+    ratingNote: "",
     tags: meeting.tags,
     runtimeLabel: meeting.runtimeMin ? hm(meeting.runtimeMin) : null,
     acts,
@@ -646,11 +646,11 @@ export async function getEpisodeBundle(slug: string): Promise<EpisodeBundle | nu
           ? `${meeting.bodyName}, ${prettyDate(meeting.date)}: ${real.length} items${voteRows.length ? `, ${voteRows.length} recorded votes` : ""}${failedVotes.length ? `, ${failedVotes.length} failed` : ""}.`
           : `${meeting.bodyName}, ${prettyDate(meeting.date)}.`,
         brief: [
-          `On ${prettyDate(meeting.date)} the ${meeting.bodyName} met${meeting.runtimeMin ? ` for ${hm(meeting.runtimeMin)}` : ""}.${items.length ? ` The agenda listed ${items.length} items; ${analytics.consentCount} were routine items passed together on the consent agenda.` : " This episode is listed in the season guide with source links, but the agenda was not extracted into item-level data."}`,
-          topItems.length ? `What came up: ${topItems.map((i) => short(i.title, 110)).join(" \u2022 ")}` : "No substantive item titles are available for this episode.",
+          `On ${prettyDate(meeting.date)} the ${meeting.bodyName} met${meeting.runtimeMin ? ` for ${hm(meeting.runtimeMin)}` : ""}.${items.length ? ` The agenda listed ${items.length} items; ${analytics.consentCount} were routine items passed together on the consent agenda.` : " This meeting is listed with links to its sources, but its agenda has not been broken out item by item yet."}`,
+          topItems.length ? `What came up: ${topItems.map((i) => short(i.title, 110)).join(" \u2022 ")}` : "No agenda item titles are available for this meeting.",
           voteRows.length
             ? `How the votes went (parsed from the official minutes): ${analytics.votes.unanimous} of ${analytics.votes.total} recorded motions were unanimous${analytics.votes.failed ? `, ${analytics.votes.failed} failed` : ""}${analytics.dissent.length ? `; members voting no: ${analytics.dissent.map((d) => `${d.name} (${d.n})`).join(", ")}` : ""}.`
-            : "No vote events were parsed for this episode (no minutes text in the dataset).",
+            : "No votes are recorded for this meeting (we don't have the text of its minutes).",
         ],
         deep: [
           ordItems.length ? `Ordinances: ${ordItems.map((o) => `${o.reading ? sentenceCase(o.reading) + " reading" : "listed"} \u2014 ${short(o.title, 100)}`).join("; ")}.` : "No ordinance readings were on this agenda.",
@@ -665,7 +665,7 @@ export async function getEpisodeBundle(slug: string): Promise<EpisodeBundle | nu
   for (const v of splitVotes.slice(0, 2)) tabStories.push({ headline: `SPLIT DECISION: ${v.noNames.join(" & ").toUpperCase()} SAY NO`, deck: short(v.excerpt, 110), body: short(v.excerpt, 260), receipts: "Official minutes" });
   for (const a of amounts.slice(0, 2)) tabStories.push({ headline: `${money(a.amount).toUpperCase()} ON THE TABLE`, deck: a.title, body: `Item ${a.itemNo}. The figure comes straight from the item title or recommended action.`, receipts: `Agenda item ${a.itemNo}` });
   for (const o of ordItems.slice(0, 2)) tabStories.push({ headline: `${(o.reading ?? "listed").toUpperCase()} READING: ${short(o.title.replace(/^ORDINANCE\s*[–-]\s*\d\w+ READING\s*[–-]\s*/i, ""), 64).toUpperCase()}`, deck: o.action || "On the agenda.", body: short(o.title, 240), receipts: `Agenda item ${o.itemNo}` });
-  if (!tabStories.length) tabStories.push({ headline: "QUIET NIGHT AT THE DAIS", deck: "Nothing in the dataset for this episode beyond its listing.", body: meeting.logline, receipts: "Season guide (Wayback capture)" });
+  if (!tabStories.length) tabStories.push({ headline: "QUIET NIGHT AT THE DAIS", deck: "We only have the basic listing for this meeting.", body: meeting.logline, receipts: "Meeting list (saved web page)" });
   const tabloid = fc
     ? (fc.tabloid as Lenses["tabloid"])
     : { masthead: "THE WINDY CITY GAZETTE", slogan: "Every word of the record. Louder.", banner: tabStories[0].headline, stories: tabStories.slice(0, 5) };
@@ -683,20 +683,20 @@ export async function getEpisodeBundle(slug: string): Promise<EpisodeBundle | nu
             rule: "Cheyenne ordinances are read and voted on up to three times; committees often review between readings.",
             application: `Agenda item ${o.itemNo}: ${o.reading ? sentenceCase(o.reading) + " reading" : "listed"}${o.action ? `, recommended action \u201c${o.action}\u201d` : ""}${o.sponsor ? `, ${o.sponsor.toLowerCase()}` : ""}.`,
             conclusion: o.reading === "third" ? "Final reading on this agenda." : "Not final \u2014 at least one more reading follows.",
-            cites: ["Agenda packet", "Ordinance series (see History lens)"],
+            cites: ["Agenda packet", "Ordinance history (see the Ordinance History view)"],
           })),
           ...[...statutes].slice(0, 4).map((s, n) => ({
             id: `ws${n}`,
             question: `Which statute does the agenda cite? W.S. \u00a7${s}`,
             rule: `The agenda cites W.S. \u00a7${s} in an item title.`,
             application: "See the item title and attachments for how it is applied.",
-            conclusion: "Read the statute text at wyoleg.gov; this lens does not paraphrase statutes it has not verified.",
+            conclusion: "Read the statute text at wyoleg.gov; this view does not summarize laws it has not checked.",
             cites: [`W.S. \u00a7${s}`],
           })),
           ...(amounts.length ? [{ id: "nte", question: "Do the dollar figures bind the city?", rule: "\u201cNot to exceed\u201d is a ceiling on a contract or purchase approved by the governing body.", application: `${amounts.length} item(s) carry a dollar figure; the largest is ${money(amounts[0].amount)}.`, conclusion: "A new approval would be needed to exceed an approved ceiling.", cites: ["Agenda recommended actions"] }] : []),
         ],
       };
-  if (!legal.issues.length) legal.issues.push({ id: "none", question: "No legal issues are extractable for this episode.", rule: "\u2014", application: "No item-level data in the dataset.", conclusion: "Open the source agenda for the full text.", cites: [] });
+  if (!legal.issues.length) legal.issues.push({ id: "none", question: "No legal questions could be pulled from this meeting's records.", rule: "\u2014", application: "The agenda has not been broken out item by item.", conclusion: "Open the source agenda for the full text.", cites: [] });
 
   const glossary = ((glossarySource?.glossary as Lenses["glossary"]) ?? []).filter((g) => fc || /reading|consent|refer|postpon|annex|zoning|not to exceed|executive|point of order|substitute/i.test(g.term) || items.some((i) => i.title.toLowerCase().includes(g.term.toLowerCase().split(" ")[0])));
 
@@ -747,7 +747,7 @@ export async function getEpisodeBundle(slug: string): Promise<EpisodeBundle | nu
       waybackTs: WB_TS,
       waybackUrl: `https://web.archive.org/web/${WB_TS}/${WB_PAGE}`,
       captures: wbCaps,
-      official: fc ? ((fc.provenance as Record<string, string>).official ?? "") : "Season guide row from the Wayback capture; agenda items and minutes from Granicus (as extracted by the CivicWatch pipeline) where available.",
+      official: fc ? ((fc.provenance as Record<string, string>).official ?? "") : "Meeting listing from a saved copy of the city website; agenda items and minutes from the city's Granicus meeting portal where available.",
       watchdog: fc ? ((fc.provenance as Record<string, string>).watchdog ?? null) : null,
       nameWarning: fc ? ((fc.provenance as Record<string, string>).nameWarning ?? null) : null,
     },

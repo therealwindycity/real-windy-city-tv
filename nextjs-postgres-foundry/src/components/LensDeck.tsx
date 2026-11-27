@@ -6,12 +6,12 @@ import { LensView } from "@/components/lenses";
 import type { EpisodeBundle } from "@/lib/types";
 
 type Float = { id: number; key: LensKey; x: number; y: number; z: number; full: boolean };
-const DIETS = ["All", "Watch", "Follow", "Verify"] as const;
+const DIETS = ["All", "Watch", "Follow", "Check"] as const;
 const DIET_HINT: Record<(typeof DIETS)[number], string> = {
-  All: "Every lens (19 total)",
-  Watch: "Speaker videos, stories, tabloid, cast, script, run of show",
-  Follow: "Gotham link graph, votes, maps, history, money, jargon",
-  Verify: "Palantir Foundry PDFs/OCR, provenance films, legal, fact-check, analytics, raw record",
+  All: `Every view (${LENSES.length} total)`,
+  Watch: "Speaker videos, story, front page, who was there, script, agenda",
+  Follow: "Connections, votes, map, ordinance history, money, city terms",
+  Check: "Documents, where the records come from, legal question, fact check, numbers, full text, source files",
 };
 
 function FloatWin({
@@ -125,23 +125,23 @@ export default function LensDeck({ b }: { b: EpisodeBundle }) {
     <section id="lenses" className="mx-auto max-w-7xl px-4 py-8">
       <div className="mb-3 flex flex-wrap items-end gap-3">
         <div>
-          <h2 className="text-2xl font-black tracking-tight">Same verified record. {LENSES.length} lenses.</h2>
+          <h2 className="text-2xl font-black tracking-tight">{LENSES.length} ways to look at this meeting</h2>
           <p className="text-sm text-slate-400">
-            Swipe sideways, compare two lenses side-by-side (e.g. Palantir Foundry PDFs + Speaker Videos), tile all {LENSES.length} lenses at once, or float draggable windows.
+            Swipe through them one at a time, compare two side by side (for example Meeting Documents and Speaker Videos), show all {LENSES.length} at once, or open them in windows you can drag around.
           </p>
         </div>
         <div className="ml-auto flex flex-wrap items-center gap-1 rounded-full bg-white/5 p-1 text-xs font-bold">
           <button onClick={() => setMode("swipe")} className={`rounded-full px-3 py-1.5 ${mode === "swipe" ? "bg-amber-400 text-black" : "text-slate-300"}`}>
-            ↔ Swipe
+            ↔ One at a time
           </button>
           <button onClick={() => setMode("split")} className={`rounded-full px-3 py-1.5 ${mode === "split" ? "bg-amber-400 text-black" : "text-slate-300"}`}>
-            ◫ Side-by-Side
+            ◫ Two side by side
           </button>
           <button onClick={() => setMode("mosaic")} className={`rounded-full px-3 py-1.5 ${mode === "mosaic" ? "bg-amber-400 text-black" : "text-slate-300"}`}>
-            ▦ All {LENSES.length} Mosaic
+            ▦ Show all {LENSES.length}
           </button>
           <button onClick={floatSet} className="rounded-full px-3 py-1.5 text-slate-300 hover:bg-white/10">
-            ⧉ Float 4
+            ⧉ Open 4 windows
           </button>
           {floats.length > 0 && (
             <button onClick={() => setFloats([])} className="rounded-full px-3 py-1.5 text-rose-300 hover:bg-white/10">
@@ -152,7 +152,7 @@ export default function LensDeck({ b }: { b: EpisodeBundle }) {
       </div>
 
       <div className="mb-3 flex flex-wrap items-center gap-2 text-xs">
-        <span className="font-bold uppercase tracking-widest text-slate-400">Diet</span>
+        <span className="font-bold uppercase tracking-widest text-slate-400">Show</span>
         {DIETS.map((d) => (
           <button
             key={d}
@@ -191,7 +191,7 @@ export default function LensDeck({ b }: { b: EpisodeBundle }) {
             ))}
           </div>
           <div className="mb-2 flex items-center gap-2 text-sm">
-            <button onClick={() => goTo(active - 1)} className="rounded-full bg-white/10 px-3 py-1 font-bold hover:bg-white/20" aria-label="Previous lens">
+            <button onClick={() => goTo(active - 1)} className="rounded-full bg-white/10 px-3 py-1 font-bold hover:bg-white/20" aria-label="Previous view">
               ‹
             </button>
             <span className="font-bold" style={{ color: cur.accent }}>
@@ -204,7 +204,7 @@ export default function LensDeck({ b }: { b: EpisodeBundle }) {
             <button onClick={() => openFloat(cur.key)} className="rounded-full bg-white/10 px-3 py-1 text-xs font-bold hover:bg-white/20">
               ⧉ Float
             </button>
-            <button onClick={() => goTo(active + 1)} className="rounded-full bg-white/10 px-3 py-1 font-bold hover:bg-white/20" aria-label="Next lens">
+            <button onClick={() => goTo(active + 1)} className="rounded-full bg-white/10 px-3 py-1 font-bold hover:bg-white/20" aria-label="Next view">
               ›
             </button>
           </div>
@@ -278,7 +278,7 @@ export default function LensDeck({ b }: { b: EpisodeBundle }) {
                   className="flex-1 rounded-lg px-3 py-2 font-black text-black transition hover:opacity-90"
                   style={{ background: l.accent }}
                 >
-                  ⤢ Open Full Lens
+                  ⤢ Open
                 </button>
                 <button onClick={() => openFloat(l.key)} className="rounded-lg bg-white/10 px-3 py-2 font-bold text-white hover:bg-white/20">
                   ⧉ Float

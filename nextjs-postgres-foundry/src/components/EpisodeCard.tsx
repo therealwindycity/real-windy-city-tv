@@ -25,7 +25,7 @@ export default function EpisodeCard({ m, wide = false }: { m: Meeting; wide?: bo
     >
       <div className="flex items-start justify-between gap-2">
         <span className="rounded bg-black/50 px-1.5 py-0.5 font-mono text-[10px] font-bold tracking-wider">
-          {CODE[m.body] ?? "EP"} S{m.season}E{String(m.episodeNo).padStart(2, "0")}
+          {CODE[m.body] ?? "MTG"} · {m.season} #{m.episodeNo}
         </span>
         {m.phase === "upcoming" ? <span className="rounded bg-amber-300 px-1.5 py-0.5 text-[10px] font-black uppercase text-black">Coming soon</span> : rt ? <span className="text-[10px] text-white/70">{rt}</span> : null}
       </div>

@@ -10,9 +10,9 @@ export default async function CastPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
-      <h1 className="text-3xl font-black tracking-tight">The recurring cast &amp; governing body</h1>
+      <h1 className="text-3xl font-black tracking-tight">Council members, the mayor &amp; city staff</h1>
       <p className="text-sm text-slate-400">
-        Reconciled against Official Clerk Minutes, City of Cheyenne Ward I–III rosters, and verified OSINT profiles. Click any member to open their complete Historical Video Clip Vault or OSINT Cross-Reference Dossier.
+        Checked against the City Clerk's official minutes and the City Council ward rosters. Click a name to watch all of that person's video clips, or open their Who's Who profile.
       </p>
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
         {cast.map((c) => {
@@ -40,26 +40,26 @@ export default async function CastPage() {
                       href={spkHref}
                       className="rounded-full bg-amber-400/20 px-2.5 py-1 font-mono text-[10px] font-black text-amber-200 ring-1 ring-amber-400/40 hover:bg-amber-400 hover:text-black"
                     >
-                      📼 {spk.turnCount} Clips →
+                      📼 {spk.turnCount} clips →
                     </Link>
                   )}
                 </div>
 
                 <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-300">
-                  <span>Present in {c.meetingsPresent} roll-call minutes</span>
+                  <span>Present at {c.meetingsPresent} meetings (per the minutes)</span>
                   {an && (
                     <>
                       <span>·</span>
-                      <span>Avg Turn: <b>{an.avgSpeakingFormatted}</b></span>
+                      <span>Usually speaks for <b>{an.avgSpeakingFormatted}</b></span>
                       <span>·</span>
-                      <span>POE Events: <b>{an.pointOfOrderCount}</b></span>
+                      <span>Points of order: <b>{an.pointOfOrderCount}</b></span>
                     </>
                   )}
                 </div>
 
                 {c.role.includes("Council") || c.role.includes("Mayor") ? (
                   <div className="mt-2.5 grid grid-cols-[75px_1fr_28px] items-center gap-2 text-xs">
-                    <span className="text-slate-400">NO dissents</span>
+                    <span className="text-slate-400">&ldquo;No&rdquo; votes</span>
                     <div className="h-2 rounded bg-slate-800">
                       <div className="h-2 rounded bg-rose-400" style={{ width: `${(c.dissents / maxD) * 100}%` }} />
                     </div>
@@ -89,13 +89,13 @@ export default async function CastPage() {
                   href={spkHref}
                   className="rounded-lg bg-amber-400 px-3 py-1.5 font-black text-black hover:bg-amber-300"
                 >
-                  🎙️ Watch All Historical Clips {spk ? `(${spk.turnCount})` : ""} →
+                  🎙️ Watch all clips {spk ? `(${spk.turnCount})` : ""} →
                 </Link>
                 <Link
                   href={osintHref}
                   className="rounded-lg bg-emerald-500/20 px-3 py-1.5 font-bold text-emerald-200 ring-1 ring-emerald-400/40 hover:bg-emerald-500/30"
                 >
-                  🕸️ OSINT &amp; Contracts Nexus →
+                  🕸️ Who&apos;s Who profile →
                 </Link>
               </div>
             </div>
@@ -103,7 +103,7 @@ export default async function CastPage() {
         })}
       </div>
       <p className="mt-8 text-sm text-slate-400">
-        See the full billing for the flagship episode:{" "}
+        See everyone at the featured meeting:{" "}
         <Link className="text-amber-300 underline" href={`/episode/${featured.slug}`}>
           {featured.title}
         </Link>

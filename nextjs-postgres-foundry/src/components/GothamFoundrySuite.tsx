@@ -1,28 +1,29 @@
 "use client";
 
+import { SEV_LABEL, flagLabel } from "@/lib/lens-meta";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import type { DocMeta, EpisodeBundle, ProvenanceCatalogData, SpeakerProfile, SpeakerTurn } from "@/lib/types";
 
 export const EMOTION_META: Record<string, { label: string; icon: string; badge: string }> = {
-  impactful: { label: "Emotionally Impactful", icon: "🔥", badge: "bg-amber-500/20 text-amber-200 ring-amber-400/40" },
-  angry: { label: "Angry / Gaveled / Point of Order", icon: "😠", badge: "bg-rose-500/20 text-rose-200 ring-rose-400/40" },
-  concerned: { label: "Concerned / Urgent", icon: "😟", badge: "bg-orange-500/20 text-orange-200 ring-orange-400/40" },
-  legal: { label: "Legal / Statutory Challenge", icon: "⚖️", badge: "bg-violet-500/20 text-violet-200 ring-violet-400/40" },
-  technical: { label: "Fiscal / Staff / Technical", icon: "📊", badge: "bg-sky-500/20 text-sky-200 ring-sky-400/40" },
-  supportive: { label: "Supportive / Coalition", icon: "🤝", badge: "bg-emerald-500/20 text-emerald-200 ring-emerald-400/40" },
+  impactful: { label: "Strong moment", icon: "🔥", badge: "bg-amber-500/20 text-amber-200 ring-amber-400/40" },
+  angry: { label: "Heated / cut off", icon: "😠", badge: "bg-rose-500/20 text-rose-200 ring-rose-400/40" },
+  concerned: { label: "Concerned", icon: "😟", badge: "bg-orange-500/20 text-orange-200 ring-orange-400/40" },
+  legal: { label: "Legal argument", icon: "⚖️", badge: "bg-violet-500/20 text-violet-200 ring-violet-400/40" },
+  technical: { label: "Budget, staff or technical", icon: "📊", badge: "bg-sky-500/20 text-sky-200 ring-sky-400/40" },
+  supportive: { label: "Supportive", icon: "🤝", badge: "bg-emerald-500/20 text-emerald-200 ring-emerald-400/40" },
 };
 
 export const THEME_LABELS: Record<string, string> = {
-  annexation: "Annexation & Boundaries",
-  datacenters: "Data Centers, Power & Water",
-  budget: "Budget, Taxes & 6th Penny",
-  zoning: "Zoning & UDC Code",
-  procedure: "Public Comment & Procedure",
-  housing: "Housing, Plats & Subdivisions",
-  safety: "Public Safety, Police & Fire",
-  contracts: "Contracts, Bids & LEADS",
-  infrastructure: "Stormwater, Roads & Parks",
+  annexation: "Annexation (adding land to the city)",
+  datacenters: "Data centers, power & water",
+  budget: "Budget & taxes",
+  zoning: "Zoning & building rules",
+  procedure: "Meeting rules & public comment",
+  housing: "Housing & subdivisions",
+  safety: "Police, fire & public safety",
+  contracts: "Contracts & bids",
+  infrastructure: "Roads, parks & stormwater",
 };
 
 function playBroadcastChime(isIntro: boolean) {
@@ -59,9 +60,9 @@ function fmtDurShort(sec: number) {
 }
 
 // ============================================================================
-// 0. REUSABLE C-SPAN MARQUEE BORDER + INTRO + OUTRO + SYNCED CAPTIONS PLAYER
+// 0. REUSABLE FRAMED VIDEO PLAYER: INTRO + OUTRO + SYNCED CAPTIONS
 // ============================================================================
-export function BrandedCspanVideoStage({
+export function BrandedVideoStage({
   turn,
   onEnded,
 }: {
@@ -69,7 +70,7 @@ export function BrandedCspanVideoStage({
   onEnded?: () => void;
 }) {
   const clampedDur = Math.min(180, Math.max(5, Math.round(turn.durationSec)));
-  // If pre-rendered branded C-SPAN MP4 exists on CDN, it already has Intro + C-SPAN Border + Burned Captions + Outro!
+  // If a pre-made branded MP4 exists, it already has the intro, frame, captions and outro.
   const hasPreburned = Boolean(turn.brandedMp4Url);
   const [phase, setPhase] = useState<"intro" | "body" | "outro">(hasPreburned ? "body" : "intro");
   const [ccOn, setCcOn] = useState(true);
@@ -83,7 +84,7 @@ export function BrandedCspanVideoStage({
 
   const captionChunks = useMemo(() => {
     const words = (turn.text || "").replace(/\s+/g, " ").trim().split(" ").filter(Boolean);
-    if (!words.length) return ["Verbatim speaker segment from City of Cheyenne primary broadcast record."];
+    if (!words.length) return ["Speaker clip from the City of Cheyenne meeting video."];
     const out: string[] = [];
     for (let i = 0; i < words.length; i += 12) {
       out.push(words.slice(i, i + 12).join(" "));
@@ -147,9 +148,9 @@ export function BrandedCspanVideoStage({
 
   return (
     <div className="overflow-hidden rounded-lg border-2 border-amber-400/50 bg-[#050912] text-white shadow-xl">
-      {/* Top C-SPAN / The Real Windy City Broadcast Bar */}
+      {/* Top bar */}
       <div className="flex items-center justify-between border-b-2 border-amber-400 bg-[#09152b] px-2.5 py-1 text-[10px] font-black uppercase tracking-wider">
-        <span className="text-amber-300">[RWC] THE REAL WINDY CITY · CHEYENNE CIVIC BROADCAST</span>
+        <span className="text-amber-300">[RWC] THE REAL WINDY CITY · CHEYENNE CITY MEETINGS</span>
         <div className="flex items-center gap-2">
           <span className="font-mono text-slate-200">
             {turn.bodyName} · {turn.date} · [{turn.hms}]
@@ -158,37 +159,37 @@ export function BrandedCspanVideoStage({
             type="button"
             onClick={() => setCcOn((v) => !v)}
             className={`rounded px-1.5 py-0.5 text-[9px] font-black ${ccOn ? "bg-amber-400 text-black" : "bg-white/15 text-slate-300"}`}
-            title="Toggle Cleaned Broadcast Captions"
+            title="Turn captions on or off"
           >
             CC
           </button>
         </div>
       </div>
 
-      {/* Main Viewport: Branded Intro -> Framed Speaker Segment -> Branded Outro */}
+      {/* Intro -> speaker clip -> ending */}
       <div className="relative flex aspect-video w-full items-center justify-center bg-[#040812]">
         {phase === "intro" ? (
           <div className="flex h-full w-full flex-col items-center justify-center bg-gradient-to-b from-[#0b1930] via-[#050912] to-[#0b1930] px-4 text-center">
             <div className="rounded border-t-4 border-rose-500 bg-[#0a1326]/95 px-5 py-4 shadow-2xl">
               <div className="text-[10px] font-black uppercase tracking-[0.25em] text-sky-300">
-                OFFICIAL SPEAKER SEGMENT · MINUTES, PACKET &amp; OSINT VERIFIED
+                SPEAKER CLIP · FROM THE OFFICIAL MEETING VIDEO
               </div>
               <div className="mt-1 text-xl font-black uppercase tracking-wide text-white">{turn.speakerName}</div>
               <div className="mt-1 text-xs text-slate-300">
-                {turn.speakerRole} · Capacity: {turn.speakingCapacity ?? turn.speakerRole}
+                {turn.speakerRole} · Speaking as: {turn.speakingCapacity ?? turn.speakerRole}
               </div>
               <div className="mt-2 font-mono text-[11px] font-bold text-amber-300">
-                Historical Archive: {histClips} Clips · Avg Turn: {avgFmt} · Points of Order: {poeCount}
+                {histClips} clips on record · usually speaks {avgFmt} · points of order: {poeCount}
               </div>
             </div>
           </div>
         ) : phase === "outro" ? (
           <div className="flex h-full w-full flex-col items-center justify-center bg-gradient-to-b from-[#0b1930] via-[#050912] to-[#0b1930] px-4 text-center">
             <div className="rounded border-t-4 border-amber-400 bg-[#0a1326]/95 px-5 py-4 shadow-2xl">
-              <div className="text-[10px] font-black uppercase tracking-[0.25em] text-amber-300">END OF VERIFIED SPEAKER SEGMENT</div>
+              <div className="text-[10px] font-black uppercase tracking-[0.25em] text-amber-300">END OF SPEAKER CLIP</div>
               <div className="mt-1 text-xl font-black uppercase tracking-wide text-white">THE REAL WINDY CITY</div>
               <div className="mt-1 text-xs text-slate-300">
-                Official Clerk Minutes · Foundry Packet PDFs · Internet Archive Ch. 192 Broadcast
+                City Clerk minutes · agenda documents · meeting video from the Internet Archive
               </div>
               <div className="mt-2 flex justify-center gap-2">
                 <button
@@ -199,7 +200,7 @@ export function BrandedCspanVideoStage({
                   }}
                   className="rounded bg-amber-400 px-3 py-1 text-[11px] font-black text-black hover:bg-amber-300"
                 >
-                  ↻ Replay Branded Segment
+                  ↻ Play again
                 </button>
               </div>
             </div>
@@ -242,7 +243,7 @@ export function BrandedCspanVideoStage({
               }
               const elapsed = Math.max(0, ct - turn.startSec);
               setRelSec(elapsed);
-              // STRICT SPEAKER-ONLY CLAMP: Stop immediately at end of speaker turn!
+              // Stop at the end of this speaker's clip
               if (ct >= turn.startSec + clampedDur) {
                 e.currentTarget.pause();
                 setPhase("outro");
@@ -262,7 +263,7 @@ export function BrandedCspanVideoStage({
         ) : (
           <div className="flex h-full w-full flex-col items-center justify-center px-6 text-center">
             <div className="text-xs font-black uppercase tracking-widest text-amber-300">
-              {turn.videoTiming === "removed" ? "Transcript Only — No Verified Video" : "Verbatim Broadcast Transcript Cue"}
+              {turn.videoTiming === "removed" ? "Text only: no confirmed video for this moment" : "What was said"}
             </div>
             {turn.videoTimingNote && <p className="mt-1 max-w-md text-[10px] text-slate-400">{turn.videoTimingNote}</p>}
             <p className="mt-2 max-w-md text-xs text-slate-200">&ldquo;{activeCaption}&rdquo;</p>
@@ -277,7 +278,7 @@ export function BrandedCspanVideoStage({
         )}
       </div>
 
-      {/* Bottom C-SPAN Lower-Third Chyron */}
+      {/* Bottom name bar */}
       <div className="border-t-2 border-rose-700 bg-[#0a1931] px-2.5 py-1.5">
         <div className="flex flex-wrap items-center justify-between gap-1">
           <div className="text-xs font-black uppercase tracking-wide text-white">
@@ -285,21 +286,21 @@ export function BrandedCspanVideoStage({
             <span className="text-[10px] font-bold text-amber-300">({turn.speakerRole})</span>
           </div>
           <span className="font-mono text-[10px] font-bold text-emerald-300">
-            ARCHIVE: {histClips} CLIPS · AVG: {avgFmt} · POE: {poeCount} · SEG: {clampedDur}s
+            {histClips} CLIPS · USUALLY {avgFmt} · POINTS OF ORDER: {poeCount} · THIS CLIP: {clampedDur}s
           </span>
         </div>
         <div className="mt-0.5 truncate text-[10px] font-semibold text-sky-200">
-          CAPACITY: {(turn.speakingCapacity ?? turn.speakerRole).toUpperCase()} · STANCE:{" "}
-          {(turn.stanceLabel ?? "FLOOR RECORD").toUpperCase()}
+          SPEAKING AS: {(turn.speakingCapacity ?? turn.speakerRole).toUpperCase()} ·{" "}
+          {(turn.stanceLabel ?? "SPEAKING").toUpperCase()}
         </div>
       </div>
 
       {/* Bottom Scrolling "The Real Windy City" Marquee Info Ticker */}
       <div className="overflow-hidden border-t border-amber-400/60 bg-[#040811] py-1">
         <div className="whitespace-nowrap px-2 font-mono text-[10px] font-bold text-amber-300">
-          THE REAL WINDY CITY · {turn.speakerName.toUpperCase()} · {histClips} HISTORICAL CLIPS · AVG SPEAKING TIME {avgFmt} ·{" "}
+          THE REAL WINDY CITY · {turn.speakerName.toUpperCase()} · {histClips} CLIPS · USUALLY SPEAKS {avgFmt} ·{" "}
           {turn.representingOrg ? `REPRESENTING: ${turn.representingOrg.toUpperCase()} · ` : ""}
-          MINUTES &amp; PACKET VERIFIED SEGMENT (&le;3 MIN)
+          CLIP FROM THE OFFICIAL MEETING VIDEO (3 MIN OR LESS)
         </div>
       </div>
     </div>
@@ -307,7 +308,7 @@ export function BrandedCspanVideoStage({
 }
 
 // ============================================================================
-// 1. FACEBOOK POST & STRICT SPEAKER-SEGMENT-ONLY DOWNLOAD STUDIO MODAL
+// 1. FACEBOOK POST & SPEAKER CLIP DOWNLOAD WINDOW
 // ============================================================================
 export function FacebookShareModal({
   turn,
@@ -329,12 +330,12 @@ export function FacebookShareModal({
   const defaultCaption = useMemo(() => {
     const emo = EMOTION_META[turn.emotion] ?? EMOTION_META.impactful;
     const ordTxt = turn.ordinances.length
-      ? `\n📜 Ordinance Arc: ${turn.ordinances.map((o) => `${o.slug} (${o.stage} reading)`).join(", ")}`
+      ? `\n📜 Ordinance: ${turn.ordinances.map((o) => `${o.slug} (${o.stage} reading)`).join(", ")}`
       : "";
     return [
       `${emo.icon} ${turn.speakerName} (${turn.speakerRole}) at Cheyenne ${turn.bodyName} — ${turn.date} [${turn.hms}]`,
-      `🏛️ Capacity: ${turn.speakingCapacity ?? turn.speakerRole} · Stance: ${turn.stanceLabel ?? "Floor Record"}`,
-      `📼 Speaker Historical Record: ${histClips} Clips · Avg Speaking Time: ${avgFmt} · Points of Order: ${sa?.pointOfOrderCount ?? 0}`,
+      `🏛️ Speaking as: ${turn.speakingCapacity ?? turn.speakerRole} · ${turn.stanceLabel ?? "Speaking"}`,
+      `📼 ${histClips} clips of this speaker · usually speaks ${avgFmt} · points of order: ${sa?.pointOfOrderCount ?? 0}`,
       ``,
       `“${turn.text.slice(0, 300)}${turn.text.length > 300 ? "…" : ""}”`,
       ordTxt,
@@ -351,7 +352,7 @@ export function FacebookShareModal({
   const [copied, setCopied] = useState(false);
 
   const fbShareHref = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(sharePageUrl)}&quote=${encodeURIComponent(caption)}`;
-  // STRICTLY speaker-only C-SPAN branded segment MP4 — NEVER the full meeting video!
+  // The branded speaker-only clip (never the full meeting video)
   const brandedSegmentDownloadHref = `/api/clips/${turn.id}?download=1`;
   const zipHref = `/api/speakers/${encodeURIComponent(turn.speakerSlug)}/bundle`;
 
@@ -364,10 +365,10 @@ export function FacebookShareModal({
         <div className="flex items-start justify-between gap-3 border-b border-white/10 pb-3">
           <div>
             <div className="text-[11px] font-bold uppercase tracking-widest text-sky-400">
-              Facebook Branded C-SPAN Speaker Segment Studio (Speaker-Only &le;3 Min)
+              Share this speaker clip on Facebook (3 minutes or less)
             </div>
             <h3 className="text-lg font-black">
-              {turn.speakerName} · {turn.date} ({clampedDur}s Speaker Segment — Never Full Meeting)
+              {turn.speakerName} · {turn.date} ({clampedDur}-second clip)
             </h3>
           </div>
           <button onClick={onClose} className="rounded bg-white/10 px-2.5 py-1 text-xs hover:bg-white/20">
@@ -379,10 +380,10 @@ export function FacebookShareModal({
           <div className="rounded-xl border border-emerald-400/30 bg-black/50 p-3">
             <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-300">
               <span>
-                Step 1 · Download Branded C-SPAN Speaker Segment (Includes RWC Intro, C-SPAN Marquee Border, Cleaned Captions &amp; Outro)
+                Step 1 · Download the clip (includes The Real Windy City intro, frame, captions and ending)
               </span>
               <span className="rounded bg-emerald-500/20 px-2 py-0.5 font-mono font-bold text-emerald-300">
-                Strictly {clampedDur}s Speaker Clip Only
+                Just this {clampedDur}-second clip
               </span>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -391,14 +392,14 @@ export function FacebookShareModal({
                 download={`RWC_${turn.date}_${turn.speakerSlug}_turn${turn.id}.mp4`}
                 className="rounded-lg bg-emerald-500 px-3.5 py-2 font-black text-black hover:bg-emerald-400"
               >
-                ⬇ Download Branded C-SPAN Speaker Clip (.MP4 · {clampedDur}s)
+                ⬇ Download the video clip (.MP4 · {clampedDur}s)
               </a>
               <a
                 href={zipHref}
                 download
                 className="rounded-lg bg-amber-400 px-3.5 py-2 font-black text-black hover:bg-amber-300"
               >
-                📦 Speaker OSINT &amp; Segment Pack (.ZIP · {histClips} Clips)
+                📦 All of this speaker's clips (.ZIP · {histClips} clips)
               </a>
               <Link
                 href={`/speakers?speaker=${encodeURIComponent(turn.speakerSlug)}`}
@@ -412,7 +413,7 @@ export function FacebookShareModal({
 
           <div className="rounded-xl border border-white/10 bg-black/50 p-3">
             <div className="mb-1.5 flex items-center justify-between text-[11px] text-slate-400">
-              <span>Step 2 · Copy Verified Facebook Caption (Includes Speaker Analytics, Capacity, Stance &amp; Quote)</span>
+              <span>Step 2 · Copy the Facebook post text (who spoke, in what role, for or against, and the quote)</span>
               <button
                 type="button"
                 onClick={() => {
@@ -435,7 +436,7 @@ export function FacebookShareModal({
 
           <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
             <span className="text-[11px] text-slate-400">
-              Upload the {clampedDur}s branded speaker <code>.mp4</code> above directly to Facebook Reels/Video, or share speaker clip link:
+              Upload the {clampedDur}-second <code>.mp4</code> above to Facebook as a video or Reel, or share the link:
             </span>
             <a
               href={fbShareHref}
@@ -444,7 +445,7 @@ export function FacebookShareModal({
               onClick={() => navigator.clipboard.writeText(caption).catch(() => undefined)}
               className="rounded-lg bg-[#1877F2] px-4 py-2.5 text-sm font-black text-white shadow-lg hover:bg-[#166fe5]"
             >
-              📘 Post / Share Speaker Segment on Facebook ↗
+              📘 Share on Facebook ↗
             </a>
           </div>
         </div>
@@ -454,7 +455,7 @@ export function FacebookShareModal({
 }
 
 // ============================================================================
-// 2. INLINE <=3-MIN SPEAKER TURN VIDEO PLAYER + HISTORICAL & OSINT ANALYTICS CARD
+// 2. SPEAKER CLIP CARD (VIDEO + SPEAKER SUMMARY)
 // ============================================================================
 export function SpeakerTurnPlayerCard({
   turn,
@@ -492,7 +493,7 @@ export function SpeakerTurnPlayerCard({
   return (
     <div className="flex flex-col justify-between rounded-xl border border-slate-800 bg-[#080e1a] p-3.5 shadow-lg transition hover:border-amber-400/40">
       <div>
-        {/* Speaker Identity + Historical Clip Count Direct Link */}
+        {/* Speaker name + clip count */}
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex flex-wrap items-center gap-2">
             <Link
@@ -506,23 +507,23 @@ export function SpeakerTurnPlayerCard({
           <Link
             href={`/speakers?speaker=${encodeURIComponent(turn.speakerSlug)}`}
             className="rounded-full bg-amber-400/20 px-2.5 py-0.5 text-[10px] font-black text-amber-200 ring-1 ring-amber-400/40 hover:bg-amber-400 hover:text-black"
-            title={`View all ${histClips} historical video clips of ${turn.speakerName}`}
+            title={`See all ${histClips} video clips of ${turn.speakerName}`}
           >
-            📼 {histClips} Historical Clips ({histMtgs} Mtgs) →
+            📼 {histClips} clips at {histMtgs} meetings →
           </Link>
         </div>
 
-        {/* Speaking Capacity, Stance, Avg Speaking Time & Point of Order Strip */}
+        {/* Role, for/against, time, points of order */}
         <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[10px]">
           <span className="rounded bg-indigo-500/20 px-2 py-0.5 font-semibold text-indigo-200 ring-1 ring-indigo-400/30">
-            🏛️ Capacity: {turn.speakingCapacity ?? turn.speakerRole}
+            🏛️ Speaking as: {turn.speakingCapacity ?? turn.speakerRole}
             {turn.representingOrg && turn.representingOrg !== turn.speakerRole ? ` · ${turn.representingOrg}` : ""}
           </span>
           <span className={`rounded px-2 py-0.5 font-bold ring-1 ${stanceBadge}`}>
-            {turn.stanceLabel ?? "Floor Deliberation"}
+            {turn.stanceLabel ?? "Discussion"}
           </span>
           <span className="rounded bg-slate-800/90 px-2 py-0.5 font-mono text-slate-200 ring-1 ring-white/10">
-            ⏱️ Clip: {fmtDurShort(clampedDur)} · Avg Turn: {avgFmt}
+            ⏱️ This clip: {fmtDurShort(clampedDur)} · usually speaks {avgFmt}
           </span>
           {(turn.hasPointOfOrder || poeCount > 0) && (
             <Link
@@ -533,12 +534,12 @@ export function SpeakerTurnPlayerCard({
                   : "bg-amber-500/15 text-amber-200 ring-amber-400/30 hover:bg-amber-500/25"
               }`}
             >
-              ⚖️ {turn.hasPointOfOrder ? `${turn.pointOfOrderType ?? "Point of Order"} · ` : ""}POE Events: {poeCount}
+              ⚖️ {turn.hasPointOfOrder ? `${turn.pointOfOrderType ?? "Point of Order"} · ` : ""}Points of order: {poeCount}
             </Link>
           )}
         </div>
 
-        {/* Episode Date + Ordinance Links + Emotion */}
+        {/* Meeting date + ordinance links + tone */}
         <div className="mt-1.5 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-400">
           <div className="flex flex-wrap items-center gap-2">
             <Link href={`/episode/${turn.meetingSlug}`} className="font-mono text-sky-300 hover:underline">
@@ -553,7 +554,7 @@ export function SpeakerTurnPlayerCard({
             )}
             {(turn.videoTiming === "diarized_window" || turn.speakerAttributionVerified === false) && (
               <span title={turn.videoTimingNote ?? ""} className="rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-amber-200 ring-1 ring-amber-400/30">
-                ⚠ Speaker unverified
+                ⚠ Name not confirmed
               </span>
             )}
             {turn.ordinances.map((o) => (
@@ -562,7 +563,7 @@ export function SpeakerTurnPlayerCard({
                 href={`/ordinance/${o.slug}`}
                 className="rounded bg-violet-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-violet-200 ring-1 ring-violet-400/30 hover:bg-violet-500/30"
               >
-                📜 Ord ({o.stage})
+                📜 Ordinance ({o.stage} reading)
               </Link>
             ))}
           </div>
@@ -571,7 +572,7 @@ export function SpeakerTurnPlayerCard({
           </span>
         </div>
 
-        {/* Branded C-SPAN Video Stage */}
+        {/* Video player */}
         <div className="mt-2.5">
           {!playing ? (
             <button
@@ -580,7 +581,7 @@ export function SpeakerTurnPlayerCard({
               className="w-full overflow-hidden rounded-lg border border-amber-400/40 bg-[#050912] text-left shadow-md transition hover:border-amber-300"
             >
               <div className="flex items-center justify-between border-b border-amber-400/50 bg-[#09152b] px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-amber-300">
-                <span>[RWC] THE REAL WINDY CITY · C-SPAN MARQUEE EDITION</span>
+                <span>[RWC] THE REAL WINDY CITY · SPEAKER CLIP</span>
                 <span className="font-mono text-slate-200">INTRO + CAPTIONS + OUTRO · {clampedDur}s</span>
               </div>
               <div className="flex h-32 flex-col items-center justify-center gap-1.5 bg-gradient-to-br from-slate-900 via-[#0b1528] to-black px-3 text-center hover:from-slate-800">
@@ -588,20 +589,20 @@ export function SpeakerTurnPlayerCard({
                   ▶
                 </span>
                 <span className="text-xs font-black text-white">
-                  Play {clampedDur}s Branded C-SPAN Speaker Clip ({turn.hms})
+                  ▶ Play {clampedDur}-second clip ({turn.hms})
                 </span>
                 <span className="text-[10px] text-sky-300">
                   {turn.brandedMp4Url
-                    ? "✓ Pre-Rendered H.264 C-SPAN Broadcast Clip"
+                    ? "✓ Ready-made video clip"
                     : turn.directMp4Url
-                      ? "✓ Standalone Speaker Segment MP4"
+                      ? "✓ Speaker video clip"
                       : turn.sourceMeetingMp4Url
                         ? turn.videoTiming === "diarized_window"
-                          ? "✓ Internet Archive Ch.192 Slice · speaker label unverified"
-                          : "✓ Internet Archive Ch.192 Slice · timing verified against transcript"
+                          ? "✓ From the meeting video (Internet Archive) · name not confirmed"
+                          : "✓ From the meeting video (Internet Archive) · timing checked against the transcript"
                         : turn.youtubeId
-                          ? "✓ City of Cheyenne YouTube original · same timestamp"
-                          : "Transcript only · no verified recording at this moment"}
+                          ? "✓ City of Cheyenne YouTube video · same point in the meeting"
+                          : "Text only · no confirmed video for this moment"}
                 </span>
               </div>
               <div className="flex items-center justify-between border-t border-rose-700/80 bg-[#0a1931] px-2.5 py-1 text-[10px] font-bold text-slate-200">
@@ -610,26 +611,26 @@ export function SpeakerTurnPlayerCard({
               </div>
             </button>
           ) : (
-            <BrandedCspanVideoStage turn={turn} onEnded={onEnded} />
+            <BrandedVideoStage turn={turn} onEnded={onEnded} />
           )}
         </div>
 
-        {/* Cleaned Verbatim Excerpt */}
+        {/* What was said */}
         <p className="mt-2.5 line-clamp-3 text-xs leading-relaxed text-slate-200">&ldquo;{turn.text}&rdquo;</p>
 
-        {/* Speaker Topic, Lobby/Oppose, Capacity & OSINT Analytics Summary Box */}
+        {/* Speaker summary */}
         {sa && (
           <div className="mt-2.5 rounded-lg border border-white/10 bg-black/45 p-2.5 text-[11px]">
             <div className="flex flex-wrap items-center justify-between gap-1.5">
               <span className="font-bold text-sky-300">
-                📊 Speaker Topics, Stances, Capacities &amp; OSINT ({histClips} Historical Clips)
+                📊 About this speaker (from {histClips} clips)
               </span>
               <button
                 type="button"
                 onClick={() => setShowAnalytics((v) => !v)}
                 className="rounded bg-white/10 px-2 py-0.5 text-[10px] font-bold text-amber-200 hover:bg-white/20"
               >
-                {showAnalytics ? "▴ Compact" : "▾ Full Topic / Lobby / OSINT Breakdown"}
+                {showAnalytics ? "▴ Show less" : "▾ Show more"}
               </button>
             </div>
             <div className="mt-1.5 flex flex-wrap gap-1 text-[10px] text-slate-300">
@@ -642,23 +643,23 @@ export function SpeakerTurnPlayerCard({
             {showAnalytics && (
               <div className="mt-2 space-y-1.5 border-t border-white/10 pt-2 text-[10px]">
                 <div>
-                  <span className="font-bold text-indigo-300">Capacities on Record: </span>
+                  <span className="font-bold text-indigo-300">Has spoken as: </span>
                   <span className="text-slate-200">{sa.capacitiesSummary.join(" · ")}</span>
                 </div>
                 {sa.lobbiesFor.length > 0 && (
                   <div>
-                    <span className="font-bold text-emerald-300">Lobbies For / Supports / Sponsors: </span>
+                    <span className="font-bold text-emerald-300">Spoke in favor of: </span>
                     <span className="text-slate-200">{sa.lobbiesFor.join(" · ")}</span>
                   </div>
                 )}
                 {sa.opposes.length > 0 && (
                   <div>
-                    <span className="font-bold text-rose-300">Opposes / Challenges / Dissents: </span>
+                    <span className="font-bold text-rose-300">Spoke against: </span>
                     <span className="text-slate-200">{sa.opposes.join(" · ")}</span>
                   </div>
                 )}
                 <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                  <span className="font-bold text-amber-300">Verified OSINT &amp; Profiles:</span>
+                  <span className="font-bold text-amber-300">Public profiles:</span>
                   {sa.profiles.map((p, idx) => (
                     <a
                       key={idx}
@@ -674,7 +675,7 @@ export function SpeakerTurnPlayerCard({
                     href={`/osint?q=${encodeURIComponent(turn.speakerName)}`}
                     className="rounded bg-amber-400/20 px-1.5 py-0.5 font-bold text-amber-200 ring-1 ring-amber-400/30 hover:bg-amber-400/30"
                   >
-                    🕸️ OSINT Entity Graph →
+                    🕸️ Who&apos;s Who →
                   </Link>
                 </div>
               </div>
@@ -683,7 +684,7 @@ export function SpeakerTurnPlayerCard({
         )}
       </div>
 
-      {/* Footer Actions: Strictly Speaker-Only Segment Download + All Historical Clips + FB Export */}
+      {/* Footer: download, all clips, Facebook */}
       <div className="mt-3 flex flex-wrap items-center justify-between gap-1.5 border-t border-white/10 pt-2.5 text-[11px]">
         <div className="flex flex-wrap gap-1">
           {turn.themes.map((th) => (
@@ -701,9 +702,9 @@ export function SpeakerTurnPlayerCard({
             href={`/api/clips/${turn.id}?download=1`}
             download={`RWC_${turn.date}_${turn.speakerSlug}_turn${turn.id}.mp4`}
             className="rounded bg-emerald-500/20 px-2 py-1 font-bold text-emerald-300 ring-1 ring-emerald-400/30 hover:bg-emerald-500/30"
-            title="Download strictly this <=3-min branded C-SPAN speaker segment (never full meeting)"
+            title="Download just this clip (3 minutes or less)"
           >
-            ⬇ C-SPAN Clip ({clampedDur}s)
+            ⬇ Download clip ({clampedDur}s)
           </a>
           <Link
             href={`/speakers?speaker=${encodeURIComponent(turn.speakerSlug)}`}
@@ -716,7 +717,7 @@ export function SpeakerTurnPlayerCard({
             onClick={() => onShareFb(turn)}
             className="rounded bg-[#1877F2] px-2.5 py-1 font-bold text-white hover:bg-[#166fe5]"
           >
-            📘 Export to FB
+            📘 Share on Facebook
           </button>
         </div>
       </div>
@@ -746,10 +747,10 @@ export function EpisodeSpeakersLens({ b }: { b: EpisodeBundle }) {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <div className="text-[11px] font-bold uppercase tracking-widest text-amber-300">
-              🎙️ Speaker Turn Video Database · {b.meeting.date}
+              🎙️ Speaker videos · {b.meeting.date}
             </div>
             <h3 className="text-lg font-black text-white">
-              {b.speakerTurns.length} Individual Speaker Turns · Organized by Emotion, Theme & Ordinance
+              {b.speakerTurns.length} speaker clips · sort by tone, topic or ordinance
             </h3>
           </div>
           <div className="flex flex-wrap gap-2 text-xs">
@@ -759,14 +760,14 @@ export function EpisodeSpeakersLens({ b }: { b: EpisodeBundle }) {
                 onClick={() => setPlaylistIdx(0)}
                 className="rounded-lg bg-amber-400 px-3.5 py-2 font-black text-black hover:bg-amber-300"
               >
-                ▶ Play All {filtered.length} Turns Back-to-Back
+                ▶ Play all {filtered.length} clips in a row
               </button>
             )}
             <Link
               href={`/speakers?date=${encodeURIComponent(b.meeting.date)}`}
               className="rounded-lg bg-white/10 px-3 py-2 font-bold text-white ring-1 ring-white/20 hover:bg-white/20"
             >
-              Open Global Historical Speaker Vault ↗
+              See all speaker clips ↗
             </Link>
           </div>
         </div>
@@ -793,7 +794,7 @@ export function EpisodeSpeakersLens({ b }: { b: EpisodeBundle }) {
             onClick={() => setEmoFilter("")}
             className={`rounded-full px-2.5 py-1 ${!emoFilter ? "bg-amber-400 font-bold text-black" : "bg-white/10 text-slate-300"}`}
           >
-            All Emotions ({b.speakerTurns.length})
+            Any tone ({b.speakerTurns.length})
           </button>
           {Object.entries(EMOTION_META).map(([k, m]) => {
             const cnt = b.speakerTurns.filter((t) => t.emotion === k).length;
@@ -813,7 +814,7 @@ export function EpisodeSpeakersLens({ b }: { b: EpisodeBundle }) {
             onChange={(e) => setThemeFilter(e.target.value)}
             className="ml-auto rounded border border-white/15 bg-[#050912] px-2.5 py-1 text-xs text-slate-200"
           >
-            <option value="">All Civic Themes</option>
+            <option value="">All topics</option>
             {Object.entries(THEME_LABELS).map(([k, lbl]) => (
               <option key={k} value={k}>
                 {lbl}
@@ -827,7 +828,7 @@ export function EpisodeSpeakersLens({ b }: { b: EpisodeBundle }) {
         <div className="rounded-xl border-2 border-amber-400 bg-black p-3">
           <div className="mb-2 flex items-center justify-between text-xs">
             <span className="font-bold text-amber-300">
-              ▶ Continuous Turn Playlist: Clip {playlistIdx + 1} of {filtered.length} — {filtered[playlistIdx].speakerName} ({filtered[playlistIdx].hms})
+              ▶ Playing clip {playlistIdx + 1} of {filtered.length} — {filtered[playlistIdx].speakerName} ({filtered[playlistIdx].hms})
             </span>
             <div className="flex gap-2">
               <button
@@ -868,9 +869,9 @@ export function EpisodeSpeakersLens({ b }: { b: EpisodeBundle }) {
         </div>
       ) : (
         <div className="rounded-xl border border-white/10 bg-white/5 p-6 text-center text-sm text-slate-300">
-          No speaker turns match the active filter on this sitting date.{" "}
+          No clips match these filters for this meeting.{" "}
           <Link href="/speakers" className="text-amber-300 underline">
-            Browse all 2,448 historical speaker turns across 109 verified Cheyenne speakers →
+            Browse all 2,448 speaker clips from 109 Cheyenne speakers →
           </Link>
         </div>
       )}
@@ -881,7 +882,7 @@ export function EpisodeSpeakersLens({ b }: { b: EpisodeBundle }) {
 }
 
 // ============================================================================
-// 3. PALANTIR FOUNDRY AGENDAS & SUPPORTING DOCUMENTS WORKBENCH
+// 3. MEETING DOCUMENTS VIEWER
 // ============================================================================
 export function FoundryLensView({ b }: { b: EpisodeBundle }) {
   const [roleFilter, setRoleFilter] = useState<string>("all");
@@ -907,8 +908,8 @@ export function FoundryLensView({ b }: { b: EpisodeBundle }) {
     setOcrPages(null);
     fetch(`/api/documents/${selectedDoc.id}`)
       .then((r) => (r.ok ? r.json() : null))
-      .then((d) => setDocBody(d?.body ?? "No inline text stored; inspect raw PDF stream or SHA-1 OCR tab."))
-      .catch(() => setDocBody("Failed to fetch document body."))
+      .then((d) => setDocBody(d?.body ?? "We don't have the text of this document. Open the PDF, or try the Scanned Text tab."))
+      .catch(() => setDocBody("Could not load this document's text."))
       .finally(() => setLoadingText(false));
 
     if (selectedDoc.ocr && selectedDoc.sha1) {
@@ -925,14 +926,14 @@ export function FoundryLensView({ b }: { b: EpisodeBundle }) {
 
   return (
     <div className="bg-[#050912] p-3 font-sans text-slate-200">
-      {/* Foundry Tactical Telemetry Header */}
+      {/* Header */}
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded border border-sky-500/30 bg-[#091224] px-3.5 py-2.5">
         <div className="flex items-center gap-2.5">
           <span className="rounded bg-sky-500/20 px-2 py-0.5 font-mono text-[10px] font-bold tracking-widest text-sky-300 ring-1 ring-sky-400/40">
-            FOUNDRY // ONTOLOGY VAULT
+            MEETING DOCUMENTS
           </span>
           <span className="font-mono text-xs text-slate-300">
-            EPISODE_OBJECTS={b.docs.length} · OCR_INDEXED={b.docs.filter((d) => d.ocr).length} · FACTS={b.briefs.reduce((s, x) => s + Object.keys(x.facts).length, 0)}
+            {b.docs.length} documents · {b.docs.filter((d) => d.ocr).length} scanned and searchable · {b.briefs.reduce((s, x) => s + Object.keys(x.facts).length, 0)} facts pulled out
           </span>
         </div>
         <div className="flex items-center gap-2 text-xs">
@@ -940,13 +941,13 @@ export function FoundryLensView({ b }: { b: EpisodeBundle }) {
             href="/documents"
             className="rounded border border-sky-400/40 bg-sky-500/15 px-2.5 py-1 font-mono text-[11px] font-bold text-sky-200 hover:bg-sky-500/25"
           >
-            SEARCH ALL 6,339 ARCHIVE PDFs (2008–2026) ↗
+            SEARCH ALL 6,339 DOCUMENTS (2008–2026) ↗
           </Link>
         </div>
       </div>
 
       <div className="grid gap-3 lg:grid-cols-[310px_1fr_290px]">
-        {/* Left Pane: Object Explorer Table */}
+        {/* Left: document list */}
         <div className="flex max-h-[660px] flex-col rounded border border-slate-800 bg-[#080f1d]">
           <div className="border-b border-slate-800 p-2.5">
             <form
@@ -959,7 +960,7 @@ export function FoundryLensView({ b }: { b: EpisodeBundle }) {
               <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Filter packet objects, SHA-1…"
+                placeholder="Search these documents…"
                 className="min-w-0 flex-1 rounded border border-slate-700 bg-[#040811] px-2.5 py-1.5 font-mono text-xs text-slate-100 outline-none focus:border-sky-400"
               />
               <button
@@ -971,12 +972,12 @@ export function FoundryLensView({ b }: { b: EpisodeBundle }) {
             </form>
             <div className="mt-2 flex flex-wrap gap-1 font-mono text-[10px]">
               {[
-                ["all", `ALL (${b.docs.length})`],
-                ["agenda", "AGENDAS"],
-                ["attachment", "SUPPORTING PDF"],
-                ["staff_report", "STAFF RPT"],
-                ["minutes", "MINUTES/TX"],
-                ["ocr", `SHA1-OCR (${b.docs.filter((d) => d.ocr).length})`],
+                ["all", `All (${b.docs.length})`],
+                ["agenda", "Agendas"],
+                ["attachment", "Attachments"],
+                ["staff_report", "Staff reports"],
+                ["minutes", "Minutes"],
+                ["ocr", `Scanned text (${b.docs.filter((d) => d.ocr).length})`],
               ].map(([k, lbl]) => (
                 <button
                   key={k}
@@ -1002,18 +1003,18 @@ export function FoundryLensView({ b }: { b: EpisodeBundle }) {
                   <div className="flex items-center justify-between gap-1 font-mono text-[10px]">
                     <span className="rounded bg-slate-800 px-1.5 py-0.5 uppercase text-sky-300">{d.role}</span>
                     <span className="text-slate-500">
-                      {d.pages ? `${d.pages}p` : ""} {d.ocr ? "· 🔬OCR" : ""}
+                      {d.pages ? `${d.pages}p` : ""} {d.ocr ? "· 🔬 scanned text" : ""}
                     </span>
                   </div>
                   <div className="mt-1 line-clamp-2 text-xs font-semibold text-slate-100">{d.title}</div>
-                  {d.sha1 && <div className="mt-1 truncate font-mono text-[10px] text-emerald-400/80">SHA1: {d.sha1.slice(0, 16)}…</div>}
+                  {d.sha1 && <div className="mt-1 truncate font-mono text-[10px] text-emerald-400/80">Fingerprint: {d.sha1.slice(0, 16)}…</div>}
                 </button>
               );
             })}
           </div>
         </div>
 
-        {/* Center Pane: Embedded PDF / Text / Live SHA-1 OCR Forensic Viewer */}
+        {/* Center: PDF / text / scanned text */}
         <div className="flex min-h-[540px] flex-col rounded border border-slate-800 bg-[#080f1d]">
           {selectedDoc ? (
             <>
@@ -1021,7 +1022,7 @@ export function FoundryLensView({ b }: { b: EpisodeBundle }) {
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-xs font-bold text-white">{selectedDoc.title}</div>
                   <div className="font-mono text-[10px] text-slate-400">
-                    OBJ_ID={selectedDoc.id} · ITEM={selectedDoc.itemNo} · SHA1={selectedDoc.sha1 ?? "WAYBACK_REF"}
+                    Document #{selectedDoc.id} · agenda item {selectedDoc.itemNo}{selectedDoc.sha1 ? ` · fingerprint ${selectedDoc.sha1.slice(0, 12)}…` : ""}
                   </div>
                 </div>
                 <div className="flex items-center gap-1 font-mono text-[11px]">
@@ -1029,19 +1030,19 @@ export function FoundryLensView({ b }: { b: EpisodeBundle }) {
                     onClick={() => setViewMode("pdf")}
                     className={`rounded px-2.5 py-1 ${viewMode === "pdf" ? "bg-sky-400 font-bold text-black" : "bg-slate-800 text-slate-300"}`}
                   >
-                    📄 PDF / Portal
+                    📄 Original
                   </button>
                   <button
                     onClick={() => setViewMode("text")}
                     className={`rounded px-2.5 py-1 ${viewMode === "text" ? "bg-sky-400 font-bold text-black" : "bg-slate-800 text-slate-300"}`}
                   >
-                    📝 Extracted Text
+                    📝 Text
                   </button>
                   <button
                     onClick={() => setViewMode("ocr")}
                     className={`rounded px-2.5 py-1 ${viewMode === "ocr" ? "bg-emerald-400 font-bold text-black" : "bg-slate-800 text-slate-300"}`}
                   >
-                    🔬 SHA-1 OCR {ocrPages ? `(${Object.keys(ocrPages).length}p)` : ""}
+                    🔬 Scanned text {ocrPages ? `(${Object.keys(ocrPages).length}p)` : ""}
                   </button>
                   {selectedDoc.url && (
                     <a
@@ -1067,7 +1068,7 @@ export function FoundryLensView({ b }: { b: EpisodeBundle }) {
                   ) : (
                     <div className="space-y-3">
                       <div className="rounded border border-sky-500/30 bg-sky-500/10 p-3 text-xs">
-                        External Official PortalViewer URL:{" "}
+                        This document opens on the city's website:{" "}
                         <a href={selectedDoc.url} target="_blank" rel="noreferrer" className="font-mono text-sky-300 underline">
                           {selectedDoc.url}
                         </a>
@@ -1085,7 +1086,7 @@ export function FoundryLensView({ b }: { b: EpisodeBundle }) {
                         .map(([pg, txt]) => (
                           <div key={pg} className="rounded border border-emerald-500/25 bg-[#040811] p-3">
                             <div className="mb-1 font-mono text-[10px] font-bold text-emerald-400">
-                              PAGE {pg} · LIVE FETCH FROM TheReelWindyCity/ai-record-ocr/{selectedDoc.sha1}.json
+                              PAGE {pg} · text read from the scanned page by software
                             </div>
                             <pre className="whitespace-pre-wrap font-mono text-xs text-slate-200">{txt}</pre>
                           </div>
@@ -1093,12 +1094,12 @@ export function FoundryLensView({ b }: { b: EpisodeBundle }) {
                     </div>
                   ) : (
                     <pre className="whitespace-pre-wrap rounded bg-[#040811] p-3 font-mono text-xs text-slate-300">
-                      {docBody || "This document uses native digital text extraction rather than scanned image OCR."}
+                      {docBody || "This document wasn't scanned; its text is in the Text tab."}
                     </pre>
                   )
                 ) : (
                   <pre className="whitespace-pre-wrap rounded bg-[#040811] p-3 font-mono text-xs leading-relaxed text-slate-200">
-                    {loadingText ? "Querying PostgreSQL documents table…" : docBody}
+                    {loadingText ? "Loading…" : docBody}
                   </pre>
                 )}
               </div>
@@ -1106,14 +1107,14 @@ export function FoundryLensView({ b }: { b: EpisodeBundle }) {
           ) : null}
         </div>
 
-        {/* Right Pane: Foundry Telemetry, Provenance Video Cue & Data Lineage DAG */}
+        {/* Right: where it came from + automatic checks */}
         <div className="flex flex-col gap-3">
           {suppClip && (
             <div className="rounded border border-rose-500/30 bg-[#080f1d] p-2.5">
               <div className="mb-1 flex items-center justify-between font-mono text-[10px] font-bold text-rose-300">
-                <span>🎥 MANUAL-CLICK PROVENANCE CUE</span>
+                <span>🎥 HOW THESE DOCUMENTS WERE DOWNLOADED</span>
                 <Link href="/provenance" className="underline">
-                  All 14 Films ↗
+                  All 14 recordings ↗
                 </Link>
               </div>
               <video
@@ -1123,14 +1124,14 @@ export function FoundryLensView({ b }: { b: EpisodeBundle }) {
                 className="h-32 w-full rounded border border-slate-800 bg-black object-cover"
               />
               <p className="mt-1.5 text-[11px] text-slate-400">
-                Screen recording showing the exact clicks required to manually retrieve Cheyenne Supporting Documents.
+                A screen recording of the clicks it takes to download these documents from the city's website.
               </p>
             </div>
           )}
 
           <div className="rounded border border-slate-800 bg-[#080f1d] p-3">
             <div className="font-mono text-[10px] font-bold uppercase tracking-widest text-sky-400">
-              Deterministic Packet Telemetry
+              Automatic checks of the documents
             </div>
             <div className="mt-2 max-h-52 space-y-2 overflow-y-auto text-xs">
               {b.briefs.map((br, idx) => (
@@ -1146,7 +1147,7 @@ export function FoundryLensView({ b }: { b: EpisodeBundle }) {
                           f.sev === "HIGH" ? "bg-rose-500/25 text-rose-300" : f.sev === "MED" ? "bg-amber-500/25 text-amber-300" : "bg-sky-500/20 text-sky-300"
                         }`}
                       >
-                        {f.sev}:{f.code}
+                        {SEV_LABEL[f.sev] ?? f.sev}: {flagLabel(f.code)}
                       </span>
                     ))}
                   </div>
@@ -1164,16 +1165,16 @@ export function FoundryLensView({ b }: { b: EpisodeBundle }) {
             </div>
           </div>
 
-          {/* Foundry Pipeline Lineage DAG */}
+          {/* How the records were collected */}
           <div className="rounded border border-slate-800 bg-[#080f1d] p-3 font-mono text-[10px]">
-            <div className="mb-2 font-bold uppercase tracking-widest text-emerald-400">Foundry Pipeline Lineage DAG</div>
+            <div className="mb-2 font-bold uppercase tracking-widest text-emerald-400">How these records were collected</div>
             <div className="space-y-1.5">
               {[
-                ["01. ORIGIN_PORTAL", "cheyennecity.org / Granicus / Ch192"],
-                ["02. ARCHIVE_VAULT", "cheyenne-archives-* (Git Blob SHA-1)"],
-                ["03. OCR_ENGINE", "ai-record-ocr/{sha1}.json (1,081 PDFs)"],
-                ["04. RULE_COMPILER", "CivicWatch Facts + Severity Flags"],
-                ["05. DUAL_SERVE", "PostgreSQL 17 + GitHub Pages Shards"],
+                ["1. Downloaded", "From cheyennecity.org, the city's Granicus meeting portal and the Channel 192 video"],
+                ["2. Saved", "Copied into a public archive, each file with a fingerprint so changes can be spotted"],
+                ["3. Read", "Scanned pages turned into searchable text by software (1,081 PDFs)"],
+                ["4. Checked", "Key facts pulled out and anything unusual flagged automatically"],
+                ["5. Published", "Shown on this site"],
               ].map(([step, desc]) => (
                 <div key={step} className="rounded border border-slate-800 bg-[#040811] px-2 py-1.5">
                   <div className="font-bold text-sky-300">{step}</div>
@@ -1189,7 +1190,7 @@ export function FoundryLensView({ b }: { b: EpisodeBundle }) {
 }
 
 // ============================================================================
-// 4. PALANTIR GOTHAM TACTICAL ENTITY-DOCUMENT LINK GRAPH
+// 4. CONNECTIONS MAP
 // ============================================================================
 type GothamNode = {
   id: string;
@@ -1217,7 +1218,7 @@ export function GothamGraphLensView({ b }: { b: EpisodeBundle }) {
         x: cx,
         y: cy,
         color: "#fbbf24",
-        detail: `${b.show.title} — ${b.items.length} docket items, ${b.docs.length} primary documents, ${b.speakerTurns.length} speaker turns.`,
+        detail: `${b.show.title} — ${b.items.length} agenda items, ${b.docs.length} documents, ${b.speakerTurns.length} speaker clips.`,
       },
     ];
     const es: { from: string; to: string; label: string }[] = [];
@@ -1259,7 +1260,7 @@ export function GothamGraphLensView({ b }: { b: EpisodeBundle }) {
       x,
       y,
       color: "#10b981",
-      detail: `[${d.role.toUpperCase()}] ${d.title} · SHA1: ${d.sha1 ?? "Wayback"}`,
+      detail: `[${d.role.replace("_", " ")}] ${d.title.replace(/^\[[^\]]+\]\s*/, "")}`,
       href: d.url ?? undefined,
     }));
 
@@ -1276,8 +1277,8 @@ export function GothamGraphLensView({ b }: { b: EpisodeBundle }) {
 
     // Officials / Sponsors / Dissenters
     const officials = [
-      ...b.analytics.dissent.map((d) => ({ name: `${d.name} (${d.n} NO)`, role: "Dissenter on Roll Call" })),
-      ...b.analytics.sponsors.map((s) => ({ name: s.name, role: `Sponsor (${s.n} items)` })),
+      ...b.analytics.dissent.map((d) => ({ name: `${d.name} (${d.n} NO)`, role: "Voted no" })),
+      ...b.analytics.sponsors.map((s) => ({ name: s.name, role: `Brought ${s.n} agenda items` })),
     ].slice(0, 5);
     ring(officials, 225, Math.PI * 1.15, Math.PI * 0.45, (o, idx, x, y) => ({
       id: `off-${idx}`,
@@ -1313,15 +1314,15 @@ export function GothamGraphLensView({ b }: { b: EpisodeBundle }) {
     <div className="bg-[#050912] p-3 text-slate-200">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded border border-emerald-500/30 bg-[#081518] px-3.5 py-2">
         <div className="font-mono text-xs">
-          <span className="font-bold text-emerald-400">GOTHAM // LINK-ANALYSIS GRAPH</span> · NODES={visibleNodes.length} · EDGES={edges.filter((e) => visibleIds.has(e.to)).length}
+          <span className="font-bold text-emerald-400">CONNECTIONS</span> · {visibleNodes.length} items · {edges.filter((e) => visibleIds.has(e.to)).length} links
         </div>
         <div className="flex flex-wrap gap-1 font-mono text-[10px]">
           {[
-            ["all", "ALL LAYERS"],
+            ["all", "EVERYTHING"],
             ["ordinance", "📜 ORDINANCES"],
-            ["doc", "📄 SUPPORTING PDFs"],
-            ["money", "💵 FISCAL FLOWS"],
-            ["official", "🏛️ SPONSORS/DISSENT"],
+            ["doc", "📄 DOCUMENTS"],
+            ["money", "💵 MONEY"],
+            ["official", "🏛️ WHO BROUGHT IT / VOTED NO"],
             ["speaker", "🎙️ SPEAKER VIDEOS"],
           ].map(([k, lbl]) => (
             <button
@@ -1386,7 +1387,7 @@ export function GothamGraphLensView({ b }: { b: EpisodeBundle }) {
         <div className="flex flex-col justify-between rounded border border-slate-800 bg-[#080f1d] p-4">
           <div>
             <div className="font-mono text-[10px] font-bold uppercase tracking-widest text-emerald-400">
-              Selected Ontology Entity
+              Selected
             </div>
             <div className="mt-2 inline-block rounded px-2 py-0.5 font-mono text-[10px] uppercase text-black" style={{ backgroundColor: selected.color }}>
               {selected.kind}
@@ -1400,12 +1401,12 @@ export function GothamGraphLensView({ b }: { b: EpisodeBundle }) {
                 rel="noreferrer"
                 className="mt-4 inline-block rounded bg-sky-400 px-3 py-2 text-xs font-black text-black hover:bg-sky-300"
               >
-                Inspect Linked Dossier / PDF →
+                Open →
               </a>
             )}
           </div>
           <div className="mt-6 border-t border-slate-800 pt-3 font-mono text-[10px] text-slate-400">
-            Click any node on the canvas to inspect its statutory receipts, SHA-1 packet PDFs, or historical speaker video turns.
+            Click any circle on the map to see details: the ordinance, the document, the dollar amount or the speaker clip.
           </div>
         </div>
       </div>
@@ -1414,7 +1415,7 @@ export function GothamGraphLensView({ b }: { b: EpisodeBundle }) {
 }
 
 // ============================================================================
-// 5. PROVENANCE SCREEN-RECORDING FILMS & 121-ROW CLICK-PATH LEDGER
+// 5. WHERE THE RECORDS COME FROM: SCREEN RECORDINGS + STEP-BY-STEP LIST
 // ============================================================================
 export function ProvenanceFilmsWorkbench({ catalog }: { catalog: ProvenanceCatalogData | null }) {
   const [activeVideo, setActiveVideo] = useState<{ title: string; url: string; desc: string } | null>(
@@ -1432,7 +1433,7 @@ export function ProvenanceFilmsWorkbench({ catalog }: { catalog: ProvenanceCatal
   const [ledgerPage, setLedgerPage] = useState(1);
 
   if (!catalog) {
-    return <div className="p-6 text-sm text-slate-400">Provenance film catalog loading…</div>;
+    return <div className="p-6 text-sm text-slate-400">Loading the screen recordings…</div>;
   }
 
   const selectFilm = (next: { title: string; url: string; desc: string }) => {
@@ -1456,23 +1457,23 @@ export function ProvenanceFilmsWorkbench({ catalog }: { catalog: ProvenanceCatal
       {/* Summary Banner */}
       <div className="rounded-2xl border border-rose-400/30 bg-gradient-to-r from-[#140914] via-[#0b1222] to-[#08141c] p-5">
         <div className="text-[11px] font-bold uppercase tracking-widest text-rose-300">
-          🎥 Screen-Recorded Manual Click-Path Provenance Suite
+          🎥 Where the records come from
         </div>
         <h2 className="mt-1 text-2xl font-black">
-          Every Public Portal, Every Manual Browser Click, Recorded on Tape
+          Watch exactly how every record was found and downloaded
         </h2>
         <p className="mt-1 max-w-3xl text-xs leading-relaxed text-slate-300">
-          Nothing in this archive is taken on faith. Watch the actual screen-recorded browser walkthroughs showing what a human had to click on{" "}
-          <code>cheyennecity.org</code>, Internet Archive / Wayback Machine, and public repositories to download each calendar, agenda packet, supporting PDF, clerk minute, and broadcast video by hand.
+          You don't have to take our word for anything. These screen recordings show every click it took on{" "}
+          <code>cheyennecity.org</code>, the Internet Archive and other public websites to download each meeting calendar, agenda, attached document, set of minutes and meeting video.
         </p>
         <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-6">
           {[
-            [catalog.summaryStats.totalFilesAudited.toLocaleString(), "Files Audited"],
-            [String(catalog.summaryStats.recordFamilies), "Record Families"],
-            [catalog.summaryStats.publicSiteCaptures.toLocaleString(), "Public Captures"],
-            [String(catalog.summaryStats.originHosts), "Origin Portals"],
-            [String(catalog.summaryStats.unaccountedFiles), "Unaccounted Files"],
-            [catalog.summaryStats.manualEquivalentEstimate, "Manual Click Work"],
+            [catalog.summaryStats.totalFilesAudited.toLocaleString(), "Files checked"],
+            [String(catalog.summaryStats.recordFamilies), "Kinds of records"],
+            [catalog.summaryStats.publicSiteCaptures.toLocaleString(), "Saved web pages"],
+            [String(catalog.summaryStats.originHosts), "Source websites"],
+            [String(catalog.summaryStats.unaccountedFiles), "Files with no known source"],
+            [catalog.summaryStats.manualEquivalentEstimate, "Time to do it all by hand"],
           ].map(([big, lbl]) => (
             <div key={lbl} className="rounded-xl border border-white/10 bg-black/40 p-2.5 text-center">
               <div className="font-mono text-lg font-black text-amber-300">{big}</div>
@@ -1482,14 +1483,14 @@ export function ProvenanceFilmsWorkbench({ catalog }: { catalog: ProvenanceCatal
         </div>
       </div>
 
-      {/* Main Screen-Recording Theater with C-SPAN Marquee Info Border + Intro/Outro + Captions */}
+      {/* Main screen-recording player */}
       <div className="grid gap-4 lg:grid-cols-[1.35fr_1fr]">
         <div className="rounded-2xl border border-white/15 bg-black p-4">
           {activeVideo && (
             <>
               <div className="overflow-hidden rounded-xl border-2 border-amber-400/50 bg-[#050912]">
                 <div className="flex items-center justify-between border-b-2 border-amber-400 bg-[#09152b] px-3 py-1.5 text-[10px] font-black uppercase tracking-wider">
-                  <span className="text-amber-300">[RWC] THE REAL WINDY CITY · PROVENANCE BROADCAST</span>
+                  <span className="text-amber-300">[RWC] THE REAL WINDY CITY · WHERE THE RECORDS COME FROM</span>
                   <button
                     type="button"
                     onClick={() => setCcOn((v) => !v)}
@@ -1507,13 +1508,13 @@ export function ProvenanceFilmsWorkbench({ catalog }: { catalog: ProvenanceCatal
                     </div>
                   ) : filmPhase === "outro" ? (
                     <div className="flex h-full w-full flex-col items-center justify-center bg-[#070f20] p-4 text-center">
-                      <div className="text-[11px] font-black uppercase tracking-[0.25em] text-amber-300">END OF PROVENANCE SEGMENT · THE REAL WINDY CITY</div>
+                      <div className="text-[11px] font-black uppercase tracking-[0.25em] text-amber-300">END OF RECORDING · THE REAL WINDY CITY</div>
                       <button
                         type="button"
                         onClick={() => selectFilm(activeVideo)}
                         className="mt-3 rounded bg-amber-400 px-3 py-1.5 text-xs font-black text-black hover:bg-amber-300"
                       >
-                        ↻ Replay Provenance Film
+                        ↻ Play again
                       </button>
                     </div>
                   ) : (
@@ -1539,10 +1540,10 @@ export function ProvenanceFilmsWorkbench({ catalog }: { catalog: ProvenanceCatal
                   )}
                 </div>
                 <div className="border-t-2 border-rose-700 bg-[#0a1931] px-3 py-1.5 text-[11px] font-bold text-white">
-                  {activeVideo.title} · <span className="text-sky-300">100% Reproducible Public-Portal Audit</span>
+                  {activeVideo.title} · <span className="text-sky-300">Anyone can repeat these steps</span>
                 </div>
                 <div className="border-t border-amber-400/50 bg-[#040811] px-3 py-1 font-mono text-[10px] font-bold text-amber-300">
-                  THE REAL WINDY CITY · ZERO-GAP PRIMARY RECORD AUDIT · OFFICIAL AGENDAS, MINUTES, PACKET PDFS &amp; INTERNET ARCHIVE BROADCASTS
+                  THE REAL WINDY CITY · WHERE THE RECORDS COME FROM · AGENDAS, MINUTES, DOCUMENTS &amp; MEETING VIDEO
                 </div>
               </div>
               <div className="mt-3 flex flex-wrap items-start justify-between gap-2">
@@ -1555,7 +1556,7 @@ export function ProvenanceFilmsWorkbench({ catalog }: { catalog: ProvenanceCatal
                   download
                   className="rounded-lg bg-rose-500 px-3 py-1.5 text-xs font-black text-white hover:bg-rose-400"
                 >
-                  ⬇ Download Provenance Clip (.MP4)
+                  ⬇ Download this recording (.MP4)
                 </a>
               </div>
             </>
@@ -1573,7 +1574,7 @@ export function ProvenanceFilmsWorkbench({ catalog }: { catalog: ProvenanceCatal
                 }`}
               >
                 <div className="font-mono text-[10px] text-rose-300">
-                  MASTER FILM · {mf.durationSec}s · {mf.sizeMb} MB
+                  FULL RECORDING · {mf.durationSec}s · {mf.sizeMb} MB
                 </div>
                 <div className="mt-0.5 line-clamp-2 font-bold text-white">{mf.title}</div>
               </button>
@@ -1584,7 +1585,7 @@ export function ProvenanceFilmsWorkbench({ catalog }: { catalog: ProvenanceCatal
         {/* 11 Per-Record-Family Manual Click Chapters */}
         <div className="flex max-h-[540px] flex-col rounded-2xl border border-white/15 bg-[#080f1d] p-3.5">
           <div className="mb-2 text-xs font-black uppercase tracking-wider text-sky-300">
-            11 Manual Click-Path Screen-Recording Chapters (~15s each)
+            {catalog.chapters.length} short recordings, one per kind of record (about 15 seconds each)
           </div>
           <div className="flex-1 space-y-2 overflow-y-auto pr-1">
             {catalog.chapters.map((ch) => (
@@ -1607,17 +1608,17 @@ export function ProvenanceFilmsWorkbench({ catalog }: { catalog: ProvenanceCatal
         </div>
       </div>
 
-      {/* Investigative Supercuts & Screening Room */}
+      {/* Highlight reels */}
       <div className="rounded-2xl border border-white/10 bg-[#080f1d] p-4">
         <div className="mb-3 text-xs font-black uppercase tracking-wider text-amber-300">
-          🎞️ Verified Floor-Tape Supercuts &amp; Contradiction Reels
+          🎞️ Highlight reels from the meeting video
         </div>
         <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
           {catalog.investigativeReels.map((r) => (
             <button
               key={r.id}
               type="button"
-              onClick={() => selectFilm({ title: r.title, url: r.url, desc: "Rendered directly from unedited City of Cheyenne broadcast tape & statutory exhibit cards." })}
+              onClick={() => selectFilm({ title: r.title, url: r.url, desc: "Made from the unedited City of Cheyenne meeting video, with cards showing the related documents." })}
               className="rounded-xl border border-white/10 bg-black/50 p-3 text-left text-xs hover:border-amber-400/50"
             >
               <div className="font-mono text-[10px] text-amber-300">▶ FLOOR REEL · {r.duration}</div>
@@ -1627,14 +1628,14 @@ export function ProvenanceFilmsWorkbench({ catalog }: { catalog: ProvenanceCatal
         </div>
       </div>
 
-      {/* Searchable Manual Click-Path Ledger with Enter Button & Pagination */}
+      {/* Searchable step-by-step list */}
       <div className="rounded-2xl border border-white/10 bg-[#080f1d] p-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <h3 className="text-sm font-black uppercase tracking-wider text-emerald-300">
-              Manual Click-Path Verification Ledger ({filteredRows.length} Matching Datum Paths)
+              Step-by-step: where each record comes from ({filteredRows.length} rows)
             </h3>
-            <p className="text-xs text-slate-400">Follow the literal click sequence below to re-fetch any public record yourself in two minutes.</p>
+            <p className="text-xs text-slate-400">Follow the steps below to find any of these public records yourself in a couple of minutes.</p>
           </div>
           <form
             onSubmit={(e) => {
@@ -1649,7 +1650,7 @@ export function ProvenanceFilmsWorkbench({ catalog }: { catalog: ProvenanceCatal
                 setLedgerQ(e.target.value);
                 setLedgerPage(1);
               }}
-              placeholder="Filter click paths (e.g. supporting, minutes)…"
+              placeholder="Search (e.g. agendas, minutes)…"
               className="w-64 rounded border border-white/15 bg-black/60 px-3 py-1.5 text-xs outline-none focus:border-emerald-400"
             />
             <button
@@ -1664,17 +1665,17 @@ export function ProvenanceFilmsWorkbench({ catalog }: { catalog: ProvenanceCatal
           <table className="w-full text-left text-xs">
             <thead className="bg-[#050912] font-mono text-[10px] uppercase text-slate-400">
               <tr>
-                <th className="p-2">Datum / Family</th>
-                <th className="p-2">Count</th>
-                <th className="p-2">Literal Manual Click-Path</th>
-                <th className="p-2">Film Cue</th>
+                <th className="p-2">Record</th>
+                <th className="p-2">How many</th>
+                <th className="p-2">How to find it</th>
+                <th className="p-2">Recording</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/10">
               {pagedLedgerRows.map((r) => (
                 <tr key={r.key} className="hover:bg-white/5">
                   <td className="p-2 font-mono text-[11px] text-sky-300">
-                    <div>{r.key}</div>
+                    <div className="font-semibold capitalize text-slate-100">{r.ledger.replace(/_/g, " ")}</div><div>{r.item}</div>
                     {r.origin?.url && (
                       <a href={r.origin.url} target="_blank" rel="noreferrer" className="text-[10px] text-slate-400 underline">
                         {r.origin.host} ↗
@@ -1682,14 +1683,14 @@ export function ProvenanceFilmsWorkbench({ catalog }: { catalog: ProvenanceCatal
                     )}
                   </td>
                   <td className="p-2 font-mono font-bold text-amber-300">{String(r.value)}</td>
-                  <td className="p-2 text-[11px] text-slate-300">{r.how ?? "Verified checkout artifact"}</td>
+                  <td className="p-2 text-[11px] text-slate-300">{r.how ?? "Included in the public archive download"}</td>
                   <td className="p-2">
                     <button
                       type="button"
                       onClick={() => selectFilm({ title: r.chapterTitle, url: r.clipUrl, desc: r.how ?? "" })}
                       className="rounded bg-rose-500/20 px-2 py-1 font-mono text-[10px] font-bold text-rose-200 hover:bg-rose-500/30"
                     >
-                      ▶ Watch Clicks
+                      ▶ Watch
                     </button>
                   </td>
                 </tr>

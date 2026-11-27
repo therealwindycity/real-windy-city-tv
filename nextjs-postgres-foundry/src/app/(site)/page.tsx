@@ -46,46 +46,46 @@ export default async function HomePage() {
         <div className="relative mx-auto grid max-w-7xl gap-8 px-4 py-12 lg:grid-cols-[1.45fr_1fr]">
           <div>
             <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.35em] text-amber-300">
-              <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-red-500" /> Unified Broadcast + Palantir Gotham/Foundry Vault
+              <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-red-500" /> Featured meeting
             </div>
             <h1 className="title-shimmer mt-3 text-4xl font-black leading-[0.98] tracking-tight sm:text-6xl">{featured.title}</h1>
             <p className="mt-3 text-base text-slate-200">
-              {featured.bodyName} · {dateShort(featured.date)} · Season {featured.season}, Episode {featured.episodeNo}
+              {featured.bodyName} · {dateShort(featured.date)}
             </p>
             <p className="mt-2 max-w-2xl text-sm text-slate-300">{featured.logline}</p>
             <div className="mt-5 flex flex-wrap gap-2.5">
               <Link href={`/episode/${featured.slug}`} className="rounded-full bg-amber-400 px-5 py-2.5 text-sm font-black text-black hover:bg-amber-300">
-                ▶ Watch Featured Episode ({LENSES.length} Lenses)
+                ▶ Watch this meeting
               </Link>
               <Link href="/speakers" className="rounded-full bg-[#1877F2] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#166fe5]">
-                🎙️ Speakers &amp; Analytics (2,448 turns)
+                🎙️ Speaker clips
               </Link>
               <Link href="/osint" className="rounded-full bg-emerald-500/25 px-4 py-2.5 text-sm font-bold text-emerald-100 ring-1 ring-emerald-400/40 hover:bg-emerald-500/35">
-                🕸️ OSINT Entity &amp; Contractor Graph (51)
+                🕸️ Who&apos;s Who: people &amp; companies
               </Link>
               <Link href="/ordinances" className="rounded-full bg-violet-500/25 px-4 py-2.5 text-sm font-bold text-violet-100 ring-1 ring-violet-400/40 hover:bg-violet-500/35">
-                📜 Ordinances: 1st → Final Reading
+                📜 Ordinances: 1st reading to final vote
               </Link>
               <Link href="/documents" className="rounded-full bg-sky-500/20 px-4 py-2.5 text-sm font-bold text-sky-200 ring-1 ring-sky-400/40 hover:bg-sky-500/30">
-                🏛️ Palantir Foundry PDFs (6,339)
+                📄 Meeting documents
               </Link>
               <Link href="/provenance" className="rounded-full bg-rose-500/20 px-4 py-2.5 text-sm font-bold text-rose-200 ring-1 ring-rose-400/40 hover:bg-rose-500/30">
-                🎥 Provenance Click-Path Films (14)
+                🎥 Where the records come from
               </Link>
             </div>
             <p className="mt-4 max-w-2xl text-xs text-slate-400">
-              Complete 19-season municipal database ({total.toLocaleString()} meetings across {new Set(seasons.map((s) => s.season)).size} seasons, 2008–2026) — zero empty placeholders, backed by PostgreSQL 17, Internet Archive Ch. 192 streams, C-SPAN branded speaker segments, OSINT entity dossiers, and SHA-1 OCR packets.
+              {total.toLocaleString()} Cheyenne city meetings over {new Set(seasons.map((s) => s.season)).size} years (2008–2026), with meeting video from the Internet Archive, video clips of each speaker, profiles of the people and companies involved, and the original documents.
             </p>
           </div>
 
           <div className="grid grid-cols-2 gap-2.5 self-center">
             {[
-              ["1,583", "Full Episodes (802 Internet Archive MP4s)"],
-              ["2,448", "Speaker Turns (1,951 Timed to Video · 25 Branded Clips)"],
-              ["51 OSINT", "Cross-Referenced Entities, Vendors & Boards"],
-              ["6,339", "Minutes & Supporting Packet PDFs (1,081 OCR)"],
-              ["275", "Multi-Reading Ordinance Arcs (1st→3rd)"],
-              ["14 Films", "Screen-Recorded Manual Click Provenance"],
+              [total.toLocaleString(), "City meetings, 2008–2026"],
+              ["2,448", "Speaker video clips"],
+              ["51", "People, companies & agencies in Who's Who"],
+              ["6,339", "Minutes, agendas & attached documents"],
+              ["275", "Ordinances followed from 1st to final reading"],
+              ["14", "Screen recordings showing where the records come from"],
             ].map(([big, small]) => (
               <div key={big} className="rounded-xl bg-black/50 p-3.5 ring-1 ring-white/15">
                 <div className="font-mono text-2xl font-black text-amber-300 sm:text-3xl">{big}</div>
@@ -109,10 +109,10 @@ export default async function HomePage() {
         )}
       </section>
 
-      {/* High-Impact Historical Speaker Video Turns Row */}
+      {/* Speaker video clips row */}
       <Row
-        title="🎙️ High-Impact C-SPAN Speaker Video Clips (≤ 3 Min)"
-        sub="includes historical clip count, capacity, stance, avg turn time, Point-of-Order record & OSINT profile"
+        title="🎙️ Speaker Video Clips (3 minutes or less)"
+        sub="who spoke, what role they spoke in, whether they were for or against, and how often they speak"
         href="/speakers"
       >
         {topTurns.rows.map((t) => (
@@ -124,15 +124,15 @@ export default async function HomePage() {
             <div>
               <div className="flex items-center justify-between gap-2 text-[10px] font-bold uppercase">
                 <span className="rounded bg-amber-400/20 px-1.5 py-0.5 text-amber-200">
-                  📼 {t.speakerAnalytics?.historicalClipCount ?? 1} Historical Clips
+                  📼 {t.speakerAnalytics?.historicalClipCount ?? 1} clips of this speaker
                 </span>
                 <span className="font-mono text-emerald-300">
-                  {Math.round(t.durationSec)}s · Avg {t.speakerAnalytics?.avgSpeakingFormatted ?? "1m 30s"}
+                  {Math.round(t.durationSec)}-second clip
                 </span>
               </div>
               <div className="mt-1.5 text-sm font-black text-white">{t.speakerName}</div>
               <div className="text-[10px] font-semibold text-indigo-300">
-                {t.speakingCapacity ?? t.speakerRole} · {t.stanceLabel ?? "Floor Record"}
+                {t.speakingCapacity ?? t.speakerRole} · {t.stanceLabel ?? "Speaking"}
               </div>
               <div className="text-[11px] text-sky-300">
                 {t.date} · {t.bodyName} [{t.hms}]
@@ -140,14 +140,14 @@ export default async function HomePage() {
               <p className="mt-1.5 line-clamp-2 text-xs text-slate-300">&ldquo;{t.text}&rdquo;</p>
             </div>
             <div className="flex items-center justify-between text-[10px] text-slate-400">
-              <span>POE: {t.speakerAnalytics?.pointOfOrderCount ?? 0}</span>
-              <span className="font-bold text-amber-300">▶ Watch C-SPAN Clip &amp; OSINT →</span>
+              <span>Points of order: {t.speakerAnalytics?.pointOfOrderCount ?? 0}</span>
+              <span className="font-bold text-amber-300">▶ Watch the clip →</span>
             </div>
           </Link>
         ))}
       </Row>
 
-      <Row title="📜 Ordinance Arcs: First Reading → Final Enactment" sub="watch every ordinance chronologically with all speaker testimony & packet PDFs" href="/ordinances">
+      <Row title="📜 Ordinances: 1st Reading to Final Vote" sub="follow each ordinance through every reading, with what speakers said and the documents" href="/ordinances">
         {ords.rows.map((o) => (
           <Link
             key={o.slug}
@@ -159,37 +159,37 @@ export default async function HomePage() {
             </span>
             <div className="line-clamp-3 text-sm font-bold leading-snug">{o.title}</div>
             <div className="text-[11px] text-amber-300">
-              ▶ Play 1st ({o.firstDate}) → Final ({o.lastDate})
+              ▶ 1st reading {o.firstDate} → last {o.lastDate}
             </div>
           </Link>
         ))}
       </Row>
 
-      <Row title="Season 2026 · City Council" sub="newest through Nov 2026" href="/episodes?body=council&season=2026">
+      <Row title="City Council · 2026" sub="most recent meetings" href="/episodes?body=council&season=2026">
         {council.rows.map((m) => (
           <EpisodeCard key={m.slug} m={m} />
         ))}
       </Row>
-      <Row title="Public Services Committee" sub="where ordinances & zoning hearings go between readings" href="/episodes?body=psc&season=2026">
+      <Row title="Public Services Committee" sub="where ordinances and zoning are discussed between council readings" href="/episodes?body=psc&season=2026">
         {psc.rows.map((m) => (
           <EpisodeCard key={m.slug} m={m} />
         ))}
       </Row>
-      <Row title="Finance Committee" sub="appropriations, contracts, bids & audit review" href="/episodes?body=finance&season=2026">
+      <Row title="Finance Committee" sub="spending, contracts, bids and audits" href="/episodes?body=finance&season=2026">
         {finance.rows.map((m) => (
           <EpisodeCard key={m.slug} m={m} />
         ))}
       </Row>
-      <Row title="Planning Commission & Land Use" sub="plats, annexations, PUDs & comprehensive plan" href="/episodes?body=planning">
+      <Row title="Planning Commission & Land Use" sub="subdivisions, annexations, planned developments and the city plan" href="/episodes?body=planning">
         {planning.rows.map((m) => (
           <EpisodeCard key={m.slug} m={m} />
         ))}
       </Row>
 
       <section className="mx-auto max-w-7xl px-4 py-12">
-        <h2 className="text-xl font-black tracking-tight">{LENSES.length} Synchronized Lenses on One Unified Civic Ontology</h2>
+        <h2 className="text-xl font-black tracking-tight">{LENSES.length} Ways to Look at Every Meeting</h2>
         <p className="text-sm text-slate-400">
-          Every single episode can be swiped, compared side-by-side, tiled in a 19-lens mosaic, or floated in draggable desktop windows.
+          Look at each meeting one view at a time, two side by side, all at once, or in windows you can drag around.
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
           {LENSES.map((l) => (

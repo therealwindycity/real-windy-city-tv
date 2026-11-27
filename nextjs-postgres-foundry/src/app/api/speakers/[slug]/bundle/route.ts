@@ -100,24 +100,24 @@ export async function GET(_req: Request, ctx: { params: Promise<{ slug: string }
 
   const an = profile.analytics;
   const mdLines = [
-    `# ${profile.name} — Complete Cheyenne Civic Speaker Video & OSINT Archive`,
+    `# ${profile.name}: speaker clips from Cheyenne city meetings`,
     `Role: ${profile.role}`,
-    `Total Historical Clips: ${profile.turnCount} across ${profile.meetingCount} meetings (${profile.firstDate} -> ${profile.lastDate})`,
-    `Average Speaking Time: ${an?.avgSpeakingFormatted ?? `${Math.round(profile.totalDurationSec / Math.max(1, profile.turnCount))}s`} | Total Floor Time: ${an?.totalSpeakingFormatted ?? `${Math.round(profile.totalDurationSec / 60)}m`}`,
-    `Points of Order / Procedural Events: ${an?.pointOfOrderCount ?? 0}`,
-    `Speaking Capacities: ${(an?.capacitiesBreakdown ?? []).map((c) => `${c.capacity} (${c.pct}%)`).join(" · ") || profile.role}`,
-    `Top Topics Spoken On: ${(an?.topicAnalytics ?? []).map((t) => `${t.label} (${t.count})`).join(" · ") || profile.topThemes.join(", ")}`,
-    `Lobbies For / Supports: ${(an?.lobbiesFor ?? []).join(" | ") || "N/A"}`,
-    `Opposes / Challenges: ${(an?.opposes ?? []).join(" | ") || "N/A"}`,
-    `Verified OSINT Links: ${(an?.osint?.profiles ?? []).map((p) => `${p.platform}: ${p.url}`).join(" | ")}`,
+    `Clips: ${profile.turnCount} at ${profile.meetingCount} meetings (${profile.firstDate} to ${profile.lastDate})`,
+    `Usually speaks for: ${an?.avgSpeakingFormatted ?? `${Math.round(profile.totalDurationSec / Math.max(1, profile.turnCount))}s`} | Total time speaking: ${an?.totalSpeakingFormatted ?? `${Math.round(profile.totalDurationSec / 60)}m`}`,
+    `Points of order: ${an?.pointOfOrderCount ?? 0}`,
+    `Has spoken as: ${(an?.capacitiesBreakdown ?? []).map((c) => `${c.capacity} (${c.pct}%)`).join(" · ") || profile.role}`,
+    `Topics: ${(an?.topicAnalytics ?? []).map((t) => `${t.label} (${t.count})`).join(" · ") || profile.topThemes.join(", ")}`,
+    `Spoke in favor of: ${(an?.lobbiesFor ?? []).join(" | ") || "none recorded"}`,
+    `Spoke against: ${(an?.opposes ?? []).join(" | ") || "none recorded"}`,
+    `Public profiles: ${(an?.osint?.profiles ?? []).map((p) => `${p.platform}: ${p.url}`).join(" | ")}`,
     ``,
-    `## Branded C-SPAN Speaker-Only Clips & Ready-to-Post Facebook Captions (Strictly <= 3 Min Segments — Never Full Meeting)`,
+    `## Video clips and ready-to-post Facebook text (each clip is 3 minutes or less, never the full meeting)`,
     ``,
   ];
 
   const shLines = [
     `#!/usr/bin/env bash`,
-    `# Strictly downloads/slices ONLY <=3-min speaker segments (NEVER full meeting videos!) for ${profile.name}`,
+    `# Downloads only ${profile.name}'s clips (3 minutes or less each), never the full meeting video`,
     `set -e`,
     `mkdir -p "${slug}_fb_clips"`,
     `cd "${slug}_fb_clips"`,
@@ -127,22 +127,22 @@ export async function GET(_req: Request, ctx: { params: Promise<{ slug: string }
     const durClamped = Math.min(180, Math.max(5, Math.round(t.durationSec)));
     const fbCaption = [
       `🎙️ ${profile.name} (${profile.role}) at Cheyenne ${t.bodyName} — ${t.date} [${t.hms}]`,
-      `🏛️ Capacity: ${t.speakingCapacity ?? profile.role} · Stance: ${t.stanceLabel ?? "Floor Record"} · Archive: ${profile.turnCount} Historical Clips (Avg ${an?.avgSpeakingFormatted ?? "1m 30s"})`,
+      `🏛️ Speaking as: ${t.speakingCapacity ?? profile.role} · ${t.stanceLabel ?? "Speaking"} · ${profile.turnCount} clips of this speaker`,
       `"${t.text.slice(0, 260)}${t.text.length > 260 ? "…" : ""}"`,
-      t.ordinances.length ? `📜 Ordinance Reading: ${t.ordinances.map((o) => `${o.slug} (${o.stage})`).join(", ")}` : null,
+      t.ordinances.length ? `📜 Ordinance: ${t.ordinances.map((o) => `${o.slug} (${o.stage})`).join(", ")}` : null,
       `🔗 Follow The Real Windy City on Facebook: https://www.facebook.com/profile.php?id=61576260305204`,
       `#CheyenneWY #TheRealWindyCity #PublicRecord #WyomingCivicWatch #${t.themes[0] ?? "CityCouncil"}`,
     ]
       .filter(Boolean)
       .join("\n");
 
-    mdLines.push(`### Turn #${t.id} — ${t.date} · ${t.bodyName} (${t.hms}, ${durClamped}s)`);
-    mdLines.push(`- **Speaking Capacity**: ${t.speakingCapacity ?? profile.role}${t.representingOrg ? ` (${t.representingOrg})` : ""}`);
-    mdLines.push(`- **Stance / Advocacy**: ${t.stanceLabel ?? "Floor Record"}${t.hasPointOfOrder ? ` · ⚠️ ${t.pointOfOrderType}` : ""}`);
+    mdLines.push(`### Clip #${t.id} — ${t.date} · ${t.bodyName} (${t.hms}, ${durClamped}s)`);
+    mdLines.push(`- **Speaking as**: ${t.speakingCapacity ?? profile.role}${t.representingOrg ? ` (${t.representingOrg})` : ""}`);
+    mdLines.push(`- **For or against**: ${t.stanceLabel ?? "Speaking"}${t.hasPointOfOrder ? ` · ⚠️ ${t.pointOfOrderType}` : ""}`);
     if (t.brandedMp4Url || t.directMp4Url || t.sourceMeetingMp4Url) {
-      mdLines.push(`- **Branded C-SPAN Segment MP4**: ${t.brandedMp4Url ?? `/api/clips/${t.id}?download=1`}`);
+      mdLines.push(`- **Video clip (MP4)**: ${t.brandedMp4Url ?? `/api/clips/${t.id}?download=1`}`);
     } else {
-      mdLines.push(`- **Video**: transcript only — ${t.videoTimingNote ?? "no verified recording for this turn"}`);
+      mdLines.push(`- **Video**: text only — ${t.videoTimingNote ?? "no confirmed video for this clip"}`);
     }
     if (t.videoTiming === "diarized_window" || t.speakerAttributionVerified === false) mdLines.push(`- **Note**: ${t.videoTimingNote}`);
     mdLines.push(`\n**Ready-to-Paste Facebook Post:**\n\`\`\`text\n${fbCaption}\n\`\`\`\n`);
@@ -159,11 +159,11 @@ export async function GET(_req: Request, ctx: { params: Promise<{ slug: string }
     }
   }
 
-  entries.push({ name: `${slug}/SPEAKER_DOSSIER_OSINT_AND_FB_CAPTIONS.md`, data: enc.encode(mdLines.join("\n")) });
-  entries.push({ name: `${slug}/turns_manifest.json`, data: enc.encode(JSON.stringify({ profile, turns }, null, 2)) });
-  entries.push({ name: `${slug}/download_speaker_only_segments.sh`, data: enc.encode(shLines.join("\n") + "\n") });
+  entries.push({ name: `${slug}/SPEAKER_PROFILE_AND_FACEBOOK_TEXT.md`, data: enc.encode(mdLines.join("\n")) });
+  entries.push({ name: `${slug}/clips_list.json`, data: enc.encode(JSON.stringify({ profile, turns }, null, 2)) });
+  entries.push({ name: `${slug}/download_clips.sh`, data: enc.encode(shLines.join("\n") + "\n") });
 
-  // Bundle locally rendered C-SPAN branded MP4 clips for this speaker right inside the ZIP!
+  // Include any locally made branded MP4 clips for this speaker in the ZIP
   const renderedDir = path.join(process.cwd(), "public", "rendered-clips");
   let bundledCount = 0;
   for (const t of turns) {
@@ -173,7 +173,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ slug: string }
       const st = fs.statSync(localMp4);
       if (st.size > 50_000 && st.size < 15_000_000) {
         entries.push({
-          name: `${slug}/cspan_branded_mp4_clips/RWC_${t.date}_turn${t.id}_${Math.round(t.durationSec)}s.mp4`,
+          name: `${slug}/video_clips/RWC_${t.date}_turn${t.id}_${Math.round(t.durationSec)}s.mp4`,
           data: new Uint8Array(fs.readFileSync(localMp4)),
         });
         bundledCount++;

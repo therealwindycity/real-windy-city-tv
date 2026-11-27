@@ -1,11 +1,17 @@
-# The Real Windy City — Cheyenne Civic Broadcast, Speaker Analytics & OSINT Vault (v3.2)
+# The Real Windy City — Cheyenne City Meetings, Speakers & Public Records
 
-Live `$0/mo` Serverless GitHub Pages Deployment: **https://therealwindycity.github.io/real-windy-city-tv/**
+Live site: **https://therealwindycity.github.io/real-windy-city-tv/** (free GitHub Pages site, no server)
 
-## v3.2 Highlights
-- **Internet Archive (`cochwy-*`) Video Routing (`0` Granicus links)**: Routes `784` meetings and `1,901` / `2,448` speaker turns through Internet Archive MP4 streams (`archive.org/download/cochwy-...`) and pre-rendered GitHub Release clips (`branded-clips-v1`).
-- **Transcript-Verified Clip Timing**: `1,672` clips were located word-for-word in the recording's own captions or a local Whisper transcript (`121` of them moved to the correct recording), `246` diarized clips carry text transcribed at their exact times (speaker label flagged unverified), and `497` turns that could not be located (e.g. Clerk Minutes summaries) are shown as transcript-only instead of playing the wrong moment.
-- **Official Minutes & Supporting-Packet Lexical Reconciliation**: `41,396` document fixes, `3,928` speaker-turn fixes, and `892` Clerk Minutes roster reconciliations across `109` canonical Cheyenne speakers (including **Councilman Mark Moody [Ward III]** — `262` clips across `83` meetings, `0` `Cathy Moody` misattributions).
-- **51-Entity Civic OSINT & Contractor Graph (`#osint` / `/osint`)**: Cross-links elected officials, city staff, Greater Cheyenne Chamber of Commerce, Cheyenne LEADS, Downtown Development Authority (DDA), engineering consultants (`AVI PC`), contractors (`Simon Contractors`, `JTL Group / Knife River`, `Reiman Corp.`, `Benchmark Engineers`), ordinances, bids, and speaker testimony, matched with verified Facebook, LinkedIn, Chamber, and official profiles.
-- **Per-Clip Historical & Behavioral Analytics**: Every speaker clip displays historical clip count + direct vault link, speaking capacities (individual citizen vs. organization/lobbyist/staff/official), topic & lobby/oppose breakdowns, average speaking time, and Point-of-Order tracking.
-- **Branded C-SPAN Video Packaging & Strict `<= 3 Min` Speaker-Segment Export**: Every video includes **The Real Windy City** branded intro/outro, synced cleaned captions (`CC`), and a **C-SPAN style "The Real Windy City" marquee info border**; exports and downloads strictly isolate only the speaker's `<= 3 min` segment — never the full meeting video.
+Follow The Real Windy City on Facebook: https://www.facebook.com/profile.php?id=61576260305204
+
+## What's on the site
+- **Meetings (2008–2026).** Every Cheyenne City Council, committee, work session and board meeting we have records for. Each one has its agenda, minutes and attached documents, plus the full meeting video when the Internet Archive has a copy.
+- **Speaker clips.** Short video clips (3 minutes or less) of each person who spoke, cued to the right spot in the meeting video. Clips are timed by matching what was said to the recording's own captions or a transcript. A clip that can't be found in the recording is shown as text only, so it never plays the wrong moment. Where a speaker's name couldn't be confirmed, the clip says so.
+- **Speakers and people.** For each speaker: how many times they've spoken, in what role (elected official, city staff, city board member, contractor or applicant, someone speaking for an organization, or resident), which topics they talk about, whether they spoke for or against, and any points of order. Names are checked against the official minutes.
+- **Who's Who.** Profiles of the people, companies and agencies that come before the city: elected officials, city staff, contractors and engineering firms, business groups such as the Chamber of Commerce and Cheyenne LEADS, public agencies like the Board of Public Utilities, and residents who speak often. Profiles link to public pages, to city agenda items that name them, and to their video clips. People are never linked to contracts just because their last name appears in an agenda item.
+- **Ordinances.** Each ordinance followed from 1st reading to final vote, with the meeting video, documents and speaker clips for every reading.
+- **Meeting documents.** All agendas, minutes and attached documents, searchable. Each file has a fingerprint (SHA-1) that proves it matches the archived original.
+- **Where the records come from.** Screen recordings of the public websites, showing the clicks used to download every kind of record.
+
+## Video clips
+Each clip has The Real Windy City intro and outro, captions and a scrolling name banner. Downloads and Facebook shares only ever include that one speaker's clip, never the whole meeting.

@@ -17,5 +17,6 @@ python3 scripts/apply_manual_corrections.py  # hand-verified windows (data/retim
 python3 scripts/dedupe_meetings.py
 python3 scripts/clean_text_markers.py    # '>>' speaker-change markers -> ' — ' for display
 python3 scripts/recompute_speaker_stats.py | head -1
+python3 scripts/plain_language.py         # plain-English labels, fresh counts, no name-match contracts
 export DATABASE_URL=${DATABASE_URL:-postgresql://civic:civic@127.0.0.1:5432/civic_foundry}
 npx tsx scripts/reseed_force.ts

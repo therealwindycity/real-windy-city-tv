@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>The Real Windy City · Cheyenne Civic Broadcast, Speaker Analytics &amp; OSINT Graph (2008–2026)</title>
-  <meta name="description" content="1,583 City of Cheyenne government episodes (802 Internet Archive streams), 2,448 speaker turns (1,951 timed to the meeting video, 25 branded clips) across 109 canonical speakers with capacities, stances, avg turn time & Points of Order, 51 OSINT civic/contractor dossiers, 6,339 Minutes & Supporting PDFs, and 275 multi-reading ordinances." />
-  <meta property="og:title" content="The Real Windy City · Cheyenne Civic Broadcast, Speaker Analytics &amp; OSINT Vault" />
-  <meta property="og:description" content="Every City of Cheyenne meeting, C-SPAN speaker video clip, OSINT contractor/entity profile, ordinance reading, and supporting PDF (2008–2026)." />
+  <title>The Real Windy City · Cheyenne City Meetings, Speakers &amp; Records (2008–2026)</title>
+  <meta name="description" content="Watch Cheyenne city government meetings from 2008 to 2026, see who spoke and what they said, look up the people and companies that come before the city, follow every ordinance from first reading to final vote, and read the original meeting documents." />
+  <meta property="og:title" content="The Real Windy City · Cheyenne City Meetings, Speakers &amp; Records" />
+  <meta property="og:description" content="Every Cheyenne city meeting, video clips of each speaker, who's who in city business, every ordinance and the original meeting documents (2008–2026)." />
   <meta property="og:type" content="website" />
   <link rel="stylesheet" href="./styles.css" />
 </head>
@@ -17,31 +17,31 @@
         <span class="brand-badge">RWC</span>
         <span>
           <span class="brand-title">The Real Windy City</span>
-          <span class="brand-sub">Cheyenne Civic Broadcast, Speaker Analytics &amp; OSINT Vault</span>
+          <span class="brand-sub">Cheyenne city meetings, speakers &amp; public records</span>
         </span>
       </a>
       <nav class="main-nav" id="mainNav">
-        <button type="button" data-nav="home" class="active">Now Streaming</button>
-        <button type="button" data-nav="episodes">Episodes (1,583)</button>
-        <button type="button" data-nav="speakers">🎙️ Speakers (2,448 turns)</button>
-        <button type="button" data-nav="osint">🕸️ OSINT Graph (51)</button>
-        <button type="button" data-nav="ordinances">📜 Ordinances (275)</button>
-        <button type="button" data-nav="foundry">🏛️ Foundry Docs (6,339)</button>
-        <button type="button" data-nav="provenance">🎥 Provenance (14)</button>
-        <button type="button" data-nav="cast">🎭 Cast (109)</button>
+        <button type="button" data-nav="home" class="active">Home</button>
+        <button type="button" data-nav="episodes">📺 Meetings <span class="nav-count" data-count="episodes"></span></button>
+        <button type="button" data-nav="speakers">🎙️ Speaker Clips <span class="nav-count" data-count="speakers"></span></button>
+        <button type="button" data-nav="osint">🕸️ Who's Who <span class="nav-count" data-count="osint"></span></button>
+        <button type="button" data-nav="ordinances">📜 Ordinances <span class="nav-count" data-count="ordinances"></span></button>
+        <button type="button" data-nav="foundry">📄 Documents <span class="nav-count" data-count="foundry"></span></button>
+        <button type="button" data-nav="provenance">🎥 Where the Records Come From</button>
+        <button type="button" data-nav="cast">🎭 People <span class="nav-count" data-count="cast"></span></button>
       </nav>
     </div>
   </header>
 
   <main id="appRoot" class="app-root">
-    <div class="loading-shell">Initializing v3.2 Cheyenne Civic Ontology, Internet Archive Streams &amp; OSINT Graph (2008–2026)…</div>
+    <div class="loading-shell">Loading Cheyenne city meetings…</div>
   </main>
 
   <div id="floatLayer"></div>
   <div id="modalLayer"></div>
 
-  <footer class="site-footer">
-    100% Reconciled Primary Public Record (2008–2026) · 1,583 Episodes (802 Internet Archive Ch. 192 Streams) · 8,887 Docket Items · 6,339 Clerk Minutes &amp; Supporting PDFs (1,081 SHA-1 OCR) · 2,448 Speaker Turns (1,951 Timed to Video · 25 Branded Clips · 109 Canonical Speakers) · 51 Cross-Referenced OSINT Entities, Contractors &amp; Boards · 275 Multi-Reading Ordinances · 14 Provenance Films. Nothing here is legal advice.
+  <footer class="site-footer" id="siteFooter">
+    Built from Cheyenne's public meeting records, 2008–2026: agendas, minutes, attached documents and meeting video. Nothing here is legal advice.
   </footer>
 
   <script src="./app.js"></script>

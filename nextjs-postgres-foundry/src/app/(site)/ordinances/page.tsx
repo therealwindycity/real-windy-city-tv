@@ -28,10 +28,10 @@ export default async function OrdinancesPage({ searchParams }: { searchParams: P
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
-      <h1 className="text-3xl font-black tracking-tight">Ordinance arcs ({total})</h1>
+      <h1 className="text-3xl font-black tracking-tight">Ordinances ({total})</h1>
       <p className="text-sm text-slate-400">
-        Every ordinance is a mini-series. Its readings are the episodes: <span className="font-bold text-sky-400">pilot</span> (1st reading) →{" "}
-        <span className="font-bold text-amber-300">second act</span> (2nd) → <span className="font-bold text-emerald-400">finale</span> (3rd).
+        A city ordinance is voted on three times. Follow each one from its <span className="font-bold text-sky-400">1st reading</span> →{" "}
+        <span className="font-bold text-amber-300">2nd reading</span> → <span className="font-bold text-emerald-400">3rd and final reading</span>, with the video, speakers and documents from each meeting.
       </p>
       <InstantFilterForm action="/ordinances" className="mt-4 flex flex-wrap gap-2 text-sm">
         <input

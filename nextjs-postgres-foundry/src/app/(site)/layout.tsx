@@ -2,14 +2,14 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 const nav = [
-  { href: "/", label: "Now Streaming" },
-  { href: "/episodes", label: "Episodes (1,583)" },
-  { href: "/speakers", label: "🎙️ Speakers (2,448 turns)" },
-  { href: "/osint", label: "🕸️ OSINT Entity Graph" },
-  { href: "/ordinances", label: "📜 Ordinances: 1st→Final" },
-  { href: "/documents", label: "🏛️ Foundry Docs (6,339)" },
-  { href: "/provenance", label: "🎥 Provenance Films" },
-  { href: "/cast", label: "The Cast" },
+  { href: "/", label: "Home" },
+  { href: "/episodes", label: "📺 Meetings" },
+  { href: "/speakers", label: "🎙️ Speaker Clips" },
+  { href: "/osint", label: "🕸️ Who's Who" },
+  { href: "/ordinances", label: "📜 Ordinances" },
+  { href: "/documents", label: "📄 Documents" },
+  { href: "/provenance", label: "🎥 Where the Records Come From" },
+  { href: "/cast", label: "🎭 People" },
 ];
 
 export default function SiteLayout({ children }: { children: ReactNode }) {
@@ -21,7 +21,7 @@ export default function SiteLayout({ children }: { children: ReactNode }) {
             <span className="grid h-8 w-8 place-items-center rounded bg-amber-400 text-sm font-black text-black">RWC</span>
             <span className="leading-none">
               <span className="block text-sm font-black uppercase tracking-[0.18em]">The Real Windy City</span>
-              <span className="block text-[10px] uppercase tracking-[0.26em] text-amber-300">Civic Broadcast, OSINT &amp; Foundry · Cheyenne, WY</span>
+              <span className="block text-[10px] uppercase tracking-[0.26em] text-amber-300">City meetings, speakers &amp; records · Cheyenne, WY</span>
             </span>
           </Link>
           <nav className="ml-auto flex flex-wrap gap-1 text-xs font-bold sm:text-sm">
@@ -36,7 +36,7 @@ export default function SiteLayout({ children }: { children: ReactNode }) {
       <main className="flex-1">{children}</main>
       <footer className="border-t border-white/10 px-4 py-6 text-center text-xs text-slate-400">
         <p>
-          100% Zero-Gap Primary Public Record (2008–2026): 1,583 City of Cheyenne meetings (802 Internet Archive Ch. 192 MP4s), 8,887 docket items, 6,339 Clerk Minutes &amp; Supporting Packet PDFs, 2,448 speaker turns across 109 verified speakers (1,951 timed to the meeting video, 25 branded clips), 51 OSINT cross-referenced civic entities, 275 multi-reading ordinances, and 14 manual click-path provenance films. Nothing here is legal advice.
+          Built from Cheyenne's public meeting records, 2008–2026: agendas, minutes, attached documents and meeting video. Nothing here is legal advice.
         </p>
       </footer>
     </div>

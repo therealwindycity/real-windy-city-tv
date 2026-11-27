@@ -6,12 +6,15 @@ export const dynamic = "force-dynamic";
 const PAGE_SIZE = 16;
 
 const CATEGORIES = [
-  "Chamber / LEADS / DDA",
-  "Vendor / Contractor",
-  "Developer / Property / Project",
-  "Council / Elected",
-  "City Staff",
-  "Special Interest / Watchdog",
+  "Elected Officials",
+  "City Staff & Boards",
+  "Contractors & Engineers",
+  "Business Groups",
+  "Public Agencies",
+  "Development Projects",
+  "Advocates & Watchdogs",
+  "Residents Who Spoke",
+  "Other",
 ];
 
 function fmtUsd(n: number) {
@@ -47,23 +50,23 @@ export default async function OsintGraphPage({
     <div className="mx-auto max-w-7xl space-y-6 px-4 py-8">
       <div className="rounded-2xl border border-emerald-400/30 bg-gradient-to-br from-[#071518] via-[#070f1d] to-black p-6 shadow-2xl">
         <div className="font-mono text-[11px] font-bold uppercase tracking-[0.28em] text-emerald-300">
-          🕸️ CIVIC OSINT // ENTITY, VENDOR, CHAMBER/LEADS/DDA &amp; SPEAKER CROSS-REFERENCE MATRIX
+          🕸️ WHO&apos;S WHO IN CHEYENNE CITY GOVERNMENT
         </div>
         <h1 className="mt-1 text-3xl font-black tracking-tight text-white sm:text-4xl">
-          51 Verified Civic Entities · Contracts, Bids, Ordinances, Social &amp; Business Profiles
+          {total} people, companies &amp; groups that come before the city
         </h1>
         <p className="mt-2 max-w-4xl text-sm text-slate-300">
-          Cross-referencing Cheyenne <b>Council Members</b>, <b>Mayor &amp; City Staff</b>, <b>Cheyenne LEADS</b>,{" "}
-          <b>Greater Cheyenne Chamber of Commerce</b>, <b>Downtown Development Authority (DDA)</b>,{" "}
-          <b>Engineering &amp; Paving Contractors</b> (AVI PC, Simon Contractors, Knife River, Reiman Corp, Benchmark),{" "}
-          <b>Developers &amp; Property Projects</b> (Microsoft, Skybox, Sweetgrass, Cox Ranch), and <b>Civic Watchdogs</b> across 1,583 meetings, 8,887 docket items, and 2,448 speaker clips.
+          Profiles of <b>council members</b>, <b>the mayor and city staff</b>, business groups like <b>Cheyenne LEADS</b>, the{" "}
+          <b>Greater Cheyenne Chamber of Commerce</b> and the <b>Downtown Development Authority</b>,{" "}
+          <b>engineering and paving contractors</b> (AVI PC, Simon Contractors, Knife River, Reiman Corp, Benchmark),{" "}
+          <b>development projects</b> (Microsoft, Skybox, Sweetgrass, Cox Ranch) and <b>local watchdogs</b>. Each one shows their contracts, the ordinances they were part of, their public profiles and their video clips.
         </p>
 
         <InstantFilterForm action="/osint" className="mt-4 flex flex-wrap items-center gap-2 text-xs">
           <input
             name="q"
             defaultValue={sp.q ?? ""}
-            placeholder="Search entities, contractors, councilors, LEADS, DDA, bids, projects…"
+            placeholder="Search names, companies, projects or contracts…"
             className="min-w-[260px] flex-1 rounded-xl border border-white/15 bg-black/60 px-3.5 py-2.5 text-white outline-none focus:border-emerald-400"
           />
           <select
@@ -71,7 +74,7 @@ export default async function OsintGraphPage({
             defaultValue={sp.category ?? ""}
             className="rounded-xl border border-white/15 bg-[#08111f] px-3.5 py-2.5 font-semibold text-white"
           >
-            <option value="">All Entity Categories ({total})</option>
+            <option value="">All categories</option>
             {CATEGORIES.map((c) => (
               <option key={c} value={c}>
                 {c}
@@ -88,13 +91,13 @@ export default async function OsintGraphPage({
           )}
         </InstantFilterForm>
 
-        {/* Quick Category Chips */}
+        {/* Category buttons */}
         <div className="mt-3 flex flex-wrap gap-1.5 text-xs">
           <Link
             href={qs({ category: undefined, page: undefined })}
             className={`rounded-full px-3 py-1 font-bold ${!sp.category ? "bg-emerald-400 text-black" : "bg-white/10 text-slate-300 hover:bg-white/20"}`}
           >
-            All Categories
+            All categories
           </Link>
           {CATEGORIES.map((c) => (
             <Link
@@ -110,10 +113,10 @@ export default async function OsintGraphPage({
 
       <div className="flex items-center justify-between font-mono text-xs text-slate-400">
         <span>
-          MATCHED_OSINT_ENTITIES={total} · PAGE {page} OF {totalPages}
+          {total} results · page {page} of {totalPages}
         </span>
         <Link href="/speakers" className="font-bold text-amber-300 hover:underline">
-          🎙️ Open 2,448 Speaker Clips &amp; Advocacy Analytics →
+          🎙️ See all 2,448 speaker clips →
         </Link>
       </div>
 
@@ -134,7 +137,7 @@ export default async function OsintGraphPage({
                   <div className="text-right font-mono text-xs">
                     {usd && (
                       <div className="rounded bg-amber-400/20 px-2.5 py-1 font-black text-amber-300 ring-1 ring-amber-400/40">
-                        Tracked Bids/Contracts: {usd}
+                        Contracts &amp; bids: {usd}
                       </div>
                     )}
                     <div className="mt-1 text-[11px] text-slate-400">{e.meetingCount} Linked Meetings</div>
@@ -143,10 +146,10 @@ export default async function OsintGraphPage({
 
                 <p className="mt-2.5 text-xs leading-relaxed text-slate-300">{e.nexusSummary}</p>
 
-                {/* Verified Social, LinkedIn, Chamber, Gov & Business Entity Profiles */}
+                {/* Public profile links */}
                 {e.verifiedProfiles.length > 0 && (
                   <div className="mt-3 flex flex-wrap items-center gap-1.5">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-amber-300">Verified Profiles:</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-amber-300">Public profiles:</span>
                     {e.verifiedProfiles.map((p, idx) => (
                       <a
                         key={idx}
@@ -161,7 +164,7 @@ export default async function OsintGraphPage({
                   </div>
                 )}
 
-                {/* Key Principals / Affiliations */}
+                {/* Key people */}
                 {e.keyPeople.length > 0 && (
                   <div className="mt-2.5 flex flex-wrap gap-1 text-[10px]">
                     {e.keyPeople.map((kp, idx) => (
@@ -172,11 +175,11 @@ export default async function OsintGraphPage({
                   </div>
                 )}
 
-                {/* Tracked Contracts, Bids, Proposals & Packet Exhibits */}
+                {/* Contracts and bids */}
                 {e.contractsAndBids.length > 0 && (
                   <div className="mt-3 rounded-xl border border-white/10 bg-black/45 p-3">
                     <div className="mb-1.5 font-mono text-[10px] font-bold uppercase tracking-wider text-amber-300">
-                      📋 Linked Contracts, Bids, Proposals &amp; Docket Items ({e.contractsAndBids.length})
+                      📋 Contracts, bids &amp; agenda items ({e.contractsAndBids.length})
                     </div>
                     <div className="max-h-36 space-y-1.5 overflow-y-auto text-[11px]">
                       {e.contractsAndBids.map((cb, idx) => (
@@ -193,7 +196,7 @@ export default async function OsintGraphPage({
                   </div>
                 )}
 
-                {/* Linked Ordinances & Resolutions */}
+                {/* Ordinances and resolutions */}
                 {e.ordinancesAndResolutions.length > 0 && (
                   <div className="mt-2.5 flex flex-wrap gap-1.5">
                     {e.ordinancesAndResolutions.slice(0, 4).map((o) => (
@@ -210,13 +213,13 @@ export default async function OsintGraphPage({
                 )}
               </div>
 
-              {/* Co-Appearing Speakers + Direct Historical Clips Link */}
+              {/* Related speakers */}
               <div className="mt-4 border-t border-white/10 pt-3">
                 <div className="mb-1.5 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                  <span>🎙️ Linked Speakers &amp; Historical Clip Vaults</span>
+                  <span>🎙️ Related speakers &amp; their clips</span>
                   {e.speakerSlug && (
                     <Link href={`/speakers?speaker=${encodeURIComponent(e.speakerSlug)}`} className="text-amber-300 hover:underline">
-                      Open All Speaker Clips →
+                      See all their clips →
                     </Link>
                   )}
                 </div>
@@ -239,11 +242,11 @@ export default async function OsintGraphPage({
 
       {rows.length === 0 && (
         <div className="rounded-xl border border-white/10 bg-white/5 p-8 text-center text-sm text-slate-300">
-          No OSINT entities match that filter. <Link href="/osint" className="text-emerald-300 underline">Reset OSINT filters</Link>.
+          Nothing matches that search. <Link href="/osint" className="text-emerald-300 underline">Clear the search</Link>.
         </div>
       )}
 
-      {/* Pagination Bar */}
+      {/* Pages */}
       <div className="flex items-center justify-between rounded-xl border border-white/10 bg-[#080f1d] px-4 py-3 text-xs">
         {page > 1 ? (
           <Link href={qs({ page: String(page - 1) })} className="rounded-lg bg-white/10 px-4 py-2 font-bold text-white hover:bg-white/20">
@@ -253,7 +256,7 @@ export default async function OsintGraphPage({
           <span className="rounded-lg bg-white/5 px-4 py-2 text-slate-500">← Previous Page</span>
         )}
         <span className="font-mono text-slate-300">
-          Page {page} of {totalPages} ({total} OSINT Entities)
+          Page {page} of {totalPages} ({total} results)
         </span>
         {page < totalPages ? (
           <Link href={qs({ page: String(page + 1) })} className="rounded-lg bg-emerald-400 px-4 py-2 font-black text-black hover:bg-emerald-300">

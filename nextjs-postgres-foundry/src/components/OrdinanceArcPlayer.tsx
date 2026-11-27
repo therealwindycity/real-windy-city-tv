@@ -88,24 +88,24 @@ export default function OrdinanceArcPlayer({
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <div className="text-[11px] font-bold uppercase tracking-[0.3em] text-violet-300">
-              📜 Complete Multi-Reading Legislative Arc · {ord.kind}
+              📜 Ordinance history · {ord.kind}
             </div>
             <h1 className="mt-1 text-2xl font-black text-white sm:text-4xl">{ord.title}</h1>
             <div className="mt-2 font-mono text-xs text-slate-300">
-              {ord.readings.length} Sequential Readings ({ord.firstDate} → {ord.lastDate}) · {turns.length} Speaker Clips · {docs.length} Supporting PDFs · {votes.length} Recorded Votes
+              {ord.readings.length} readings ({ord.firstDate} → {ord.lastDate}) · {turns.length} speaker clips · {docs.length} documents · {votes.length} recorded votes
             </div>
           </div>
           <Link href="/ordinances" className="rounded-full bg-white/10 px-4 py-2 text-xs font-bold text-slate-200 hover:bg-white/20">
-            ← All 275 Ordinance Arcs
+            ← All 275 ordinances
           </Link>
         </div>
       </div>
 
-      {/* Multi-Reading Stepper Bar */}
+      {/* Readings */}
       <div className="rounded-2xl border border-violet-400/35 bg-[#090f20] p-5">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <div className="text-xs font-bold uppercase tracking-widest text-violet-300">
-            Select any Reading to Watch Verified Broadcast + Speaker Segments + Packet PDFs:
+            Pick a reading to watch the meeting video, speaker clips and documents:
           </div>
           <div className="flex flex-wrap gap-2 text-xs">
             <button
@@ -133,7 +133,7 @@ export default function OrdinanceArcPlayer({
               href={`/speakers?ordinance=${encodeURIComponent(ord.slug)}&sort=oldest`}
               className="rounded-full bg-amber-400 px-3.5 py-1 font-black text-black hover:bg-amber-300"
             >
-              🎙️ All {turns.length} Speaker Clips →
+              🎙️ All {turns.length} speaker clips →
             </Link>
           </div>
         </div>
@@ -161,7 +161,7 @@ export default function OrdinanceArcPlayer({
           ))}
         </div>
 
-        {/* Active Reading Broadcast Video Stage (C-SPAN Framed) */}
+        {/* Video for the selected reading */}
         {activeReading && (
           <div className="mt-4 grid gap-4 lg:grid-cols-[1.45fr_1fr]">
             <div className="overflow-hidden rounded-xl border-2 border-amber-400/50 bg-[#050912]">
@@ -186,7 +186,7 @@ export default function OrdinanceArcPlayer({
                     onClick={() => setPhase("main")}
                     className="mt-4 rounded-full bg-amber-400 px-5 py-2 text-xs font-black text-black hover:bg-amber-300"
                   >
-                    ▶ Watch Verified Broadcast →
+                    ▶ Watch the meeting video →
                   </button>
                 </div>
               ) : phase === "outro" ? (
@@ -194,14 +194,14 @@ export default function OrdinanceArcPlayer({
                   <div className="text-sm font-black uppercase tracking-[0.25em] text-amber-300">THE REAL WINDY CITY</div>
                   <div className="mt-1 text-xs font-bold text-white">Verified Cheyenne Municipal Legislative Record (2008–2026)</div>
                   <div className="mt-2 font-mono text-[11px] text-emerald-300">
-                    {ord.readings.length} Readings · {turns.length} Speaker Clips · {docs.length} Supporting PDFs
+                    {ord.readings.length} readings · {turns.length} speaker clips · {docs.length} documents
                   </div>
                   <button
                     type="button"
                     onClick={() => setPhase("main")}
                     className="mt-4 rounded-full bg-white/15 px-4 py-1.5 text-xs font-bold text-white hover:bg-white/25"
                   >
-                    ↺ Replay Broadcast
+                    ↺ Play again
                   </button>
                 </div>
               ) : cleanIaMp4 ? (
@@ -226,20 +226,20 @@ export default function OrdinanceArcPlayer({
                     Reading {activeIdx + 1}: {activeReading.date} · {activeReading.body}
                   </div>
                   <p className="mt-2 max-w-md text-xs text-slate-400">
-                    Inspect all speaker clips and supporting Foundry agenda/staff packet exhibits for this reading below, or open the full episode.
+                    See the speaker clips and documents for this reading below, or open the full meeting.
                   </p>
                   {activeReading.meeting && (
                     <Link
                       href={`/episode/${activeReading.meeting}`}
                       className="mt-4 rounded-full bg-amber-400 px-4 py-2 text-xs font-black text-black"
                     >
-                      ▶ Open Full Sitting Episode ({activeReading.date}) →
+                      ▶ Open the full meeting ({activeReading.date}) →
                     </Link>
                   )}
                 </div>
               )}
 
-              {/* C-SPAN Lower-Third + Marquee Info Border */}
+              {/* Name bar */}
               <div className="border-t-2 border-rose-700 bg-[#0a1931] px-3 py-1.5 text-xs">
                 <div className="flex flex-wrap items-center justify-between gap-2 font-black text-white">
                   <span className="truncate">{ord.title}</span>
@@ -264,7 +264,7 @@ export default function OrdinanceArcPlayer({
                   Reading {activeIdx + 1} of {ord.readings.length} · {activeReading.date} · Item {activeReading.itemNo}
                 </div>
                 <h3 className="mt-1 text-lg font-black text-white">
-                  {activeReading.body} — {activeReading.stage || "Floor Consideration"}
+                  {activeReading.body} — {activeReading.stage || "Council discussion"}
                 </h3>
                 {activeReading.context && <p className="mt-3 text-xs leading-relaxed text-slate-300">{activeReading.context}</p>}
 
@@ -279,10 +279,10 @@ export default function OrdinanceArcPlayer({
                   </div>
                 )}
 
-                {/* Supporting PDFs for this Reading */}
+                {/* Documents for this reading */}
                 <div className="mt-4">
                   <div className="text-[11px] font-bold uppercase tracking-wider text-sky-300">
-                    📄 Supporting Foundry Agenda &amp; Packet PDFs ({readingDocs.length})
+                    📄 Agenda &amp; attached documents ({readingDocs.length})
                   </div>
                   <div className="mt-1.5 max-h-36 space-y-1 overflow-y-auto">
                     {readingDocs.slice(0, 6).map((d) => (
@@ -311,11 +311,11 @@ export default function OrdinanceArcPlayer({
                   onClick={() => setActiveIdx((i) => Math.max(0, i - 1))}
                   className="rounded-lg bg-white/10 px-3 py-1.5 font-bold disabled:opacity-40"
                 >
-                  ← Previous Reading
+                  ← Previous reading
                 </button>
                 {activeReading.meeting && (
                   <Link href={`/episode/${activeReading.meeting}`} className="font-bold text-amber-300 hover:underline">
-                    Full Episode →
+                    Full meeting →
                   </Link>
                 )}
                 <button
@@ -324,7 +324,7 @@ export default function OrdinanceArcPlayer({
                   onClick={() => setActiveIdx((i) => Math.min(ord.readings.length - 1, i + 1))}
                   className="rounded-lg bg-amber-400 px-3 py-1.5 font-black text-black disabled:opacity-40"
                 >
-                  Next Reading →
+                  Next reading →
                 </button>
               </div>
             </div>
@@ -332,15 +332,15 @@ export default function OrdinanceArcPlayer({
         )}
       </div>
 
-      {/* All Speaker Video Turns Across All Readings of this Ordinance */}
+      {/* All speaker clips for this ordinance */}
       {turns.length > 0 && (
         <section className="space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-xl font-black text-white">
-              🎙️ All Speaker Testimony Across Readings ({turns.length} Speaker Turns)
+              🎙️ Everyone who spoke about it ({turns.length} clips)
             </h2>
             <span className="text-xs text-slate-400">
-              Chronological testimony from First Reading ({ord.firstDate}) through Final Consideration ({ord.lastDate})
+              In order, from the first reading ({ord.firstDate}) to the last ({ord.lastDate})
             </span>
           </div>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

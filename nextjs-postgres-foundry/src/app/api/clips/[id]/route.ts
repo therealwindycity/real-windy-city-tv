@@ -43,7 +43,7 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
       });
     } catch (err) {
       return Response.json(
-        { error: "Failed to render branded C-SPAN speaker segment", detail: String(err) },
+        { error: "Could not make the video clip", detail: String(err) },
         { status: 500 },
       );
     }
@@ -53,7 +53,7 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
   const url = new URL(req.url);
   const wantDownload = url.searchParams.get("download") === "1";
   const safeSlug = turn.speakerSlug.replace(/[^a-z0-9-]/gi, "-");
-  const dlName = `RWC_${turn.date}_${safeSlug}_turn${turnId}_cspan_segment.mp4`;
+  const dlName = `RWC_${turn.date}_${safeSlug}_clip${turnId}.mp4`;
   const disposition = wantDownload ? `attachment; filename="${dlName}"` : `inline; filename="${dlName}"`;
 
   const range = req.headers.get("range");

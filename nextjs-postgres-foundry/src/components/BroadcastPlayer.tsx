@@ -7,13 +7,13 @@ type Scene = { id: string; label: string; ms: number };
 
 function buildScenes(b: EpisodeBundle): Scene[] {
   const s = b.show;
-  const list: Scene[] = [{ id: "cold", label: "Cold open", ms: 6500 }];
-  if (s.previously.length) list.push({ id: "prev", label: "Previously on…", ms: Math.min(22000, 4500 + s.previously.length * 3200) });
-  list.push({ id: "theme", label: "Theme song", ms: 15000 });
-  if (s.cast.length) list.push({ id: "cast", label: "Cast of characters", ms: Math.min(18000, 5000 + Math.ceil(s.cast.length / 2) * 900) });
+  const list: Scene[] = [{ id: "cold", label: "Opening", ms: 6500 }];
+  if (s.previously.length) list.push({ id: "prev", label: "Earlier meetings", ms: Math.min(22000, 4500 + s.previously.length * 3200) });
+  list.push({ id: "theme", label: "Intro music", ms: 15000 });
+  if (s.cast.length) list.push({ id: "cast", label: "Who was there", ms: Math.min(18000, 5000 + Math.ceil(s.cast.length / 2) * 900) });
   s.acts.slice(0, 7).forEach((a, i) => list.push({ id: `act${i}`, label: a.name, ms: 5200 }));
-  if (s.toBeContinued.length) list.push({ id: "tbc", label: "To be continued…", ms: Math.min(20000, 4000 + s.toBeContinued.length * 2800) });
-  if (s.nextTime.length) list.push({ id: "next", label: "Next time on…", ms: Math.min(16000, 4000 + s.nextTime.length * 3000) });
+  if (s.toBeContinued.length) list.push({ id: "tbc", label: "Still open", ms: Math.min(20000, 4000 + s.toBeContinued.length * 2800) });
+  if (s.nextTime.length) list.push({ id: "next", label: "Coming up", ms: Math.min(16000, 4000 + s.nextTime.length * 3000) });
   list.push({ id: "credits", label: "Credits", ms: 7500 });
   return list;
 }
@@ -172,8 +172,8 @@ export default function BroadcastPlayer({ b, onClose }: { b: EpisodeBundle; onCl
   const actItems = act ? b.items.filter((i) => act.items.includes(i.itemNo)).slice(0, 6) : [];
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col bg-[#040811] text-white" role="dialog" aria-label="Episode player">
-      {/* Top C-SPAN / The Real Windy City Broadcast Bar */}
+    <div className="fixed inset-0 z-[100] flex flex-col bg-[#040811] text-white" role="dialog" aria-label="Meeting player">
+      {/* Top bar */}
       <div className="z-20 flex items-center justify-between border-b-2 border-amber-400 bg-[#09152b] px-4 py-1.5 text-xs font-black uppercase tracking-wider">
         <span className="text-amber-300">[RWC] THE REAL WINDY CITY · CHEYENNE CIVIC BROADCAST · {scene.label}</span>
         <div className="flex items-center gap-3">
@@ -195,15 +195,14 @@ export default function BroadcastPlayer({ b, onClose }: { b: EpisodeBundle; onCl
               <h1 className="title-shimmer anim-zoom mt-3 text-5xl font-black leading-none sm:text-7xl" style={{ animationDelay: "1.2s" }}>{s.title}</h1>
               <p className="anim-up mt-6 max-w-2xl text-lg text-slate-300" style={{ animationDelay: "2.4s" }}>{s.tagline}</p>
               <div className="anim-up mt-6 flex gap-2" style={{ animationDelay: "3.4s" }}>
-                <span className="rounded border border-white/40 px-2 py-0.5 text-xs font-bold">{s.rating}</span>
-                {s.runtimeLabel && <span className="rounded border border-white/40 px-2 py-0.5 text-xs">runtime {s.runtimeLabel}</span>}
+                {s.runtimeLabel && <span className="rounded border border-white/40 px-2 py-0.5 text-xs">length {s.runtimeLabel}</span>}
                 {s.tags.slice(0, 2).map((t) => <span key={t} className="rounded bg-amber-300 px-2 py-0.5 text-xs font-black uppercase text-black">{t}</span>)}
               </div>
             </>
           )}
           {scene.id === "prev" && (
             <>
-              <div className="text-xs font-bold uppercase tracking-[0.5em] text-sky-300">Previously on</div>
+              <div className="text-xs font-bold uppercase tracking-[0.5em] text-sky-300">Earlier meetings</div>
               <h2 className="mt-1 text-3xl font-black sm:text-5xl">The Real Windy City…</h2>
               <ul className="mt-8 w-full max-w-3xl space-y-3 text-left">
                 {s.previously.slice(0, visible(3200, s.previously.length)).map((p, i) => (
@@ -237,7 +236,7 @@ export default function BroadcastPlayer({ b, onClose }: { b: EpisodeBundle; onCl
                   </div>
                 ))}
               </div>
-              {s.cast.length > 12 && <div className="mt-3 text-xs text-slate-400">+ {s.cast.length - 12} more in the Cast &amp; Crew lens</div>}
+              {s.cast.length > 12 && <div className="mt-3 text-xs text-slate-400">+ {s.cast.length - 12} more in the Who Was There view</div>}
             </>
           )}
           {act && (
@@ -272,7 +271,7 @@ export default function BroadcastPlayer({ b, onClose }: { b: EpisodeBundle; onCl
           )}
           {scene.id === "next" && (
             <>
-              <div className="text-xs font-bold uppercase tracking-[0.5em] text-rose-300">Next time on</div>
+              <div className="text-xs font-bold uppercase tracking-[0.5em] text-rose-300">Coming up</div>
               <h2 className="mt-1 text-3xl font-black sm:text-5xl">The Real Windy City</h2>
               <ul className="mt-8 w-full max-w-3xl space-y-3 text-left">
                 {s.nextTime.slice(0, visible(3000, s.nextTime.length)).map((n, i) => (
@@ -287,10 +286,10 @@ export default function BroadcastPlayer({ b, onClose }: { b: EpisodeBundle; onCl
           {scene.id === "credits" && (
             <div className="space-y-3 text-sm text-slate-300">
               <div className="text-xs font-bold uppercase tracking-[0.5em] text-amber-300">THE REAL WINDY CITY · VERIFIED CIVIC RECORD</div>
-              <p>Broadcast Stream: Internet Archive &amp; Wayback Machine ({b.provenance.waybackTs})</p>
-              <p>Official Record: City of Cheyenne Clerk Minutes &amp; Supporting Agenda Packets</p>
-              <p>OSINT &amp; Speaker Analytics: The Real Windy City Municipal Accountability Pipeline</p>
-              <p className="pt-3 text-lg font-black text-white">Now inspect all 19 lenses ↓</p>
+              <p>Meeting video: Internet Archive (from a saved copy of the city&apos;s page, {b.provenance.waybackTs})</p>
+              <p>Official record: City of Cheyenne Clerk minutes &amp; agenda documents</p>
+              <p>Speaker clips &amp; profiles: The Real Windy City</p>
+              <p className="pt-3 text-lg font-black text-white">Now explore all 19 views ↓</p>
               <button onClick={onClose} className="rounded-full bg-amber-400 px-5 py-2 font-black text-black hover:bg-amber-300">Close player</button>
             </div>
           )}
@@ -302,14 +301,14 @@ export default function BroadcastPlayer({ b, onClose }: { b: EpisodeBundle; onCl
           </div>
         </div>
       </div>
-      {/* Bottom C-SPAN Marquee Info Border */}
+      {/* Bottom info bar */}
       <div className="z-20 overflow-hidden border-t-2 border-rose-700 bg-[#071122] py-1 text-[11px] font-bold text-amber-300">
         <div className="ticker-track whitespace-nowrap">
           <span className="pr-16">
-            THE REAL WINDY CITY · {b.meeting.bodyName.toUpperCase()} · {b.meeting.date} · {s.title} · {b.items.length} DOCKET ITEMS · {b.docs.length} PACKET PDFS · VERIFIED MINUTES &amp; INTERNET ARCHIVE RECORD
+            THE REAL WINDY CITY · {b.meeting.bodyName.toUpperCase()} · {b.meeting.date} · {s.title} · {b.items.length} AGENDA ITEMS · {b.docs.length} PACKET PDFS · VERIFIED MINUTES &amp; INTERNET ARCHIVE RECORD
           </span>
           <span className="pr-16">
-            THE REAL WINDY CITY · {b.meeting.bodyName.toUpperCase()} · {b.meeting.date} · {s.title} · {b.items.length} DOCKET ITEMS · {b.docs.length} PACKET PDFS · VERIFIED MINUTES &amp; INTERNET ARCHIVE RECORD
+            THE REAL WINDY CITY · {b.meeting.bodyName.toUpperCase()} · {b.meeting.date} · {s.title} · {b.items.length} AGENDA ITEMS · {b.docs.length} PACKET PDFS · VERIFIED MINUTES &amp; INTERNET ARCHIVE RECORD
           </span>
         </div>
       </div>

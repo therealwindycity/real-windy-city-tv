@@ -7,21 +7,22 @@ import { EMOTION_META, FacebookShareModal, SpeakerTurnPlayerCard, THEME_LABELS }
 import type { SpeakerProfile, SpeakerTurn } from "@/lib/types";
 
 const CAPACITIES = [
-  "Elected Official",
-  "Municipal Staff / Counsel",
-  "Organizational / Lobbyist Representative",
-  "Contractor / Vendor / Applicant Agent",
-  "Civic Watchdog / Statutory Advocate",
-  "Individual Citizen",
+  "Elected official",
+  "City staff",
+  "City board member",
+  "Resident",
+  "Civic watchdog",
+  "Contractor or applicant",
+  "Speaking for an organization",
 ];
 
 const STANCES = [
-  ["support_lobby_for", "Lobbies For / Supports"],
-  ["oppose_challenge", "Opposes / Challenges"],
-  ["sponsor_motion", "Sponsors Motion / Governing Action"],
-  ["procedural_point_of_order", "Raises Point of Order"],
-  ["technical_staff_report", "Staff / Legal Testimony"],
-  ["inquiry_discussion", "Floor Inquiry / Deliberation"],
+  ["support_lobby_for", "Supports"],
+  ["oppose_challenge", "Opposes"],
+  ["sponsor_motion", "Makes a motion"],
+  ["procedural_point_of_order", "Raises a point of order"],
+  ["technical_staff_report", "Staff report"],
+  ["inquiry_discussion", "Questions & discussion"],
 ];
 
 export default function SpeakersVaultClient({
@@ -88,20 +89,18 @@ export default function SpeakersVaultClient({
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 px-4 py-8">
-      {/* Command Header */}
+      {/* Header */}
       <div className="rounded-2xl border border-amber-400/30 bg-gradient-to-br from-[#0b1528] via-[#070d1a] to-black p-6 shadow-2xl">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <div className="text-[11px] font-bold uppercase tracking-[0.3em] text-amber-300">
-              🎙️ Cheyenne Historical Speaker-Segment Video Database, Advocacy Analytics &amp; OSINT Studio
+              🎙️ Speaker clips from Cheyenne city meetings
             </div>
             <h1 className="mt-1 text-3xl font-black tracking-tight text-white sm:text-4xl">
-              2,448 Speaker Turns · 1,951 Timed to Video · 25 Branded Clips · {speakers.length} Verified Canonical Speakers
+              2,448 clips of {speakers.length} people speaking at city meetings
             </h1>
             <p className="mt-2 max-w-3xl text-sm text-slate-300">
-              Every clip features <b>The Real Windy City</b> intro/outro, a <b>C-SPAN style marquee info border</b>, synced cleaned captions, historical clip counts,{" "}
-              <b>speaking capacities</b> (individual vs. organization/contractor/official), <b>topic &amp; lobby/oppose analytics</b>, average speaking times,{" "}
-              <b>Point-of-Order</b> tracking, and verified <b>OSINT social/professional links</b>. Downloads &amp; Facebook exports strictly slice only the speaker&apos;s segment.
+              Watch what each person said, with captions. See whether they spoke as an official, city staff, a resident or for a company; whether they were for or against; what topics they talk about; how long they usually speak; and links to their public profiles. Downloads and Facebook shares include only that person&apos;s clip, never the whole meeting.
             </p>
           </div>
           <form
@@ -114,7 +113,7 @@ export default function SpeakersVaultClient({
             <input
               value={qInput}
               onChange={(e) => setQInput(e.target.value)}
-              placeholder="Search verbatim speech, speaker, date…"
+              placeholder="Search what was said, a name or a date…"
               className="w-64 rounded-xl border border-white/15 bg-black/60 px-3.5 py-2 text-xs text-white outline-none focus:border-amber-400"
             />
             <button type="submit" className="rounded-xl bg-amber-400 px-4 py-2 text-xs font-black text-black hover:bg-amber-300">
@@ -123,14 +122,14 @@ export default function SpeakersVaultClient({
           </form>
         </div>
 
-        {/* 5 Organization Axis Tabs */}
+        {/* Ways to browse */}
         <div className="mt-5 flex flex-wrap gap-2 border-t border-white/10 pt-4 text-xs font-bold">
           {[
-            ["speaker", "👤 By Speaker (All Historical Clips)"],
-            ["date", "📅 By Sitting Date"],
-            ["ordinance", "📜 By Ordinance (1st → Final Reading)"],
-            ["theme", "🏷️ By Civic Topic"],
-            ["emotion", "🔥 By Tone / Point of Order"],
+            ["speaker", "👤 By person"],
+            ["date", "📅 By meeting date"],
+            ["ordinance", "📜 By ordinance"],
+            ["theme", "🏷️ By topic"],
+            ["emotion", "🔥 By tone"],
           ].map(([k, lbl]) => (
             <button
               key={k}
@@ -147,26 +146,26 @@ export default function SpeakersVaultClient({
             href="/osint"
             className="rounded-full bg-emerald-500/20 px-3.5 py-2 text-emerald-200 ring-1 ring-emerald-400/40 hover:bg-emerald-500/30"
           >
-            🕸️ OSINT Entity &amp; Contractor Graph →
+            🕸️ Who&apos;s Who →
           </Link>
           {(filters.speaker || filters.date || filters.ordinance || filters.theme || filters.emotion || filters.capacity || filters.stance || filters.poe || filters.q) && (
             <Link href="/speakers" className="ml-auto rounded-full bg-rose-500/20 px-3.5 py-2 text-rose-200 ring-1 ring-rose-400/40 hover:bg-rose-500/30">
-              ✕ Clear Active Filters
+              ✕ Clear filters
             </Link>
           )}
         </div>
 
-        {/* Instant Selectable Dropdowns: Capacity, Stance, Point-of-Order Toggle */}
+        {/* Filters */}
         <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-white/10 pt-3 text-xs">
           <select
             value={filters.capacity ?? ""}
             onChange={(e) => pushFilter({ capacity: e.target.value || undefined })}
             className="rounded-lg border border-white/15 bg-[#050912] px-3 py-1.5 font-semibold text-white"
           >
-            <option value="">All Speaking Capacities</option>
+            <option value="">Anyone (any role)</option>
             {CAPACITIES.map((c) => (
               <option key={c} value={c}>
-                Capacity: {c}
+                Speaking as: {c}
               </option>
             ))}
           </select>
@@ -175,10 +174,10 @@ export default function SpeakersVaultClient({
             onChange={(e) => pushFilter({ stance: e.target.value || undefined })}
             className="rounded-lg border border-white/15 bg-[#050912] px-3 py-1.5 font-semibold text-white"
           >
-            <option value="">All Advocacy Stances (Lobby / Oppose)</option>
+            <option value="">For, against or neutral</option>
             {STANCES.map(([k, lbl]) => (
               <option key={k} value={k}>
-                Stance: {lbl}
+                {lbl}
               </option>
             ))}
           </select>
@@ -188,17 +187,17 @@ export default function SpeakersVaultClient({
               checked={filters.poe === "1"}
               onChange={(e) => pushFilter({ poe: e.target.checked ? "1" : undefined })}
             />
-            ⚖️ Point-of-Order / Gavel Clips Only
+            ⚖️ Only points of order / cut off by the chair
           </label>
         </div>
 
-        {/* Dynamic Selector Bar for Current Axis */}
+        {/* Picker for the chosen tab */}
         <div className="mt-4 rounded-xl border border-white/10 bg-black/50 p-3.5">
           {tab === "speaker" && (
             <div>
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                 <span className="text-xs font-bold text-sky-300">
-                  Select any Speaker to inspect their complete historical clips, capacities, stances &amp; OSINT dossier ({speakers.length} Canonical Speakers):
+                  Pick a person to see all their clips and their profile ({speakers.length} people):
                 </span>
                 <form
                   onSubmit={(e) => {
@@ -212,7 +211,7 @@ export default function SpeakersVaultClient({
                   <input
                     value={speakerSearch}
                     onChange={(e) => setSpeakerSearch(e.target.value)}
-                    placeholder="Filter speaker roster (e.g. Mark Moody)…"
+                    placeholder="Find a person (e.g. Mark Moody)…"
                     className="w-56 rounded border border-white/15 bg-[#050912] px-2.5 py-1 text-xs text-white"
                   />
                   <button type="submit" className="rounded bg-sky-400 px-2.5 py-1 text-xs font-black text-black hover:bg-sky-300">
@@ -234,7 +233,7 @@ export default function SpeakersVaultClient({
                   >
                     <span>{s.name}</span>{" "}
                     <span className="opacity-75">
-                      ({s.turnCount} clips · {s.meetingCount} mtgs)
+                      ({s.turnCount} clips · {s.meetingCount} meetings)
                     </span>
                   </button>
                 ))}
@@ -245,7 +244,7 @@ export default function SpeakersVaultClient({
           {tab === "date" && (
             <div>
               <div className="mb-2 text-xs font-bold text-sky-300">
-                Select a Sitting Date to watch ALL speakers who took the floor on that date:
+                Pick a meeting to watch everyone who spoke at it:
               </div>
               <div className="flex max-h-44 flex-wrap gap-1.5 overflow-y-auto">
                 {recentDates.map((d) => (
@@ -267,7 +266,7 @@ export default function SpeakersVaultClient({
           {tab === "ordinance" && (
             <div>
               <div className="mb-2 text-xs font-bold text-violet-300">
-                Select an Ordinance to watch ALL speakers across First Reading, Committee, Second Reading &amp; Final Vote:
+                Pick an ordinance to watch everyone who spoke about it, from first reading through committee to the final vote:
               </div>
               <div className="grid max-h-48 gap-1.5 overflow-y-auto sm:grid-cols-2 lg:grid-cols-3">
                 {ordinanceOptions.map((o) => (
@@ -328,39 +327,39 @@ export default function SpeakersVaultClient({
         </div>
       </div>
 
-      {/* Selected Speaker Complete Historical Analytics & OSINT Dossier */}
+      {/* Selected person's profile */}
       {activeSpeaker && (
         <div className="rounded-2xl border-2 border-amber-400/50 bg-[#091224] p-6 shadow-xl">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="max-w-3xl">
               <div className="text-[11px] font-bold uppercase tracking-widest text-amber-300">
-                Complete Multi-Year Speaker Video, Advocacy &amp; OSINT Dossier · {activeSpeaker.role}
+                Speaker profile · {activeSpeaker.role}
               </div>
               <h2 className="mt-1 text-2xl font-black text-white sm:text-3xl">{activeSpeaker.name}</h2>
               {an?.osint?.headline && <p className="mt-1 text-xs font-semibold text-sky-300">{an.osint.headline}</p>}
               <div className="mt-3 flex flex-wrap gap-2 font-mono text-xs">
                 <span className="rounded-lg bg-amber-400/20 px-2.5 py-1 font-bold text-amber-200 ring-1 ring-amber-400/40">
-                  📼 {activeSpeaker.turnCount} Historical Clips ({activeSpeaker.meetingCount} Mtgs)
+                  📼 {activeSpeaker.turnCount} clips at {activeSpeaker.meetingCount} meetings
                 </span>
                 <span className="rounded-lg bg-sky-500/20 px-2.5 py-1 font-bold text-sky-200 ring-1 ring-sky-400/40">
-                  ⏱️ Avg Speaking Time: {an?.avgSpeakingFormatted ?? `${Math.round(activeSpeaker.totalDurationSec / Math.max(1, activeSpeaker.turnCount))}s`}
+                  ⏱️ Usually speaks for {an?.avgSpeakingFormatted ?? `${Math.round(activeSpeaker.totalDurationSec / Math.max(1, activeSpeaker.turnCount))}s`}
                 </span>
                 <span className="rounded-lg bg-indigo-500/20 px-2.5 py-1 font-bold text-indigo-200 ring-1 ring-indigo-400/40">
-                  ⏳ Total Floor Time: {an?.totalSpeakingFormatted ?? `${Math.round(activeSpeaker.totalDurationSec / 60)}m`}
+                  ⏳ Total time speaking: {an?.totalSpeakingFormatted ?? `${Math.round(activeSpeaker.totalDurationSec / 60)}m`}
                 </span>
                 <button
                   type="button"
                   onClick={() => pushFilter({ poe: filters.poe === "1" ? undefined : "1" })}
                   className="rounded-lg bg-rose-500/20 px-2.5 py-1 font-bold text-rose-200 ring-1 ring-rose-400/40 hover:bg-rose-500/30"
                 >
-                  ⚖️ Points of Order: {an?.pointOfOrderCount ?? 0} (Filter)
+                  ⚖️ Points of order: {an?.pointOfOrderCount ?? 0} (show them)
                 </button>
               </div>
 
-              {/* Verified OSINT Social, LinkedIn, Chamber & Official Links */}
+              {/* Public profile links */}
               {an?.osint?.profiles && an.osint.profiles.length > 0 && (
                 <div className="mt-3 flex flex-wrap items-center gap-1.5 text-xs">
-                  <span className="font-bold text-emerald-300">Verified OSINT Profiles:</span>
+                  <span className="font-bold text-emerald-300">Public profiles:</span>
                   {an.osint.profiles.map((p, idx) => (
                     <a
                       key={idx}
@@ -376,7 +375,7 @@ export default function SpeakersVaultClient({
                     href={`/osint?q=${encodeURIComponent(activeSpeaker.name)}`}
                     className="rounded-lg bg-white/10 px-2.5 py-1 font-bold text-white hover:bg-white/20"
                   >
-                    🕸️ Open Full OSINT Graph →
+                    🕸️ Who&apos;s Who →
                   </Link>
                 </div>
               )}
@@ -388,7 +387,7 @@ export default function SpeakersVaultClient({
                 download
                 className="rounded-xl bg-amber-400 px-4 py-2.5 font-black text-black shadow-lg hover:bg-amber-300"
               >
-                📦 Speaker Segment &amp; OSINT Pack (.ZIP)
+                📦 Download all their clips (.ZIP)
               </a>
               {turns[0] && (
                 <button
@@ -396,19 +395,19 @@ export default function SpeakersVaultClient({
                   onClick={() => setFbTurn(turns[0])}
                   className="rounded-xl bg-[#1877F2] px-4 py-2.5 font-black text-white shadow-lg hover:bg-[#166fe5]"
                 >
-                  📘 Export Speaker Segment to Facebook
+                  📘 Share a clip on Facebook
                 </button>
               )}
             </div>
           </div>
 
-          {/* 3-Column Analytics Matrix: Speaking Capacities | Topics Spoken On | Lobbies For vs Opposes */}
+          {/* Roles | topics | for and against */}
           {an && (
             <div className="mt-5 grid gap-3 border-t border-white/10 pt-4 md:grid-cols-3">
-              {/* Column 1: Capacities */}
+              {/* Column 1: roles */}
               <div className="rounded-xl border border-white/10 bg-black/45 p-3.5 text-xs">
                 <div className="font-mono text-[10px] font-bold uppercase tracking-wider text-indigo-300">
-                  🏛️ Speaking Capacities (Individual vs. Organizational)
+                  🏛️ Has spoken as
                 </div>
                 <div className="mt-2 space-y-2">
                   {an.capacitiesBreakdown.map((cb) => (
@@ -428,10 +427,10 @@ export default function SpeakersVaultClient({
                 </div>
               </div>
 
-              {/* Column 2: Topic Distribution */}
+              {/* Column 2: topics */}
               <div className="rounded-xl border border-white/10 bg-black/45 p-3.5 text-xs">
                 <div className="font-mono text-[10px] font-bold uppercase tracking-wider text-sky-300">
-                  📊 Topics Spoken On (Support vs. Oppose)
+                  📊 Topics (times for / against)
                 </div>
                 <div className="mt-2 space-y-1.5">
                   {an.topicAnalytics.map((ta) => (
@@ -452,14 +451,14 @@ export default function SpeakersVaultClient({
                 </div>
               </div>
 
-              {/* Column 3: Lobbies For / Supports vs Opposes / Dissents */}
+              {/* Column 3: for and against */}
               <div className="rounded-xl border border-white/10 bg-black/45 p-3.5 text-xs">
                 <div className="font-mono text-[10px] font-bold uppercase tracking-wider text-emerald-300">
-                  ✅ Lobbies For / Sponsors &amp; 🛑 Opposes / Dissents
+                  ✅ Spoke for &amp; 🛑 spoke against
                 </div>
                 {an.lobbiesFor.length > 0 && (
                   <div className="mt-2">
-                    <div className="text-[10px] font-bold text-emerald-300">Lobbies For / Supports / Sponsors:</div>
+                    <div className="text-[10px] font-bold text-emerald-300">Spoke in favor of:</div>
                     <ul className="mt-0.5 list-disc space-y-0.5 pl-4 text-[11px] text-slate-200">
                       {an.lobbiesFor.slice(0, 4).map((item, idx) => (
                         <li key={idx} className="line-clamp-2">
@@ -471,7 +470,7 @@ export default function SpeakersVaultClient({
                 )}
                 {an.opposes.length > 0 && (
                   <div className="mt-2.5">
-                    <div className="text-[10px] font-bold text-rose-300">Opposes / Challenges / NO Votes:</div>
+                    <div className="text-[10px] font-bold text-rose-300">Spoke or voted against:</div>
                     <ul className="mt-0.5 list-disc space-y-0.5 pl-4 text-[11px] text-slate-200">
                       {an.opposes.slice(0, 4).map((item, idx) => (
                         <li key={idx} className="line-clamp-2">
@@ -488,7 +487,7 @@ export default function SpeakersVaultClient({
           {activeSpeaker.compilationReels.length > 0 && (
             <div className="mt-4 border-t border-white/10 pt-4">
               <div className="mb-2 text-xs font-bold uppercase tracking-wider text-rose-300">
-                🎞️ Verified Speaker Segment Reels (C-SPAN Framed Standalone MP4s)
+                🎞️ Ready-made video clips
               </div>
               <div className="grid gap-3 md:grid-cols-2">
                 {activeSpeaker.compilationReels.map((reel) => (
@@ -496,12 +495,12 @@ export default function SpeakersVaultClient({
                     <div className="flex items-center justify-between border-b border-amber-400 bg-[#09152b] px-3 py-1 text-[10px] font-black uppercase text-amber-300">
                       <span>[RWC] THE REAL WINDY CITY · SPEAKER REEL</span>
                       <a href={reel.url} download target="_blank" rel="noreferrer" className="text-emerald-300 hover:underline">
-                        ⬇ Download Segment MP4
+                        ⬇ Download MP4
                       </a>
                     </div>
                     <video src={reel.url} controls preload="metadata" className="h-44 w-full bg-black object-contain" />
                     <div className="border-t border-rose-700 bg-[#0a1931] px-3 py-1.5 text-xs font-bold text-white">
-                      {reel.title} · <span className="font-mono text-[10px] text-emerald-300">{activeSpeaker.turnCount} Historical Clips</span>
+                      {reel.title} · <span className="font-mono text-[10px] text-emerald-300">{activeSpeaker.turnCount} clips total</span>
                     </div>
                   </div>
                 ))}
@@ -511,13 +510,13 @@ export default function SpeakersVaultClient({
         </div>
       )}
 
-      {/* Results Toolbar + Continuous Sequential Player */}
+      {/* Results toolbar + play-all */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="text-sm font-bold text-slate-200">
-          Page {page} of {totalPages} · Showing {turns.length} of {totalTurns.toLocaleString()} matching &le;3-min speaker video segments
+          Page {page} of {totalPages} · Showing {turns.length} of {totalTurns.toLocaleString()} matching speaker clips
           {filters.ordinance && (
             <Link href={`/ordinance/${filters.ordinance}`} className="ml-3 text-xs font-black text-violet-300 underline">
-              ▶ Open Full 1st→Final Ordinance Arc Player →
+              ▶ Follow this ordinance from 1st reading to final vote →
             </Link>
           )}
         </div>
@@ -528,7 +527,7 @@ export default function SpeakersVaultClient({
               onClick={() => setPlaylistIdx(0)}
               className="rounded-lg bg-emerald-400 px-3.5 py-2 font-black text-black hover:bg-emerald-300"
             >
-              ▶ Play All {turns.length} Segments Sequentially
+              ▶ Play all {turns.length} clips in a row
             </button>
           )}
           <select
@@ -536,8 +535,8 @@ export default function SpeakersVaultClient({
             onChange={(e) => pushFilter({ sort: e.target.value })}
             className="rounded-lg border border-white/15 bg-[#080f1d] px-3 py-2 text-xs font-semibold text-white"
           >
-            <option value="impact">Sort: Highest Civic Impact</option>
-            <option value="newest">Sort: Newest Meeting First</option>
+            <option value="impact">Sort: Most important first</option>
+            <option value="newest">Sort: Newest first</option>
             <option value="oldest">Sort: Chronological (First → Last)</option>
           </select>
         </div>
@@ -567,7 +566,7 @@ export default function SpeakersVaultClient({
                 Next ⏭
               </button>
               <button type="button" onClick={() => setPlaylistIdx(null)} className="rounded bg-rose-500/20 px-2.5 py-1 text-rose-200">
-                ✕ Close Player
+                ✕ Close
               </button>
             </div>
           </div>
@@ -582,14 +581,14 @@ export default function SpeakersVaultClient({
         </div>
       )}
 
-      {/* Grid of Individual <=3-Min Speaker Video Turn Cards */}
+      {/* Clip cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {turns.map((t) => (
           <SpeakerTurnPlayerCard key={t.id} turn={t} onShareFb={setFbTurn} />
         ))}
       </div>
 
-      {/* Full Previous / Next Page Pagination */}
+      {/* Pages */}
       <div className="flex items-center justify-between rounded-xl border border-white/10 bg-[#080f1d] px-4 py-3 text-xs sm:text-sm">
         <button
           type="button"

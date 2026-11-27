@@ -3,9 +3,9 @@ import type { ReactNode } from "react";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "The Real Windy City — Council TV",
+  title: "The Real Windy City · Cheyenne City Meetings, Speakers & Records",
   description:
-    "Every Cheyenne City Council meeting and ordinance, re-cut as a TV series: theme song, recap, cast, cliffhangers — and fifteen swipeable lenses on the same public record.",
+    "Watch Cheyenne city government meetings from 2008 to 2026, see who spoke and what they said, look up the people and companies that come before the city, follow every ordinance from first reading to final vote, and read the original meeting documents.",
 };
 
 export const viewport: Viewport = { themeColor: "#07090f" };

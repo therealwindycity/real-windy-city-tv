@@ -25,22 +25,22 @@ export default async function EpisodesPage({ searchParams }: { searchParams: Pro
   };
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
-      <h1 className="text-3xl font-black tracking-tight">All episodes</h1>
+      <h1 className="text-3xl font-black tracking-tight">All meetings</h1>
       <p className="text-sm text-slate-400">
-        {total.toLocaleString()} meetings from the Internet Archive / Wayback broadcast guide, merged with Official Clerk Minutes and Foundry Packet PDFs.
+        {total.toLocaleString()} meetings, with video from the Internet Archive, the City Clerk's official minutes and the agenda documents.
       </p>
       <InstantFilterForm action="/episodes" className="mt-4 flex flex-wrap items-center gap-2 text-sm">
         <input
           name="q"
           defaultValue={sp.q ?? ""}
-          placeholder="Search titles, dates (2026-09), bodies…"
+          placeholder="Search by topic, title or date (e.g. 2026-09)…"
           className="min-w-[220px] flex-1 rounded border border-white/15 bg-white/5 px-3 py-2 outline-none focus:border-amber-300"
         />
         <button type="submit" className="rounded bg-amber-400 px-4 py-2 font-black text-black hover:bg-amber-300">
           Enter ↵
         </button>
         <select name="body" defaultValue={sp.body ?? ""} className="rounded border border-white/15 bg-[#0d1220] px-3 py-2">
-          <option value="">All series</option>
+          <option value="">All boards &amp; committees</option>
           {BODIES.map((b) => (
             <option key={b.key} value={b.key}>
               {b.name}
@@ -48,10 +48,10 @@ export default async function EpisodesPage({ searchParams }: { searchParams: Pro
           ))}
         </select>
         <select name="season" defaultValue={sp.season ?? ""} className="rounded border border-white/15 bg-[#0d1220] px-3 py-2">
-          <option value="">All seasons</option>
+          <option value="">All years</option>
           {seasons.map((s) => (
             <option key={s} value={s}>
-              Season {s}
+              {s}
             </option>
           ))}
         </select>
@@ -68,7 +68,7 @@ export default async function EpisodesPage({ searchParams }: { searchParams: Pro
           <EpisodeCard key={m.slug} m={m} />
         ))}
       </div>
-      {rows.length === 0 && <p className="mt-10 text-center text-slate-400">No episodes match.</p>}
+      {rows.length === 0 && <p className="mt-10 text-center text-slate-400">No meetings match.</p>}
 
       <div className="mt-8 flex items-center justify-between rounded-xl border border-white/10 bg-[#080f1d] px-4 py-3 text-xs sm:text-sm">
         {page > 1 ? (
@@ -79,7 +79,7 @@ export default async function EpisodesPage({ searchParams }: { searchParams: Pro
           <span className="rounded-lg bg-white/5 px-4 py-2 text-slate-500">← Previous Page</span>
         )}
         <span className="font-mono text-slate-300">
-          Page {page} of {totalPages} ({total.toLocaleString()} episodes)
+          Page {page} of {totalPages} ({total.toLocaleString()} meetings)
         </span>
         {page < totalPages ? (
           <Link className="rounded-lg bg-amber-400 px-4 py-2 font-black text-black hover:bg-amber-300" href={qs({ page: String(page + 1) })}>

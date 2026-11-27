@@ -4,6 +4,8 @@ import { listFoundryDocuments } from "@/lib/bundle";
 
 export const dynamic = "force-dynamic";
 const PAGE_SIZE = 50;
+const ROLE_LABEL: Record<string, string> = { attachment: "Attachment", agenda: "Agenda", minutes: "Minutes", substitute: "Revised version", staff_report: "Staff report" };
+const cleanTitle = (t: string) => t.replace(/^\[[^\]]+\]\s*/, "");
 
 export default async function DocumentsVaultPage({
   searchParams,
@@ -36,17 +38,17 @@ export default async function DocumentsVaultPage({
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <div className="font-mono text-[11px] font-bold uppercase tracking-[0.28em] text-sky-400">
-              PALANTIR FOUNDRY // GLOBAL AGENDAS &amp; SUPPORTING DOCUMENTS VAULT
+              MEETING DOCUMENTS
             </div>
             <h1 className="mt-1 text-3xl font-black text-white">
-              6,339 Primary Municipal Documents &amp; SHA-1 OCR Packets (2008–2026)
+              6,339 agendas, minutes &amp; attached documents (2008–2026)
             </h1>
             <p className="mt-1 max-w-3xl text-xs text-slate-300">
-              Every City of Cheyenne Agenda, Supporting Document PDF (<code>cheyenne-archives-*</code>), Staff Report, Ordinance Substitute, Bid Tabulation, and Clerk Minute — lexically reconciled and cross-linked to its parent episode and provenance video.
+              Every City of Cheyenne agenda, attached document, staff report, revised ordinance, bid summary and set of minutes we collected, each linked to the meeting it belongs to.
             </p>
           </div>
           <Link href="/provenance" className="rounded-xl bg-rose-500/20 px-4 py-2.5 text-xs font-bold text-rose-200 ring-1 ring-rose-400/40 hover:bg-rose-500/30">
-            🎥 Watch Manual Click-Path Provenance Videos →
+            🎥 See where these documents come from →
           </Link>
         </div>
 
@@ -54,44 +56,45 @@ export default async function DocumentsVaultPage({
           <input
             name="q"
             defaultValue={sp.q ?? ""}
-            placeholder="Search PDF titles, ordinances, SHA-1 hashes, dates…"
+            placeholder="Search document titles, ordinances or dates…"
             className="w-80 rounded-lg border border-slate-700 bg-[#040811] px-3 py-2 font-mono text-white outline-none focus:border-sky-400"
           />
           <button type="submit" className="rounded-lg bg-sky-400 px-4 py-2 font-mono font-black text-black hover:bg-sky-300">
             Enter ↵
           </button>
           <select name="role" defaultValue={sp.role ?? ""} className="rounded-lg border border-slate-700 bg-[#040811] px-3 py-2 font-mono text-white">
-            <option value="">ROLE: ALL (6,339)</option>
-            <option value="attachment">SUPPORTING PDFs</option>
-            <option value="agenda">OFFICIAL AGENDAS</option>
-            <option value="minutes">MINUTES &amp; TRANSCRIPTS</option>
-            <option value="staff_report">STAFF REPORTS</option>
+            <option value="">All types (6,339)</option>
+            <option value="agenda">Agendas</option>
+            <option value="minutes">Minutes</option>
+            <option value="attachment">Attachments</option>
+            <option value="substitute">Revised versions</option>
+            <option value="staff_report">Staff reports</option>
           </select>
           <label className="flex items-center gap-1.5 rounded-lg border border-slate-700 bg-[#040811] px-3 py-2 font-mono text-emerald-300">
             <input type="checkbox" name="ocr" value="1" defaultChecked={sp.ocr === "1"} />
-            SHA-1 AI-Record-OCR Only (1,081)
+            Only scanned documents with searchable text (1,081)
           </label>
           {(sp.q || sp.role || sp.ocr) && (
             <Link href="/documents" className="rounded-lg bg-white/10 px-3 py-2 font-mono text-slate-300 hover:bg-white/20">
-              RESET
+              Clear
             </Link>
           )}
         </InstantFilterForm>
       </div>
 
       <div className="font-mono text-xs text-slate-400">
-        MATCHED_OBJECTS={total.toLocaleString()} · PAGE {page} OF {totalPages}
+        {total.toLocaleString()} documents · page {page} of {totalPages}
       </div>
 
       <div className="overflow-hidden rounded-xl border border-slate-800 bg-[#060b16]">
         <table className="w-full text-left text-xs">
           <thead className="border-b border-slate-800 bg-[#091224] font-mono text-[10px] uppercase text-slate-400">
             <tr>
-              <th className="p-3">Date / Body</th>
-              <th className="p-3">Role</th>
-              <th className="p-3">Document / Supporting PDF Title</th>
-              <th className="p-3">SHA-1 / OCR</th>
-              <th className="p-3">Actions</th>
+              <th className="p-3">Meeting</th>
+              <th className="p-3">Type</th>
+              <th className="p-3">Document</th>
+              <th className="p-3">Scanned?</th>
+              <th className="p-3">Open</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-800/80">
@@ -104,15 +107,15 @@ export default async function DocumentsVaultPage({
                   <div className="text-[10px] text-slate-400">{d.bodyName}</div>
                 </td>
                 <td className="p-3 font-mono text-[10px]">
-                  <span className="rounded bg-slate-800 px-2 py-0.5 uppercase text-sky-200">{d.role}</span>
+                  <span className="rounded bg-slate-800 px-2 py-0.5 text-sky-200">{ROLE_LABEL[d.role] ?? d.role}</span>
                 </td>
                 <td className="p-3">
-                  <div className="font-semibold text-slate-100">{d.title}</div>
-                  <div className="text-[11px] text-slate-400">Episode: {d.episodeTitle}</div>
+                  <div className="font-semibold text-slate-100">{cleanTitle(d.title)}</div>
+                  <div className="text-[11px] text-slate-400">Meeting: {d.episodeTitle}</div>
                 </td>
                 <td className="p-3 font-mono text-[10px]">
-                  {d.ocr && <span className="mr-1 rounded bg-emerald-500/20 px-1.5 py-0.5 text-emerald-300">🔬OCR</span>}
-                  {d.sha1 ? <span className="text-slate-400">{d.sha1.slice(0, 12)}…</span> : <span className="text-slate-600">WAYBACK</span>}
+                  {d.ocr && <span className="mr-1 rounded bg-emerald-500/20 px-1.5 py-0.5 text-emerald-300">🔬 searchable text</span>}
+                  {!d.ocr && <span className="text-slate-500">no</span>}
                 </td>
                 <td className="whitespace-nowrap p-3 text-xs">
                   <div className="flex gap-2">
@@ -120,7 +123,7 @@ export default async function DocumentsVaultPage({
                       href={`/episode/${d.meetingSlug}#lenses`}
                       className="rounded bg-sky-500/20 px-2.5 py-1 font-mono text-[11px] font-bold text-sky-200 hover:bg-sky-500/30"
                     >
-                      Foundry Lens
+                      Meeting page
                     </Link>
                     {d.url && (
                       <a

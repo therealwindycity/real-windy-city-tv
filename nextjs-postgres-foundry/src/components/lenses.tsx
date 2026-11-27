@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { EpisodeBundle } from "@/lib/types";
-import type { LensKey } from "@/lib/lens-meta";
+import { SEV_LABEL, flagLabel, type LensKey } from "@/lib/lens-meta";
 import { EpisodeSpeakersLens, FoundryLensView, GothamGraphLensView, ProvenanceFilmsWorkbench } from "@/components/GothamFoundrySuite";
 
 type B = { b: EpisodeBundle };
@@ -48,7 +48,7 @@ function Story({ b }: B) {
     <div className="min-h-full bg-gradient-to-b from-amber-50 to-orange-100 p-5 text-stone-900">
       <div className="mx-auto max-w-2xl">
         <div className="mb-4 flex flex-wrap items-center gap-2">
-          <span className="text-xs font-bold uppercase tracking-widest text-amber-800">Curiosity dial</span>
+          <span className="text-xs font-bold uppercase tracking-widest text-amber-800">How much detail</span>
           {levels.map((l, i) => (
             <button key={l} onClick={() => setDepth(i)} className={`rounded-full px-3 py-1 text-xs font-semibold ${depth === i ? "bg-stone-900 text-amber-100" : "bg-white/70 text-stone-700 hover:bg-white"}`}>
               {l}
@@ -68,7 +68,7 @@ function Story({ b }: B) {
           <Note>
             {b.lenses.authored
               ? "Hand-written from the agenda packet and the watchdog debrief. Quoted items are labeled in the Fact-Check Desk."
-              : "Auto-generated from structured fields (agenda titles, recommended actions, parsed minutes). It adds no facts beyond those fields."}
+              : "Written automatically from the agenda titles, recommended actions and minutes. It adds nothing that isn&apos;t in those records."}
           </Note>
         </div>
       </div>
@@ -201,7 +201,7 @@ function Transcript({ b }: B) {
         </form>
         {b.minutesText ? (
           <div className="space-y-3 text-[13px] leading-relaxed">
-            <div className="text-[10px] font-bold uppercase tracking-widest text-amber-400">Official Clerk Minutes — Reconciled &amp; Cleaned Verbatim Record</div>
+            <div className="text-[10px] font-bold uppercase tracking-widest text-amber-400">Official minutes from the City Clerk</div>
             {pagedHits.map((p, i) => (
               <p key={i} className="border-l-2 border-zinc-700 pl-3">{hl(p)}</p>
             ))}
@@ -219,12 +219,12 @@ function Transcript({ b }: B) {
           </div>
         ) : (
           <Note>
-            No official minutes text is in the dataset for this episode{b.meeting.phase === "upcoming" ? " (the meeting was upcoming when the archive was captured)" : ""}. {b.meeting.minutesUrl ? "A minutes link exists in the season guide — open it in the Evidence Locker." : "The season guide shows no minutes link."}
+            We don&apos;t have the text of the official minutes for this meeting{b.meeting.phase === "upcoming" ? " (the meeting had not happened yet when we collected the records)" : ""}. {b.meeting.minutesUrl ? "There is a link to the minutes. Open it in the Source Files view." : "The city meeting list has no minutes link."}
           </Note>
         )}
         {textDocs.length > 0 && (
           <div className="space-y-2">
-            <div className="text-[10px] font-bold uppercase tracking-widest text-sky-400">Agenda packet attachments — extracted text ({textDocs.length})</div>
+            <div className="text-[10px] font-bold uppercase tracking-widest text-sky-400">Attached documents — their text ({textDocs.length})</div>
             {textDocs.map((d) => (
               <div key={d.id} className="rounded border border-zinc-800 bg-zinc-900/60">
                 <button onClick={() => setOpenDoc(openDoc === d.id ? null : d.id)} className="flex w-full items-center gap-2 p-2 text-left text-xs">
@@ -276,22 +276,22 @@ function Analytics({ b }: B) {
           ))}
         </div>
         <section className="space-y-1.5">
-          <h3 className="text-xs font-bold uppercase tracking-widest text-sky-300">Items by kind</h3>
-          {a.byKind.length ? a.byKind.map((k) => <Bar key={k.kind} label={k.kind} n={k.n} max={maxKind} />) : <Note>No item-level data for this episode.</Note>}
+          <h3 className="text-xs font-bold uppercase tracking-widest text-sky-300">Kinds of agenda items</h3>
+          {a.byKind.length ? a.byKind.map((k) => <Bar key={k.kind} label={k.kind} n={k.n} max={maxKind} />) : <Note>The agenda for this meeting hasn&apos;t been broken out item by item.</Note>}
         </section>
         {a.sponsors.length > 0 && (
           <section className="space-y-1.5">
-            <h3 className="text-xs font-bold uppercase tracking-widest text-violet-300">Sponsorship concentration</h3>
+            <h3 className="text-xs font-bold uppercase tracking-widest text-violet-300">Who brought the most items</h3>
             {a.sponsors.map((s) => <Bar key={s.name} label={s.name.toLowerCase()} n={s.n} max={a.sponsors[0].n} color="#a78bfa" />)}
           </section>
         )}
         <section className="space-y-1.5">
-          <h3 className="text-xs font-bold uppercase tracking-widest text-rose-300">Rule-engine flags</h3>
-          {a.flags.some((f) => f.n) ? a.flags.map((f) => <Bar key={f.sev} label={f.sev} n={f.n} max={Math.max(1, ...a.flags.map((x) => x.n))} color={f.sev === "HIGH" ? "#f43f5e" : f.sev === "MED" ? "#f59e0b" : "#64748b"} />) : <Note>No deterministic brief exists for this episode.</Note>}
+          <h3 className="text-xs font-bold uppercase tracking-widest text-rose-300">Automatic warnings</h3>
+          {a.flags.some((f) => f.n) ? a.flags.map((f) => <Bar key={f.sev} label={SEV_LABEL[f.sev] ?? f.sev} n={f.n} max={Math.max(1, ...a.flags.map((x) => x.n))} color={f.sev === "HIGH" ? "#f43f5e" : f.sev === "MED" ? "#f59e0b" : "#64748b"} />) : <Note>No automatic warnings for this meeting.</Note>}
         </section>
         <section className="space-y-1.5">
-          <h3 className="text-xs font-bold uppercase tracking-widest text-emerald-300">Versus the previous {a.peers.length} {b.meeting.bodyName} episodes (agenda items)</h3>
-          <Bar label="This episode" n={a.itemCount} max={maxPeer} color="#34d399" />
+          <h3 className="text-xs font-bold uppercase tracking-widest text-emerald-300">Versus the previous {a.peers.length} {b.meeting.bodyName} meetings (agenda items)</h3>
+          <Bar label="This meeting" n={a.itemCount} max={maxPeer} color="#34d399" />
           {a.peers.map((p) => <Bar key={p.slug} label={p.date} n={p.items} max={maxPeer} color="#475569" />)}
         </section>
         <p className="text-[11px] text-slate-500">Counts come from the Granicus agenda items and the parsed minutes. The parser keys on the Council minutes phrasing; committee minutes may under-count votes.</p>
@@ -310,7 +310,7 @@ function Votes({ b }: B) {
       <div className="mx-auto max-w-3xl space-y-5">
         {sb.length > 0 ? (
           <>
-            <h3 className="text-xs font-bold uppercase tracking-widest text-emerald-300">Scoreboard — outcomes as reported by the watchdog debrief</h3>
+            <h3 className="text-xs font-bold uppercase tracking-widest text-emerald-300">Results, as reported by local watchdogs</h3>
             <div className="space-y-2">
               {sb.map((s, i) => (
                 <div key={i} className="rounded-lg bg-emerald-900/50 p-3 ring-1 ring-emerald-800">
@@ -329,7 +329,7 @@ function Votes({ b }: B) {
           </>
         ) : null}
         <h3 className="text-xs font-bold uppercase tracking-widest text-emerald-300">Recorded motions in the official minutes ({b.voteEvents.length})</h3>
-        {b.voteEvents.length === 0 && <Note>No parsed votes in the dataset for this episode.</Note>}
+        {b.voteEvents.length === 0 && <Note>No recorded votes for this meeting.</Note>}
         <div className="space-y-2">
           {b.voteEvents.map((v) => (
             <div key={v.idx} className="rounded bg-emerald-900/40 p-2 text-xs ring-1 ring-emerald-900">
@@ -343,7 +343,7 @@ function Votes({ b }: B) {
         </div>
         {b.analytics.dissent.length > 0 && (
           <section className="space-y-1.5">
-            <h3 className="text-xs font-bold uppercase tracking-widest text-emerald-300">Members voting no in this episode</h3>
+            <h3 className="text-xs font-bold uppercase tracking-widest text-emerald-300">Members who voted no at this meeting</h3>
             {b.analytics.dissent.map((d) => <Bar key={d.name} label={d.name} n={d.n} max={maxD} color="#fb7185" />)}
           </section>
         )}
@@ -399,14 +399,14 @@ function MapLens({ b }: B) {
             )}
           </>
         ) : (
-          <Note>This episode has no authored parcel schematic. Locations pulled from the agenda&rsquo;s legal descriptions are listed below with street-map links.</Note>
+          <Note>There is no hand-drawn map for this meeting. Locations pulled from the agenda&rsquo;s legal descriptions are listed below with street-map links.</Note>
         )}
         <h3 className="pt-2 text-xs font-bold uppercase tracking-widest text-teal-300">Locations named in agenda titles ({b.lenses.locations.length})</h3>
         <ul className="space-y-1.5 text-sm">
           {b.lenses.locations.map((l, i) => (
             <li key={i} className="flex gap-2 rounded bg-slate-800/70 p-2"><span>📍</span><span className="flex-1">{l.text}</span><a className="shrink-0 text-xs text-teal-300 underline" href={l.osm} target="_blank" rel="noreferrer">find on map</a></li>
           ))}
-          {b.lenses.locations.length === 0 && <li className="text-xs text-slate-400">No location descriptions in this episode&rsquo;s item titles.</li>}
+          {b.lenses.locations.length === 0 && <li className="text-xs text-slate-400">No location descriptions in this meeting&rsquo;s item titles.</li>}
         </ul>
       </div>
     </div>
@@ -446,13 +446,13 @@ function History({ b }: B) {
         )}
         {L.sweetgrass.length > 0 && (
           <section>
-            <h3 className="mb-2 text-xs font-bold uppercase tracking-widest text-orange-800">Precedent this season — July 13 (the &ldquo;Sweetgrass&rdquo; night)</h3>
+            <h3 className="mb-2 text-xs font-bold uppercase tracking-widest text-orange-800">Earlier this year — July 13 (the &ldquo;Sweetgrass&rdquo; night)</h3>
             <ul className="space-y-1 text-sm">{L.sweetgrass.map((s) => <li key={s.what} className="flex justify-between gap-3 rounded bg-white p-2 shadow-sm"><span>{s.what}</span><b className="shrink-0">{s.vote}</b></li>)}</ul>
           </section>
         )}
         {b.series.length > 0 && (
           <section>
-            <h3 className="mb-2 text-xs font-bold uppercase tracking-widest text-orange-800">Ordinance mini-series touched by this episode</h3>
+            <h3 className="mb-2 text-xs font-bold uppercase tracking-widest text-orange-800">Ordinances on this agenda and their earlier readings</h3>
             <div className="space-y-3">
               {b.series.map((s) => (
                 <div key={s.slug} className="rounded-lg bg-white p-3 shadow-sm ring-1 ring-orange-100">
@@ -470,14 +470,14 @@ function History({ b }: B) {
           </section>
         )}
         <section>
-          <h3 className="mb-2 text-xs font-bold uppercase tracking-widest text-orange-800">Compared with the previous {b.meeting.bodyName} episodes</h3>
+          <h3 className="mb-2 text-xs font-bold uppercase tracking-widest text-orange-800">Compared with the previous {b.meeting.bodyName} meetings</h3>
           <table className="w-full text-left text-xs"><thead className="text-[10px] uppercase tracking-wider text-stone-500"><tr><th className="p-1">Date</th><th className="p-1">Items</th><th className="p-1">Ordinances</th><th className="p-1">Votes parsed</th><th className="p-1">Runtime</th></tr></thead>
             <tbody>
               <tr className="bg-orange-200 font-bold"><td className="p-1">{b.meeting.date} (this)</td><td className="p-1">{b.analytics.itemCount}</td><td className="p-1">{b.items.filter((i) => i.kind === "ordinance").length}</td><td className="p-1">{b.analytics.votes.total}</td><td className="p-1">{b.meeting.runtimeMin ? `${b.meeting.runtimeMin} min` : "—"}</td></tr>
               {b.analytics.peers.map((p) => <tr key={p.slug} className="odd:bg-white"><td className="p-1"><a className="underline" href={`/episode/${p.slug}`}>{p.date}</a></td><td className="p-1">{p.items}</td><td className="p-1">{p.ordinances}</td><td className="p-1">{p.votes}</td><td className="p-1">{p.runtime ? `${p.runtime} min` : "—"}</td></tr>)}
             </tbody></table>
         </section>
-        <Note>Series are linked by the clerk reading the same title at each reading. Treat mixed-source series as leads to verify against the minutes.</Note>
+        <Note>Readings are matched up when the clerk reads the same title each time. Where the sources don&apos;t agree, check the minutes.</Note>
         <span className="hidden">{stageTone("first")}</span>
       </div>
     </div>
@@ -492,7 +492,7 @@ function Money({ b }: B) {
     <div className="min-h-full bg-green-950 p-5 text-green-50">
       <div className="mx-auto max-w-3xl space-y-4">
         <div className="rounded-xl bg-green-900/60 p-4 ring-1 ring-green-700">
-          <div className="text-[10px] font-bold uppercase tracking-widest text-green-300">Dollar figures on this call sheet</div>
+          <div className="text-[10px] font-bold uppercase tracking-widest text-green-300">Dollar amounts on this agenda</div>
           <div className="text-4xl font-black tabular-nums text-green-300">{money(a.amountTotal)}</div>
           <div className="text-xs text-green-200/80">Sum of every &ldquo;not to exceed&rdquo; or contract figure detected in item titles and recommended actions ({a.amounts.length}+ items). A ceiling is not the same as money spent.</div>
         </div>
@@ -502,7 +502,7 @@ function Money({ b }: B) {
             <div className="h-2 rounded bg-green-900"><div className="h-2 rounded bg-green-400" style={{ width: `${(x.amount / max) * 100}%` }} /></div>
           </div>
         ))}
-        {a.amounts.length === 0 && <Note>No dollar figures were detected for this episode.</Note>}
+        {a.amounts.length === 0 && <Note>No dollar amounts were found for this meeting.</Note>}
       </div>
     </div>
   );
@@ -545,7 +545,7 @@ function CallSheet({ b }: B) {
   return (
     <div className="min-h-full bg-sky-950 p-5 text-sky-50">
       <div className="mx-auto max-w-3xl space-y-5">
-        {b.show.acts.length === 0 && <Note>No agenda items were extracted for this episode.</Note>}
+        {b.show.acts.length === 0 && <Note>The agenda for this meeting hasn&apos;t been broken out item by item.</Note>}
         {b.show.acts.map((a) => (
           <section key={a.n}>
             <h3 className="text-sm font-black uppercase tracking-wider text-sky-300">{a.name}</h3>
@@ -600,17 +600,17 @@ function FactCheck({ b }: B) {
           </section>
         )}
         <section className="space-y-3">
-          <h3 className="text-xs font-bold uppercase tracking-widest text-rose-300">Rule-engine briefs (deterministic; each cites doc and page)</h3>
-          {b.briefs.length === 0 && <Note>No deterministic brief exists for this episode.</Note>}
+          <h3 className="text-xs font-bold uppercase tracking-widest text-rose-300">Automatic warnings (each one cites the document and page)</h3>
+          {b.briefs.length === 0 && <Note>No automatic warnings for this meeting.</Note>}
           {b.briefs.filter((x) => x.flags.length || x.quotes.length).map((x) => (
             <div key={x.itemNo + x.title} className="rounded-lg bg-rose-900/40 p-3 ring-1 ring-rose-900">
               <div className="mb-1 text-sm font-bold">Item {x.itemNo} <span className="font-normal text-rose-200/80">— {x.title.slice(0, 100)}</span></div>
               <div className="mb-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-rose-200/80">{Object.entries(x.facts).slice(0, 6).map(([k, v]) => <span key={k}><b>{k}</b>: {v.slice(0, 60)}</span>)}</div>
-              {x.flags.map((f, i) => <div key={i} className="mt-1 flex gap-2 text-xs"><Tag tone={sevTone(f.sev)}>{f.sev} {f.code}</Tag><span>{f.msg}</span></div>)}
+              {x.flags.map((f, i) => <div key={i} className="mt-1 flex gap-2 text-xs"><Tag tone={sevTone(f.sev)}>{SEV_LABEL[f.sev] ?? f.sev}: {flagLabel(f.code)}</Tag><span>{f.msg}</span></div>)}
               {x.quotes.slice(0, 3).map((q, i) => <blockquote key={i} className="mt-1 border-l-2 border-rose-500 pl-2 text-[11px] italic text-rose-100/80">p{q.page}: {q.text}</blockquote>)}
             </div>
           ))}
-          <Note>Known limits: acreage can concatenate legal-description numbers (e.g. &ldquo;1,9197.76&rdquo;); &ldquo;year mix&rdquo; is a pointer, not a finding; OCR&rsquo;d pages are machine-read.</Note>
+          <Note>Known limits: acreage can concatenate legal-description numbers (e.g. &ldquo;1,9197.76&rdquo;); &ldquo;year mix&rdquo; is a hint, not a conclusion; scanned pages were read by software and may contain errors.</Note>
         </section>
       </div>
     </div>
@@ -665,31 +665,31 @@ function Evidence({ b }: B) {
     <div className="min-h-full bg-neutral-900 p-5 text-neutral-100">
       <div className="mx-auto max-w-3xl space-y-5 text-sm">
         <section className="rounded-lg bg-neutral-800 p-3">
-          <div className="text-[10px] font-bold uppercase tracking-widest text-amber-400">Internet Archive &amp; Wayback Machine Broadcast Provenance</div>
+          <div className="text-[10px] font-bold uppercase tracking-widest text-amber-400">Where this meeting video comes from</div>
           <p className="mt-1 text-xs text-neutral-300">
-            Historical Cheyenne broadcast video streams are resolved directly via Internet Archive <code>cochwy-*</code> collections and Wayback Machine capture <b>{b.provenance.waybackTs}</b> (bypassing locked <code>archive-video.granicus.com</code> 403 buckets).
+            Older Cheyenne meeting videos come from the Internet Archive's copies of the city's channel, found through a saved copy of the city's meeting page (saved <b>{b.provenance.waybackTs}</b>). The city's own video server blocks direct downloads.
           </p>
           <a className="mt-1 block break-all text-xs text-sky-300 underline" href={b.provenance.waybackUrl} target="_blank" rel="noreferrer">{b.provenance.waybackUrl}</a>
-          <details className="mt-2 text-xs"><summary className="cursor-pointer text-neutral-400">All {b.provenance.captures.length} captures found for this page</summary>
+          <details className="mt-2 text-xs"><summary className="cursor-pointer text-neutral-400">All {b.provenance.captures.length} saved copies of this page</summary>
             <ul className="mt-1 columns-2 text-[11px]">{b.provenance.captures.map((c) => <li key={c.ts}><a className="text-sky-300 underline" href={c.url} target="_blank" rel="noreferrer">{c.ts.replace(/(\d{4})(\d\d)(\d\d)(\d\d)(\d\d)(\d\d)/, "$1-$2-$3 $4:$5Z")}</a></li>)}</ul>
           </details>
         </section>
         <section className="rounded-lg bg-neutral-800 p-3 text-xs">
           <div className="mb-1 text-[10px] font-bold uppercase tracking-widest text-sky-400">How to attend or comment</div>
           <p>
-            <b>{SCHED[m.body] ?? "See the season guide"}</b> · Municipal Building, Council Chambers, 2101 O&rsquo;Neil Ave., Cheyenne. Chambers meetings stream on the City&rsquo;s Facebook and YouTube pages; remote comment is via Zoom (links at cheyennecity.org/ecm). Schedule as stated on the city&rsquo;s Minutes and Agendas page.
+            <b>{SCHED[m.body] ?? "See the city meeting calendar"}</b> · Municipal Building, Council Chambers, 2101 O&rsquo;Neil Ave., Cheyenne. Chambers meetings stream on the City&rsquo;s Facebook and YouTube pages; remote comment is via Zoom (links at cheyennecity.org/ecm). Schedule as stated on the city&rsquo;s Minutes and Agendas page.
           </p>
         </section>
-        <section className="rounded-lg bg-neutral-800 p-3 text-xs"><div className="mb-1 text-[10px] font-bold uppercase tracking-widest text-emerald-400">Official record</div><p>{b.provenance.official}</p>{b.provenance.watchdog && <><div className="mb-1 mt-3 text-[10px] font-bold uppercase tracking-widest text-rose-400">Watchdog notes (medium confidence)</div><p>{b.provenance.watchdog}</p></>}</section>
-        <section><div className="mb-1 text-[10px] font-bold uppercase tracking-widest text-neutral-400">Verified Archive &amp; Provenance Links</div>
-          <div className="flex flex-wrap gap-2">{links.map((l) => <a key={l.url + l.label} href={l.url} target="_blank" rel="noreferrer" className="rounded bg-sky-700 px-2 py-1 text-xs font-semibold hover:bg-sky-600">{l.label} ↗</a>)}{links.length === 0 && <span className="text-xs text-neutral-400">No links in the season guide for this row.</span>}</div></section>
+        <section className="rounded-lg bg-neutral-800 p-3 text-xs"><div className="mb-1 text-[10px] font-bold uppercase tracking-widest text-emerald-400">Official record</div><p>{b.provenance.official}</p>{b.provenance.watchdog && <><div className="mb-1 mt-3 text-[10px] font-bold uppercase tracking-widest text-rose-400">Notes from local watchdogs (not official; may contain errors)</div><p>{b.provenance.watchdog}</p></>}</section>
+        <section><div className="mb-1 text-[10px] font-bold uppercase tracking-widest text-neutral-400">Original source links</div>
+          <div className="flex flex-wrap gap-2">{links.map((l) => <a key={l.url + l.label} href={l.url} target="_blank" rel="noreferrer" className="rounded bg-sky-700 px-2 py-1 text-xs font-semibold hover:bg-sky-600">{l.label} ↗</a>)}{links.length === 0 && <span className="text-xs text-neutral-400">No source links for this meeting.</span>}</div></section>
         {cleanMp4 && (
           <div className="overflow-hidden rounded-xl border-2 border-amber-400/50 bg-[#050912]">
             <div className="flex items-center justify-between border-b-2 border-amber-400 bg-[#09152b] px-3 py-1 text-[10px] font-black uppercase text-amber-300">
-              <span>[RWC] THE REAL WINDY CITY · INTERNET ARCHIVE BROADCAST</span>
+              <span>[RWC] THE REAL WINDY CITY · MEETING VIDEO</span>
               <div className="flex gap-2">
                 <button type="button" onClick={() => setEvPhase("intro")} className="rounded bg-white/10 px-2 py-0.5 text-white hover:bg-white/20">Intro</button>
-                <button type="button" onClick={() => setEvPhase("main")} className="rounded bg-amber-400 px-2 py-0.5 text-black">Broadcast</button>
+                <button type="button" onClick={() => setEvPhase("main")} className="rounded bg-amber-400 px-2 py-0.5 text-black">Meeting</button>
                 <button type="button" onClick={() => setEvPhase("outro")} className="rounded bg-white/10 px-2 py-0.5 text-white hover:bg-white/20">Outro</button>
               </div>
             </div>
@@ -715,8 +715,8 @@ function Evidence({ b }: B) {
             )}
             <div className="overflow-hidden border-t-2 border-rose-700 bg-[#0a1931] px-3 py-1 text-[10px] font-bold text-amber-300">
               <div className="ticker-track whitespace-nowrap">
-                <span className="pr-12">THE REAL WINDY CITY · {m.bodyName.toUpperCase()} · {m.date} · INTERNET ARCHIVE STREAM · {b.speakerTurns.length} SPEAKER CLIPS AVAILABLE IN SPEAKER LENS</span>
-                <span className="pr-12">THE REAL WINDY CITY · {m.bodyName.toUpperCase()} · {m.date} · INTERNET ARCHIVE STREAM · {b.speakerTurns.length} SPEAKER CLIPS AVAILABLE IN SPEAKER LENS</span>
+                <span className="pr-12">THE REAL WINDY CITY · {m.bodyName.toUpperCase()} · {m.date} · INTERNET ARCHIVE STREAM · {b.speakerTurns.length} SPEAKER CLIPS IN THE SPEAKER VIDEOS VIEW</span>
+                <span className="pr-12">THE REAL WINDY CITY · {m.bodyName.toUpperCase()} · {m.date} · INTERNET ARCHIVE STREAM · {b.speakerTurns.length} SPEAKER CLIPS IN THE SPEAKER VIDEOS VIEW</span>
               </div>
             </div>
           </div>
@@ -724,18 +724,38 @@ function Evidence({ b }: B) {
         <section><div className="mb-1 text-[10px] font-bold uppercase tracking-widest text-neutral-400">Attachments ({b.docs.length})</div>
           <div className="max-h-64 overflow-auto rounded bg-neutral-800 p-2 text-[11px]">
             {b.docs.map((d) => <div key={d.id} className="flex gap-2 border-b border-neutral-700 py-1"><span className="w-10 shrink-0 text-neutral-500">#{d.id}</span><span className="flex-1">{d.title}</span><span className="shrink-0 font-mono text-neutral-500">{d.sha1 ? d.sha1.slice(0, 8) : d.role}</span>{d.ocr && <Tag tone="amber">OCR</Tag>}</div>)}
-            {b.docs.length === 0 && <span className="text-neutral-400">No attachment metadata for this episode.</span>}
+            {b.docs.length === 0 && <span className="text-neutral-400">No attached documents listed for this meeting.</span>}
           </div></section>
-        <section className="text-[11px] text-neutral-400">Data sources: {m.sources.join(", ") || "season guide"}. Integrity rule: if it isn&rsquo;t quotable, it isn&rsquo;t asserted.</section>
+        <section className="text-[11px] text-neutral-400">Data sources: {m.sources.map(sourceLabel).filter((x, i, arr) => arr.indexOf(x) === i).join(", ") || "city meeting list"}. Our rule: if we can&rsquo;t quote a source for it, we don&rsquo;t say it.</section>
       </div>
     </div>
   );
 }
 
 /* ------------------------------------------------------------- CAST */
+function sourceLabel(src: string): string {
+  if (src === "wayback") return "saved copies of the city website (Wayback Machine)";
+  if (src.startsWith("archive.org")) return "Internet Archive meeting videos";
+  if (src.includes("cheyenne-archives")) return "The Real Windy City document archive";
+  if (src.includes("transcripts")) return "meeting video transcripts";
+  if (src === "granicus-index") return "the city's Granicus meeting portal";
+  if (src === "official_records" || src === "civic.db") return "official city records";
+  return src;
+}
+const BILLING_LABEL: Record<string, string> = {
+  Presiding: "Running the meeting",
+  "Title role": "Applicant",
+  Starring: "Council members",
+  "Co-starring": "Council members",
+  "Keeper of the record": "City Clerk",
+  "Guest star": "Applicants & representatives",
+  Supporting: "City staff",
+  Recurring: "Public commenters",
+};
 function Cast({ b }: B) {
   const order = ["Presiding", "Title role", "Starring", "Co-starring", "Keeper of the record", "Guest star", "Supporting", "Recurring"];
-  const groups = order.map((o) => [o, b.show.cast.filter((c) => c.billing === o)] as const).filter(([, v]) => v.length);
+  const labels = [...new Set([...order, ...b.show.cast.map((c) => c.billing)].map((o) => BILLING_LABEL[o] ?? o))];
+  const groups = labels.map((g) => [g, b.show.cast.filter((c) => (BILLING_LABEL[c.billing] ?? c.billing) === g)] as const).filter(([, v]) => v.length);
   return (
     <div className="min-h-full bg-violet-950 p-5 text-violet-50">
       <div className="mx-auto max-w-3xl space-y-5">
@@ -751,14 +771,14 @@ function Cast({ b }: B) {
                   </div>
                   <div className="flex gap-2 text-[10px] font-bold">
                     <Link href={`/speakers?q=${encodeURIComponent(c.name)}`} className="rounded bg-amber-400 px-2 py-0.5 text-black hover:bg-amber-300">🎙️ Speaker Clips →</Link>
-                    <Link href={`/osint?q=${encodeURIComponent(c.name)}`} className="rounded bg-emerald-500/30 px-2 py-0.5 text-emerald-100 hover:bg-emerald-500/50">🕸️ OSINT →</Link>
+                    <Link href={`/osint?q=${encodeURIComponent(c.name)}`} className="rounded bg-emerald-500/30 px-2 py-0.5 text-emerald-100 hover:bg-emerald-500/50">🕸️ Who&apos;s Who →</Link>
                   </div>
                 </div>
               ))}
             </div>
           </section>
         ))}
-        {groups.length === 0 && <Note>No cast data for this episode.</Note>}
+        {groups.length === 0 && <Note>No attendance information for this meeting.</Note>}
         <Note>{b.show.castNote}</Note>
       </div>
     </div>
