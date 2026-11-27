@@ -315,7 +315,6 @@
     if (!spk) return;
     const turns = DB.turns.filter((t) => t.speakerSlug === speakerSlug);
     const an = spk.analytics || {};
-    const baseUrl = window.location.origin + window.location.pathname;
     const md = [
       `# ${spk.name} — Cheyenne Speaker Segment & OSINT Dossier`,
       `- Role: ${spk.role}`,
@@ -396,13 +395,13 @@
     const an = t.speakerAnalytics;
     const dur = Math.min(180, Math.max(8, Math.round(t.durationSec || 45)));
     const standaloneSegmentUrl = t.brandedMp4Url || t.directMp4Url || "";
-    const shareUrl = window.location.origin + window.location.pathname + "#speakers:" + encodeURIComponent(t.speakerSlug);
+    const shareUrl = "https://www.facebook.com/profile.php?id=61576260305204"; // clip shares point to The Real Windy City Facebook page
     const caption = [
       `${emo.icon} ${t.speakerName} (${t.speakingCapacity || t.speakerRole}) at Cheyenne ${t.bodyName} — ${t.date} [${t.hms}] (${dur}s speaker clip)`,
       an ? `📊 Record: ${an.historicalClipCount} historical clips · Avg turn ${an.avgSpeakingFormatted}${an.pointOfOrderCount ? ` · ${an.pointOfOrderCount} Points of Order` : ""}` : "",
       ``,
       `“${t.text.slice(0, 320)}${t.text.length > 320 ? "…" : ""}”`,
-      `🎥 All Clips & OSINT Profile (${t.speakerName}): ${shareUrl}`,
+      `🎥 Follow The Real Windy City on Facebook: ${shareUrl}`,
       `#CheyenneWY #TheRealWindyCity #PublicRecord ${(t.themes || []).map((x) => "#" + x).join(" ")}`
     ].filter(Boolean).join("\n");
 

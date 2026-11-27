@@ -130,7 +130,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ slug: string }
       `🏛️ Capacity: ${t.speakingCapacity ?? profile.role} · Stance: ${t.stanceLabel ?? "Floor Record"} · Archive: ${profile.turnCount} Historical Clips (Avg ${an?.avgSpeakingFormatted ?? "1m 30s"})`,
       `"${t.text.slice(0, 260)}${t.text.length > 260 ? "…" : ""}"`,
       t.ordinances.length ? `📜 Ordinance Reading: ${t.ordinances.map((o) => `${o.slug} (${o.stage})`).join(", ")}` : null,
-      `🔗 All ${profile.turnCount} Historical Clips & OSINT Profile: https://therealwindycity.github.io/real-windy-city-tv/#/speakers/${slug}`,
+      `🔗 Follow The Real Windy City on Facebook: https://www.facebook.com/profile.php?id=61576260305204`,
       `#CheyenneWY #TheRealWindyCity #PublicRecord #WyomingCivicWatch #${t.themes[0] ?? "CityCouncil"}`,
     ]
       .filter(Boolean)

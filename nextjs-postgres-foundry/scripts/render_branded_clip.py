@@ -365,7 +365,7 @@ def render_turn(turn_id: int, out_file: Path | None = None) -> Path:
             "END OF VERIFIED SPEAKER SEGMENT",
             "THE REAL WINDY CITY",
             "Primary Sources: Official Clerk Minutes  •  Foundry Packet PDFs  •  Ch. 192 Broadcast",
-            "Watch All 1,615 Episodes & 19 Lenses: therealwindycity.github.io/real-windy-city-tv",
+            "Follow The Real Windy City on Facebook: facebook.com/profile.php?id=61576260305204",
             is_intro=False,
         )
 

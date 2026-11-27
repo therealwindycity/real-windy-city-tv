@@ -323,10 +323,8 @@ export function FacebookShareModal({
   const histClips = speaker?.turnCount ?? sa?.historicalClipCount ?? 1;
   const avgFmt = speaker?.analytics?.avgSpeakingFormatted ?? sa?.avgSpeakingFormatted ?? fmtDurShort(clampedDur);
 
-  const sharePageUrl =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/speakers?speaker=${encodeURIComponent(turn.speakerSlug)}&turn=${turn.id}`
-      : `https://therealwindycity.github.io/real-windy-city-tv/#/speakers/${encodeURIComponent(turn.speakerSlug)}`;
+  // clip shares point to The Real Windy City Facebook page (owner directive), not the website
+  const sharePageUrl = "https://www.facebook.com/profile.php?id=61576260305204";
 
   const defaultCaption = useMemo(() => {
     const emo = EMOTION_META[turn.emotion] ?? EMOTION_META.impactful;
@@ -340,7 +338,7 @@ export function FacebookShareModal({
       ``,
       `“${turn.text.slice(0, 300)}${turn.text.length > 300 ? "…" : ""}”`,
       ordTxt,
-      `🎥 Watch All ${histClips} Historical Clips & OSINT Profile:`,
+      `🎥 Follow The Real Windy City on Facebook:`,
       sharePageUrl,
       ``,
       `#CheyenneWY #TheRealWindyCity #PublicRecord #Wyoming #CityCouncil ${turn.themes.map((t) => `#${t}`).join(" ")}`,
