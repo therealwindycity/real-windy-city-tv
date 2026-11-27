@@ -236,7 +236,7 @@ async function main() {
       host.remove();
       return out;
     });
-    assert(retime.t1121[0] === 569.9 && retime.t1121[1] === "realigned", "GitHub Pages turn 1121 seeks to transcript-verified 569.9s (was 2216.0s)");
+    assert(retime.t1121[0] === 576.6 && retime.t1121[1] === "realigned", "GitHub Pages turn 1121 starts on the speaker (576.6s: transcript-verified 569.9s minus the chair's 6.7s call; was 2216.0s)");
     assert(retime.removedTiming === "removed" && !retime.removedSrc && !/<video/.test(retime.removedHtml) && /Transcript only/.test(retime.removedHtml), "GitHub Pages unverifiable turn shows 'Transcript only' and never plays a wrong moment");
     assert(retime.yt === "ehK-YMrWJBo" && !retime.ytSrc && /youtube-nocookie\.com\/embed\/ehK-YMrWJBo\?start=498/.test(retime.ytHtml), "GitHub Pages 11-17-26 turn plays YouTube original at the verified timestamp (IA copy corrupt)");
     const ghClipAudio = await page.evaluate(() => [...window.DB.turnById.values()].filter((t) => t.brandedMp4Url).length);

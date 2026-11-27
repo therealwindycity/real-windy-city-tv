@@ -553,7 +553,7 @@ export function SpeakerTurnPlayerCard({
                 📄 Transcript only
               </span>
             )}
-            {turn.videoTiming === "diarized_window" && (
+            {(turn.videoTiming === "diarized_window" || turn.speakerAttributionVerified === false) && (
               <span title={turn.videoTimingNote ?? ""} className="rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-amber-200 ring-1 ring-amber-400/30">
                 ⚠ Speaker unverified
               </span>

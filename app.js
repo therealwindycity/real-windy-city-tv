@@ -352,7 +352,7 @@
       } else {
         md.push(`- Video: transcript only — ${t.videoTimingNote || "no verified recording for this turn"}`);
       }
-      if (t.videoTiming === "diarized_window") md.push(`- Note: ${t.videoTimingNote}`);
+      if (t.videoTiming === "diarized_window" || t.speakerAttributionVerified === false) md.push(`- Note: ${t.speakerUnverifiedReason || t.videoTimingNote}`);
       md.push(`> "${t.text}"\n`);
     }
     const entries = [
@@ -505,7 +505,7 @@
           </div>
 
           <div style="font-size:11px;color:#94a3b8;margin-top:6px;font-family:var(--mono)">
-            <a href="#ep:${esc(t.meetingSlug)}" onclick="openEpisode('${esc(t.meetingSlug)}');return false;" style="color:var(--sky);font-weight:700">${esc(t.date)} · ${esc(t.bodyName)}</a> · <span style="color:var(--amber)">${esc(t.hms)} (${dur}s clip)</span>${t.videoTiming === "removed" ? ` <span class="tag" title="${esc(t.videoTimingNote || "")}" style="background:#1e293b;color:#cbd5e1">📄 Transcript only</span>` : t.videoTiming === "diarized_window" ? ` <span class="tag tag-amber" title="${esc(t.videoTimingNote || "")}">⚠ Speaker unverified</span>` : ""}
+            <a href="#ep:${esc(t.meetingSlug)}" onclick="openEpisode('${esc(t.meetingSlug)}');return false;" style="color:var(--sky);font-weight:700">${esc(t.date)} · ${esc(t.bodyName)}</a> · <span style="color:var(--amber)">${esc(t.hms)} (${dur}s clip)</span>${t.videoTiming === "removed" ? ` <span class="tag" title="${esc(t.videoTimingNote || "")}" style="background:#1e293b;color:#cbd5e1">📄 Transcript only</span>` : (t.videoTiming === "diarized_window" || t.speakerAttributionVerified === false) ? ` <span class="tag tag-amber" title="${esc(t.speakerUnverifiedReason || t.videoTimingNote || "")}">⚠ Speaker unverified</span>` : ""}
           </div>
 
           <div id="${vidId}" style="margin-top:9px">

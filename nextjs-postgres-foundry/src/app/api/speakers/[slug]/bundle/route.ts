@@ -144,7 +144,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ slug: string }
     } else {
       mdLines.push(`- **Video**: transcript only — ${t.videoTimingNote ?? "no verified recording for this turn"}`);
     }
-    if (t.videoTiming === "diarized_window") mdLines.push(`- **Note**: ${t.videoTimingNote}`);
+    if (t.videoTiming === "diarized_window" || t.speakerAttributionVerified === false) mdLines.push(`- **Note**: ${t.videoTimingNote}`);
     mdLines.push(`\n**Ready-to-Paste Facebook Post:**\n\`\`\`text\n${fbCaption}\n\`\`\`\n`);
 
     const fname = `RWC_${t.date}_${slug}_turn${String(t.id).padStart(4, "0")}_${durClamped}s.mp4`;

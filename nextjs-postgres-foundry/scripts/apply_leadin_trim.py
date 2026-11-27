@@ -44,7 +44,8 @@ NOT_A_CALL_BEFORE = {"by", "asked", "ask", "told", "with", "and", "from", "said"
 MENTION_NEXT = {"is", "was", "said", "says", "has", "had", "did", "does", "likes", "made", "wants", "mentioned",
                 "asked", "brought", "raised", "raises", "will", "would", "could", "can", "and", "s", "just", "also",
                 "pointed", "noted", "stated", "talked", "indicated", "suggested", "seconded", "moved",
-                "about", "for", "during", "to", "on", "in", "at", "of", "with", "from", "because", "that"}
+                "about", "for", "during", "to", "on", "in", "at", "of", "with", "from", "because", "that",
+                "you", "your", "appreciate", "indicated", "spoke", "referred", "talked", "agreed", "or", "as"}
 ROLL = {"yes", "no", "aye", "nay", "here", "present", "absent"}
 PAD, MIN_MOVE, MAX_MOVE, MIN_LEFT = 0.3, 1.0, 60.0, 5.0
 
@@ -72,10 +73,47 @@ def find_call(words, speaker_name):
     nxt0 = next((w for w in words[k + 1:k + 4] if w not in FILLERS), "")
     if any(p in ctx for p in SELF_INTRO) or "council members" in ctx or "members of" in ctx or nxt0.isdigit():
         return None, "self_introduction"
+    # the call may continue after the name: "Councilman Moody, you can go ahead." -> speaker starts after it
+    GO_AHEAD = (("you", "can", "go", "ahead"), ("you", "may", "go", "ahead"), ("please", "go", "ahead"), ("go", "ahead"),
+                ("you", "may", "proceed"), ("please", "proceed"), ("you", "have", "the", "floor"))
+    j = k + 1
+    while j < len(words) and words[j] in FILLERS:
+        j += 1
+    for g in GO_AHEAD:
+        if tuple(words[j:j + len(g)]) == g:
+            k = j + len(g) - 1
+            while k + 1 < len(words) and words[k + 1] in ("right", "sir", "please", "maam", "ma"):
+                k += 1
+            if k + 6 >= len(words):
+                return None, "no_name_call"
+            explicit_call = True
+            break
+    else:
+        explicit_call = False
+    rest = [w for w in words[k + 1:k + 10] if w not in FILLERS]
+    pre = " ".join(words[max(0, k - 4):k])
+    OPENERS = ("can you hear", "hello", "hi ", "good evening", "good afternoon", "good morning", "thank you")
+    if explicit_call or "go ahead" in pre or "recogniz" in pre or any((" ".join(rest) + " ").startswith(o) for o in OPENERS):
+        nxt = " ".join(rest[:6]) + " "
+        CALLER_CONTINUES = ("are you", "you want", "do you", "would you", "can you", "did you", "go ahead", "you can",
+                            "you have", "you may", "please")
+        if any(nxt.startswith(p) for p in PROC_START if p not in CALLER_CONTINUES):
+            return None, "label_suspect_chair_procedure"
+        return k, "name_call"
+    # member addresses the chair ("Mayor?" / "Mr. Mayor?" / "Mr. Chair?") and the chair names them ("Mr. White.")
+    CHAIR_ADDR = {"mayor", "chair", "chairman", "chairwoman", "president", "madam"}
+    short_recognition = (2 <= k <= 3 and all(w in TITLES or w in FILLERS for w in words[:k])
+                         and any(w in CHAIR_ADDR for w in words[:k - 1]) and words[k - 1] in TITLES)
+    if short_recognition:                      # "Mayor? -- Mr. White. -- Just a quick comment..."
+        nxt = " ".join(rest[:6]) + " "
+        if (rest and rest[0] in ROLL) or any(w in ("present", "here", "absent") for w in rest[:5]):
+            return None, "roll_call"
+        if any(nxt.startswith(p) for p in PROC_START):
+            return None, "label_suspect_chair_procedure"
+        return k, "name_call"
     lead = [w for w in words[max(0, k - 4):k] if w not in TITLES and not (first and fuzzy(w, first))]
     if lead and lead[-1] in NOT_A_CALL_BEFORE or " ".join(lead[-2:]) in ("thank you", "thanks to"):
         return None, "label_suspect_motion_or_mention"
-    rest = [w for w in words[k + 1:k + 10] if w not in FILLERS]
     nxt = " ".join(rest[:6]) + " "
     if words[k].endswith("s") and not last.endswith("s") or (rest and rest[0] in MENTION_NEXT):
         return None, "label_suspect_motion_or_mention"
@@ -106,6 +144,7 @@ def main():
     turns = json.loads(SEED.read_text())
     inv = json.loads(INV.read_text())
     by_ident, log = defaultdict(list), []
+    suspect_ids = set()
     for t in turns:
         u = t.get("sourceMeetingMp4Url") or ""
         if t.get("videoTiming") not in TIMED or "/download/" not in u or t.get("startSec") is None:
@@ -114,12 +153,40 @@ def main():
         k, why = find_call(words, t["speakerName"])
         ent = {"id": t["id"], "speaker": t["speakerSlug"], "decision": why}
         if k is None:
+            if why.startswith("label_suspect"):
+                suspect_ids.add(t["id"])
             if why != "no_name_call":
                 ent["head"] = " ".join(words[:k if k else 14][:24]); log.append(ent)
             continue
         ent["leadIn"] = " ".join(words[:k + 1])
         by_ident[u.split("/download/")[1].split("/")[0]].append((t, words, k, ent))
         log.append(ent)
+
+    MINUTES = re.compile(r'Voting “(yes|no)”|Comments? (was|were) made by the following|carried\. Voting')
+    REASON = {
+        "label_suspect_chair_procedure": "After {n} is called on, the words in this clip are the presiding officer's or clerk's "
+                                         "(motions, votes, next item), not {n}'s. The caption-based speaker label is unverified.",
+        "label_suspect_motion_or_mention": "{n} is only named here (a motion, a second, or a reference); the person speaking "
+                                           "in this clip may be someone else. The caption-based speaker label is unverified.",
+        "minutes_text": "This turn's text is the written meeting minutes, not a transcript of speech, so the clip may not show "
+                        "{n} speaking. The speaker label is unverified.",
+    }
+    flagged = Counter()
+    for t in turns:
+        if t.get("videoTiming") not in TIMED:
+            continue
+        e = next((x for x in log if x["id"] == t["id"]), None) if t["id"] in suspect_ids else None
+        why = e["decision"] if e and e["decision"] in REASON else None
+        if MINUTES.search(t.get("text") or "") and (t.get("alignScore") or 1) < 0.5:
+            why = "minutes_text"
+        if why and t.get("brandedMp4Url"):
+            why = None                     # branded clips were audio-verified when rendered
+        if why and t.get("speakerAttributionVerified") is not False:
+            t["speakerAttributionVerified"] = False
+            t["speakerUnverifiedReason"] = REASON[why].format(n=t["speakerName"])
+            t["videoTimingNote"] = ((t.get("videoTimingNote") or "") + " " + t["speakerUnverifiedReason"]).strip()
+            flagged[why] += 1
+    print("speaker label flagged unverified:", dict(flagged))
 
     for ident, items in sorted(by_ident.items()):
         _, tw = R.load_transcript(ident, inv)
@@ -147,7 +214,7 @@ def main():
             t["durationSec"] = round(end - new, 1)
             sec = int(new); t["hms"] = f"{sec // 3600:02d}:{sec % 3600 // 60:02d}:{sec % 60:02d}"
             if cut and cut < len(toks) - 3:
-                rest = " ".join(toks[cut:]).lstrip(",.;:- ")
+                rest = " ".join(toks[cut:]).lstrip(",.;:-> ")
                 t["textLeadIn"] = " ".join(toks[:cut])
                 t["text"] = rest[:1].upper() + rest[1:]
             note = f"Start moved {d:+.1f}s past the chair's call to the speaker's first word."

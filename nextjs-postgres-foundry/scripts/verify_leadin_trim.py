@@ -25,6 +25,9 @@ def overlap(heard, expect):
 def main():
     n = int(sys.argv[1]); random.seed(int(sys.argv[2]) if len(sys.argv) > 2 else 1)
     turns = [t for t in json.loads((ROOT / "data/seed/speaker_turns.json").read_text()) if t.get("leadInPrevStartSec") is not None]
+    import os
+    if os.environ.get("IDS"):
+        want = {int(x) for x in os.environ["IDS"].split(",")}; turns = [t for t in turns if t["id"] in want]
     model = WhisperModel("base.en", device="cpu", compute_type="int8", cpu_threads=2)
     out = []
     for t in random.sample(turns, min(n, len(turns))):
