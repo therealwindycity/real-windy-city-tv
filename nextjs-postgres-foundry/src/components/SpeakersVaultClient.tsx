@@ -96,7 +96,7 @@ export default function SpeakersVaultClient({
               🎙️ Cheyenne Historical Speaker-Segment Video Database, Advocacy Analytics &amp; OSINT Studio
             </div>
             <h1 className="mt-1 text-3xl font-black tracking-tight text-white sm:text-4xl">
-              2,483 Speaker Turns · 1,973 Timed to Video · 29 Branded Clips · {speakers.length} Verified Canonical Speakers
+              2,448 Speaker Turns · 1,951 Timed to Video · 25 Branded Clips · {speakers.length} Verified Canonical Speakers
             </h1>
             <p className="mt-2 max-w-3xl text-sm text-slate-300">
               Every clip features <b>The Real Windy City</b> intro/outro, a <b>C-SPAN style marquee info border</b>, synced cleaned captions, historical clip counts,{" "}

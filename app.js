@@ -621,7 +621,7 @@
           <p style="font-size:13px;color:#cbd5e1;line-height:1.55;max-width:660px">${esc(feat.logline)}</p>
           <div class="btn-row">
             <button type="button" class="btn btn-amber" onclick="openEpisode('${esc(feat.slug)}')">▶ Watch Featured Episode (19 Lenses)</button>
-            <button type="button" class="btn btn-fb" onclick="navTo('speakers')">🎙️ Speakers &amp; Analytics (2,483 turns)</button>
+            <button type="button" class="btn btn-fb" onclick="navTo('speakers')">🎙️ Speakers &amp; Analytics (2,448 turns)</button>
             <button type="button" class="btn btn-emerald" onclick="navTo('osint')">🕸️ OSINT Entity &amp; Vendor Graph (51)</button>
             <button type="button" class="btn btn-sky" onclick="navTo('foundry')">🏛️ Foundry PDFs (6,339)</button>
             <button type="button" class="btn btn-rose" onclick="navTo('provenance')">🎥 Provenance Films (14)</button>
@@ -630,7 +630,7 @@
         </div>
         <div class="stat-grid">
           <div class="stat-card"><div class="stat-big">1,583</div><div class="stat-lbl">Full Episodes (802 Internet Archive MP4s)</div></div>
-          <div class="stat-card"><div class="stat-big">2,483</div><div class="stat-lbl">Speaker Turns (1,973 Timed to Video · 29 Branded Clips)</div></div>
+          <div class="stat-card"><div class="stat-big">2,448</div><div class="stat-lbl">Speaker Turns (1,951 Timed to Video · 25 Branded Clips)</div></div>
           <div class="stat-card"><div class="stat-big">51 OSINT</div><div class="stat-lbl">Cross-Referenced Entities, Vendors &amp; Boards</div></div>
           <div class="stat-card"><div class="stat-big">6,339</div><div class="stat-lbl">Reconciled Minutes &amp; Supporting PDFs</div></div>
           <div class="stat-card"><div class="stat-big">275</div><div class="stat-lbl">Multi-Reading Ordinance Arcs (1st→Final)</div></div>
@@ -846,7 +846,7 @@
     if (lensKey === "speakers") {
       return turns.length
         ? `<div class="grid-2">${turns.map(renderTurnCard).join("")}</div>`
-        : `<div class="panel">No individual speaker clips extracted on this specific sitting; <a href="#speakers" onclick="navTo('speakers');return false;" style="color:var(--amber);text-decoration:underline">browse all 2,483 historical Cheyenne speaker turns →</a></div>`;
+        : `<div class="panel">No individual speaker clips extracted on this specific sitting; <a href="#speakers" onclick="navTo('speakers');return false;" style="color:var(--amber);text-decoration:underline">browse all 2,448 historical Cheyenne speaker turns →</a></div>`;
     }
 
     if (lensKey === "provenance") return renderProvenanceInner();
@@ -1144,7 +1144,7 @@
         <div style="display:flex;justify-content:space-between;align-items:start;flex-wrap:wrap;gap:12px">
           <div>
             <div class="kicker">🎙️ SPEAKER-SEGMENT VIDEO DATABASE, ADVOCACY ANALYTICS &amp; OSINT STUDIO</div>
-            <h1 style="margin:6px 0 6px;font-size:26px">2,483 Speaker Turns · 1,973 Timed to Video · 29 Branded Clips · ${DB.speakers.length} Canonical Speakers</h1>
+            <h1 style="margin:6px 0 6px;font-size:26px">2,448 Speaker Turns · 1,951 Timed to Video · 25 Branded Clips · ${DB.speakers.length} Canonical Speakers</h1>
           </div>
           <form class="search-form" onsubmit="STATE.spkQ=document.getElementById('spkSearchInput').value;STATE.spkPage=1;updateSpeakersResults();return false;">
             <input id="spkSearchInput" class="input" style="width:260px" placeholder="Search verbatim speech, speaker, date…" value="${esc(STATE.spkQ)}" oninput="STATE.spkQ=this.value;STATE.spkPage=1;updateSpeakersResults()" />

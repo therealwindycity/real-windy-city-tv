@@ -56,7 +56,7 @@ export default async function OsintGraphPage({
           Cross-referencing Cheyenne <b>Council Members</b>, <b>Mayor &amp; City Staff</b>, <b>Cheyenne LEADS</b>,{" "}
           <b>Greater Cheyenne Chamber of Commerce</b>, <b>Downtown Development Authority (DDA)</b>,{" "}
           <b>Engineering &amp; Paving Contractors</b> (AVI PC, Simon Contractors, Knife River, Reiman Corp, Benchmark),{" "}
-          <b>Developers &amp; Property Projects</b> (Microsoft, Skybox, Sweetgrass, Cox Ranch), and <b>Civic Watchdogs</b> across 1,583 meetings, 8,887 docket items, and 2,483 speaker clips.
+          <b>Developers &amp; Property Projects</b> (Microsoft, Skybox, Sweetgrass, Cox Ranch), and <b>Civic Watchdogs</b> across 1,583 meetings, 8,887 docket items, and 2,448 speaker clips.
         </p>
 
         <InstantFilterForm action="/osint" className="mt-4 flex flex-wrap items-center gap-2 text-xs">
@@ -113,7 +113,7 @@ export default async function OsintGraphPage({
           MATCHED_OSINT_ENTITIES={total} · PAGE {page} OF {totalPages}
         </span>
         <Link href="/speakers" className="font-bold text-amber-300 hover:underline">
-          🎙️ Open 2,483 Speaker Clips &amp; Advocacy Analytics →
+          🎙️ Open 2,448 Speaker Clips &amp; Advocacy Analytics →
         </Link>
       </div>
 

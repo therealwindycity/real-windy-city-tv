@@ -240,7 +240,7 @@ async function main() {
     assert(retime.removedTiming === "removed" && !retime.removedSrc && !/<video/.test(retime.removedHtml) && /Transcript only/.test(retime.removedHtml), "GitHub Pages unverifiable turn shows 'Transcript only' and never plays a wrong moment");
     assert(retime.yt === "ehK-YMrWJBo" && !retime.ytSrc && /youtube-nocookie\.com\/embed\/ehK-YMrWJBo\?start=498/.test(retime.ytHtml), "GitHub Pages 11-17-26 turn plays YouTube original at the verified timestamp (IA copy corrupt)");
     const ghClipAudio = await page.evaluate(() => [...window.DB.turnById.values()].filter((t) => t.brandedMp4Url).length);
-    assert(ghClipAudio === 29, `GitHub Pages lists 29 branded clips (${ghClipAudio})`);
+    assert(ghClipAudio === 25, `GitHub Pages lists 25 branded clips (${ghClipAudio})`);
 
     // A1 meeting-link verification: IA-upload-date ghost episodes removed, wrong-date links removed, badge shown
     const a1 = await page.evaluate(() => ({

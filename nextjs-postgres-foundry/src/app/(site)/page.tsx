@@ -58,7 +58,7 @@ export default async function HomePage() {
                 ▶ Watch Featured Episode ({LENSES.length} Lenses)
               </Link>
               <Link href="/speakers" className="rounded-full bg-[#1877F2] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#166fe5]">
-                🎙️ Speakers &amp; Analytics (2,483 turns)
+                🎙️ Speakers &amp; Analytics (2,448 turns)
               </Link>
               <Link href="/osint" className="rounded-full bg-emerald-500/25 px-4 py-2.5 text-sm font-bold text-emerald-100 ring-1 ring-emerald-400/40 hover:bg-emerald-500/35">
                 🕸️ OSINT Entity &amp; Contractor Graph (51)
@@ -81,7 +81,7 @@ export default async function HomePage() {
           <div className="grid grid-cols-2 gap-2.5 self-center">
             {[
               ["1,583", "Full Episodes (802 Internet Archive MP4s)"],
-              ["2,483", "Speaker Turns (1,973 Timed to Video · 29 Branded Clips)"],
+              ["2,448", "Speaker Turns (1,951 Timed to Video · 25 Branded Clips)"],
               ["51 OSINT", "Cross-Referenced Entities, Vendors & Boards"],
               ["6,339", "Minutes & Supporting Packet PDFs (1,081 OCR)"],
               ["275", "Multi-Reading Ordinance Arcs (1st→3rd)"],

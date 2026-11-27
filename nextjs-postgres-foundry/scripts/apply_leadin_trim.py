@@ -21,6 +21,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 import retime_turns as R                    # noqa: E402
 from audit_start_times import lcs_pairs      # noqa: E402
+from marker_handoff import find_handoff      # noqa: E402
 
 SEED = ROOT / "data/seed/speaker_turns.json"
 LOG = ROOT / "data/retime/leadin_trim_log.json"
@@ -129,7 +130,7 @@ def locate(words, k, tw, times, S, end):
     win = tw[lo:hi]
     if not win:
         return None
-    pairs = lcs_pairs(words[:120], [w for _, w in win])
+    pairs = lcs_pairs(words[:max(120, k + 40)], [w for _, w in win])
     if len(pairs) < 8:
         return None
     diag = sorted(j - i for i, j in pairs)[len(pairs) // 2]
@@ -143,14 +144,17 @@ def locate(words, k, tw, times, S, end):
 def main():
     turns = json.loads(SEED.read_text())
     inv = json.loads(INV.read_text())
-    by_ident, log = defaultdict(list), []
+    by_ident, log, why_of = defaultdict(list), [], {}
     suspect_ids = set()
     for t in turns:
         u = t.get("sourceMeetingMp4Url") or ""
         if t.get("videoTiming") not in TIMED or "/download/" not in u or t.get("startSec") is None:
             continue
         words = R.norm_words(t.get("text") or "")
-        k, why = find_call(words, t["speakerName"])
+        # caption speaker-change markers ('>>') first: they show exactly where the floor was handed over
+        k, why = find_handoff(t.get("text") or "", t["speakerName"], t.get("speakerRole"), R.norm_words)
+        if k is None:
+            k, why = find_call(words, t["speakerName"])
         ent = {"id": t["id"], "speaker": t["speakerSlug"], "decision": why}
         if k is None:
             if why.startswith("label_suspect"):
@@ -159,6 +163,7 @@ def main():
                 ent["head"] = " ".join(words[:k if k else 14][:24]); log.append(ent)
             continue
         ent["leadIn"] = " ".join(words[:k + 1])
+        why_of[t["id"]] = why
         by_ident[u.split("/download/")[1].split("/")[0]].append((t, words, k, ent))
         log.append(ent)
 
@@ -179,8 +184,6 @@ def main():
         why = e["decision"] if e and e["decision"] in REASON else None
         if MINUTES.search(t.get("text") or "") and (t.get("alignScore") or 1) < 0.5:
             why = "minutes_text"
-        if why and t.get("brandedMp4Url"):
-            why = None                     # branded clips were audio-verified when rendered
         if why and t.get("speakerAttributionVerified") is not False:
             t["speakerAttributionVerified"] = False
             t["speakerUnverifiedReason"] = REASON[why].format(n=t["speakerName"])
@@ -200,7 +203,8 @@ def main():
             d = new - S
             if d < MIN_MOVE:
                 ent.update(decision="already_ok", delta=round(d, 1)); continue
-            if d > MAX_MOVE or end - new < MIN_LEFT:
+            max_move = 150.0 if ent.get("decision") == "marker_handoff" or why_of.get(t["id"]) == "marker_handoff" else MAX_MOVE
+            if d > max_move or end - new < (20.0 if d > MAX_MOVE else MIN_LEFT):
                 ent.update(decision="move_rejected", delta=round(d, 1)); continue
             # trim the displayed text: drop original tokens covering norm-words 0..k
             toks, seen, cut = t["text"].split(), 0, None

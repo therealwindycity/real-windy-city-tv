@@ -870,7 +870,7 @@ export function EpisodeSpeakersLens({ b }: { b: EpisodeBundle }) {
         <div className="rounded-xl border border-white/10 bg-white/5 p-6 text-center text-sm text-slate-300">
           No speaker turns match the active filter on this sitting date.{" "}
           <Link href="/speakers" className="text-amber-300 underline">
-            Browse all 2,483 historical speaker turns across 246 Cheyenne speakers →
+            Browse all 2,448 historical speaker turns across 109 verified Cheyenne speakers →
           </Link>
         </div>
       )}
