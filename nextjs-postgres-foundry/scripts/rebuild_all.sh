@@ -13,6 +13,7 @@ python3 scripts/fix_trailing_calls.py    # clip showed the chair BEFORE the spea
 python3 scripts/fix_turn_ends.py         # end truncated turns where the speaker stops
 python3 scripts/dedupe_turns.py          # comments recorded twice in the source data
 python3 scripts/fix_exhibit_durations.py  # pre-cut exhibit clips: real file length
+python3 scripts/apply_manual_corrections.py  # hand-verified windows (data/retime/manual_corrections.json)
 python3 scripts/dedupe_meetings.py
 python3 scripts/clean_text_markers.py    # '>>' speaker-change markers -> ' — ' for display
 python3 scripts/recompute_speaker_stats.py | head -1
