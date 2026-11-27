@@ -178,6 +178,7 @@
            onloadedmetadata="if(${minStartSec}>0 && !'${esc(videoSrc)}'.includes('rwc-turn-')){try{if(this.duration>${minStartSec}+2)this.currentTime=${minStartSec};}catch(e){}}"
            ontimeupdate="if(${maxEndSec}>0 && !'${esc(videoSrc)}'.includes('rwc-turn-') && this.currentTime>=${maxEndSec}){this.pause();setCspanPhase('${id}','outro');}"
            onended="setCspanPhase('${id}','outro')"
+           onplay="if(${maxEndSec}>0 && !'${esc(videoSrc)}'.includes('rwc-turn-') && (this.currentTime>=${maxEndSec}-0.5 || this.currentTime<${minStartSec}-1)){this.currentTime=${minStartSec};}"
            style="width:100%;max-height:${opts.height || 310}px;display:block;background:#000"></video>`
       : iframeSrc
       ? `<iframe src="${esc(iframeSrc)}" allow="autoplay; encrypted-media" allowfullscreen style="width:100%;height:${opts.height || 260}px;border:0;display:block;background:#000"></iframe>`
