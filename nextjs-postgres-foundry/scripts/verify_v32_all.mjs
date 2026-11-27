@@ -57,7 +57,7 @@ async function main() {
 
     console.log("=== 1. VERIFYING NEXT.JS 16 + POSTGRESQL 17 (:3000) ===");
     await page.goto("http://127.0.0.1:3000/", { waitUntil: "networkidle" });
-    const homeTxt = await page.textContent("body");
+    const homeTxt = await page.innerText("body");
     assert(!homeTxt.toLowerCase().includes("cathy moody"), "Home page has 0 'Cathy Moody' occurrences");
     assert(homeTxt.includes("Who's Who"), "Home page links to Who's Who");
     assert(!/C-SPAN|OSINT|Palantir|Foundry|Gotham|Ontology/i.test(homeTxt), "Home page has no jargon (C-SPAN/OSINT/Palantir/Foundry/Gotham/Ontology)");
@@ -100,11 +100,11 @@ async function main() {
     await page.selectOption('select:has(option:text("Anyone (any role)"))', "Resident");
     await page.waitForURL("**/speakers**capacity=Resident**");
     assert(page.url().includes("capacity="), "Speakers role <select> updates immediately");
-    assert(!(await page.textContent("body")).includes("No clips match") && (await page.locator('button:has-text("Share on Facebook")').count()) > 0, "Filtering by role 'Resident' returns clips");
+    assert(!(await page.innerText("body")).includes("No clips match") && (await page.locator('button:has-text("Share on Facebook")').count()) > 0, "Filtering by role 'Resident' returns clips");
 
     // Inspect Mark Moody profile
     await page.goto("http://127.0.0.1:3000/speakers?speaker=mark-moody", { waitUntil: "networkidle" });
-    const moodyTxt = await page.textContent("body");
+    const moodyTxt = await page.innerText("body");
     assert(moodyTxt.includes("Mark Moody"), "Mark Moody profile loads");
     assert(!moodyTxt.toLowerCase().includes("cathy moody"), "Zero Cathy Moody on Mark Moody profile");
     assert(moodyTxt.includes("262 clips"), "Mark Moody shows 262 clips");
@@ -119,7 +119,7 @@ async function main() {
     if ((await playBtns.count()) > 0) {
       await playBtns.first().click();
       await page.waitForTimeout(500);
-      const stageTxt = await page.textContent("body");
+      const stageTxt = await page.innerText("body");
       assert(stageTxt.includes("THE REAL WINDY CITY"), "Framed video player mounts with THE REAL WINDY CITY header");
       await page.screenshot({ path: `${SHOTS_DIR}/03_nextjs_clip_player.png` });
     }
@@ -127,8 +127,8 @@ async function main() {
     // Open the Facebook share window and verify it offers only the speaker's clip
     await page.locator('button:has-text("Share on Facebook")').first().click();
     await page.waitForTimeout(300);
-    const modalTxt = await page.textContent("body");
-    assert(modalTxt.includes("Share this speaker clip on Facebook") && modalTxt.includes("-second clip"), "Facebook window offers only the speaker's clip");
+    const modalTxt = await page.innerText("body");
+    assert(modalTxt.toLowerCase().includes("share this speaker clip on facebook") && modalTxt.includes("-second clip"), "Facebook window offers only the speaker's clip");
     const dlHref = await page.locator('a[href*="/api/clips/"]').first().getAttribute("href");
     assert(dlHref && dlHref.includes("/api/clips/") && !dlHref.includes("archive.org/download/cochwy"), `Clip download href is strictly speaker-segment (${dlHref})`);
     await page.click('button:has-text("✕ Close")');
@@ -147,8 +147,8 @@ async function main() {
     // Verify Who's Who: search + Enter + category + pagination
     await page.click('header a[href="/osint"]');
     await page.waitForURL("**/osint**");
-    const osintTxt = await page.textContent("body");
-    assert(osintTxt.includes("Cheyenne LEADS") && osintTxt.includes("WHO'S WHO"), "Who's Who renders profiles");
+    const osintTxt = await page.innerText("body");
+    assert(osintTxt.includes("Cheyenne LEADS") && osintTxt.toLowerCase().includes("who's who"), "Who's Who renders profiles");
     assert(!/OSINT|Dossier|Entity|Entities/.test(osintTxt), "Who's Who page has no jargon (OSINT/Dossier/Entity)");
     await page.click('a:has-text("Next Page")');
     await page.waitForURL("**/osint?page=2**");
@@ -156,7 +156,7 @@ async function main() {
     await page.fill('input[name="q"]', "AVI");
     await page.click('button:has-text("Enter")');
     await page.waitForURL("**/osint?q=AVI**");
-    const aviTxt = await page.textContent("body");
+    const aviTxt = await page.innerText("body");
     assert(aviTxt.includes("AVI Professional Corporation") || aviTxt.includes("Brad Emmons"), "Who's Who search finds AVI PC / Brad Emmons");
     await page.screenshot({ path: `${SHOTS_DIR}/04_nextjs_whos_who.png` });
 
@@ -169,14 +169,14 @@ async function main() {
     ]) {
       await page.click(`header a[href="${route}"]`);
       await page.waitForURL(`**${route}**`);
-      const body = await page.textContent("body");
-      assert(body.includes(checkStr), `Route ${route} loads and displays '${checkStr}'`);
+      const body = await page.innerText("body");
+      assert(body.toLowerCase().includes(checkStr.toLowerCase()), `Route ${route} loads and displays '${checkStr}'`);
       assert(!/C-SPAN|OSINT|Palantir|Foundry|Gotham|Ontology|SHA-1|Datum|Provenance/.test(body), `Route ${route} has no jargon`);
     }
 
     console.log("=== 2. VERIFYING STATIC GITHUB PAGES v3.2 (:8787) ===");
     await page.goto("http://127.0.0.1:8787/", { waitUntil: "networkidle" });
-    const ghHome = await page.textContent("body");
+    const ghHome = await page.innerText("body");
     assert(ghHome.includes("Who's Who") && !/C-SPAN|OSINT|Palantir|Foundry|Gotham/i.test(ghHome), "GitHub Pages home shows Who's Who and no jargon");
     assert(!ghHome.toLowerCase().includes("cathy moody"), "GitHub Pages home has 0 Cathy Moody");
 
@@ -212,7 +212,7 @@ async function main() {
     await page.evaluate(() => window.openSpeaker("mark-moody"));
     await page.waitForTimeout(400);
     await page.evaluate(() => document.querySelectorAll("details").forEach((d) => (d.open = true)));
-    const ghMoodyBody = await page.textContent("body");
+    const ghMoodyBody = await page.innerText("body");
     assert(ghMoodyBody.includes("Mark Moody") && ghMoodyBody.includes("262"), "GitHub Pages Mark Moody profile shows 262 clips");
     assert(!ghMoodyBody.toLowerCase().includes("cathy moody"), "GitHub Pages Mark Moody profile has 0 Cathy Moody");
     assert(!/\bundefined\b|\bNaN\b|\[object Object\]/.test(ghMoodyBody), "GitHub Pages Mark Moody profile (expanded) has 0 undefined/NaN/[object Object]");
@@ -228,7 +228,7 @@ async function main() {
     const osintBody = await page.textContent("#app, main, body");
     assert(!/\bundefined\b|\bNaN\b/.test(osintBody), "GitHub Pages Who's Who cards contain 0 'undefined'/'NaN' values");
     await page.click('.pagination-bar button:has-text("Previous Page")');
-    const osintP1 = await page.textContent("body");
+    const osintP1 = await page.innerText("body");
     assert(osintP1.includes("Cheyenne LEADS") && !/\bundefined\b/.test(osintP1), "GitHub Pages Who's Who page 1 renders Cheyenne LEADS with clean speaker chips");
     await page.screenshot({ path: `${SHOTS_DIR}/06_ghpages_whos_who.png` });
 

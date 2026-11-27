@@ -1,6 +1,9 @@
 /* The Real Windy City — Cheyenne city meetings, speaker video clips, who's who and public records */
 (function () {
   "use strict";
+  // Where data/ and provenance/ live. The beta copy in a sub-folder sets window.RWC_BASE = "../".
+  const BASE = window.RWC_BASE || "./";
+  const assetUrl = (u) => (typeof u === "string" && u.startsWith("./") ? BASE + u.slice(2) : u);
 
   // "Views" of a single meeting. Keys are internal ids; names and blurbs are what visitors see.
   const LENSES = [
@@ -165,6 +168,7 @@
 
   function safeUrl(u) {
     if (!u) return "";
+    u = assetUrl(u);
     if (u.includes("archive-video.granicus.com")) return "";
     if (u.includes("granicus.com") && !u.includes("web.archive.org")) return "https://web.archive.org/web/" + u;
     return u;
@@ -197,7 +201,7 @@
     const iframeSrc = opts.iframeSrc || "";
     const maxEndSec = opts.endSec || 0;
     const minStartSec = opts.startSec || 0;
-    const poster = opts.poster ? `poster="${esc(opts.poster)}"` : "";
+    const poster = opts.poster ? `poster="${esc(assetUrl(opts.poster))}"` : "";
     const autoPlayAttr = opts.autoPlay ? "autoplay" : "";
 
     const mediaHtml = videoSrc
@@ -481,7 +485,7 @@
 
   async function ensureSeasonLoaded(season) {
     if (DB.seasonCache.has(season)) return DB.seasonCache.get(season);
-    const r = await fetch(`./data/seasons/${season}.json`);
+    const r = await fetch(`${BASE}data/seasons/${season}.json`);
     const j = await r.json();
     DB.seasonCache.set(season, j);
     return j;
@@ -489,7 +493,7 @@
 
   async function ensureDocsLoaded() {
     if (DB.docs) return DB.docs;
-    const r = await fetch(`./data/documents_compact.json`);
+    const r = await fetch(`${BASE}data/documents_compact.json`);
     DB.docs = await r.json();
     return DB.docs;
   }
@@ -1677,7 +1681,7 @@
     const p = DB.provenance;
     if (!box || !p) return;
     const pageSize = 25;
-    const rows = p.chapters.flatMap((c) => (c.ledgerRows || []).map((r) => ({ ...r, clipUrl: c.pagesUrl, chTitle: c.title })))
+    const rows = p.chapters.flatMap((c) => (c.ledgerRows || []).map((r) => ({ ...r, clipUrl: assetUrl(c.pagesUrl), chTitle: c.title })))
       .filter((r) => !STATE.provQ || `${r.key} ${r.item || ""} ${r.how || ""}`.toLowerCase().includes(STATE.provQ.toLowerCase()));
     const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
     if (STATE.provPage > totalPages) STATE.provPage = 1;
@@ -1803,13 +1807,13 @@
 
   async function boot() {
     const [eps, turns, spks, osint, ords, prov, people] = await Promise.all([
-      fetch("./data/episodes_index.json").then((r) => r.json()),
-      fetch("./data/speaker_turns.json").then((r) => r.json()),
-      fetch("./data/speakers_directory.json").then((r) => r.json()),
-      fetch("./data/osint_entities.json").then((r) => r.json()),
-      fetch("./data/ordinances.json").then((r) => r.json()),
-      fetch("./data/provenance_videos.json").then((r) => r.json()),
-      fetch("./data/people.json").then((r) => r.json())
+      fetch(BASE + "data/episodes_index.json").then((r) => r.json()),
+      fetch(BASE + "data/speaker_turns.json").then((r) => r.json()),
+      fetch(BASE + "data/speakers_directory.json").then((r) => r.json()),
+      fetch(BASE + "data/osint_entities.json").then((r) => r.json()),
+      fetch(BASE + "data/ordinances.json").then((r) => r.json()),
+      fetch(BASE + "data/provenance_videos.json").then((r) => r.json()),
+      fetch(BASE + "data/people.json").then((r) => r.json())
     ]);
     DB.episodes = eps;
     eps.forEach((e) => DB.epBySlug.set(e.slug, e));
